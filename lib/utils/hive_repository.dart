@@ -1,50 +1,75 @@
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+
 import 'datetime_ext.dart';
-import 'package:flutter/material.dart';
 import 'package:todo/models/event_data.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HiveRepository {
-  late final Box monthlyHive;
-  late final Box dailyHive;
-  final List<Map<dynamic, EventData>> thisMonthEventsMaps = List.filled(31, <dynamic, EventData>{});
-  late final Map<dynamic, EventData> unfinishedEventsMap;
-  late final Map<dynamic, EventData> dailyMonthlyEventsMap;
-  late final Map<dynamic, EventData> dailyTableEventsMap;
-  Iterable<EventData> thisMonthEvents = [];
+  late Box monthlyHive;
+  late Box dailyHive;
+  final List<Map<dynamic, EventData>> thisMonthEventsMaps = List.generate(31, (index) => <dynamic, EventData>{});
+  late Map<dynamic, EventData> unfinishedEventsMap;
+  Map<dynamic, EventData> dailyMonthlyEventsMap = {};
+  late Map<dynamic, EventData> dailyTableEventsMap;
+  List<EventData> thisMonthEvents = [];
   Iterable<EventData> unfinishedEvents = [];
   List<EventData> dailyTableEvents = [];
-  Iterable<EventData> dailyMonthlyEvents = [];
+  List<EventData> dailyMonthlyEvents = [];
   List<dynamic> inOrderDailyTableEvents = [];
 
-  HiveRepository() {
-    cacheInitialData();
-  }
+  HiveRepository();
+
   cacheInitialData() {
     monthlyHive = Hive.box<EventData>('monthEventBox');
     dailyHive = Hive.box<EventData>('dailyEventBox');
+
     // Purge if event was finished or if its more than 7 days old
-    Iterable<EventData> finished = dailyHive.values
-        .where((event) =>
-            event.finished && !event.start.isSameDate(DateTime.now()) ||
-            event.end.isBefore(DateTime.now().subtract(const Duration(days: 7))))
-        .cast();
+    Iterable<EventData> finished = dailyHive.values.where((event) {
+      EventData e = event;
+      return e.finished && !e.start.isSameDate(other: DateTime.now(), daily: true) ||
+          e.end.isBefore(DateTime.now().subtract(const Duration(days: 7)));
+    }).cast();
     for (EventData event in finished) {
       event.delete();
     }
-    thisMonthEvents = monthlyHive.values
-        .where((event) => (event.start.isSameMonthYear(DateTime.now()) || event.end.isSameMonthYear(DateTime.now())))
+
+    // Purge if event is older than 3 years
+    DateTime cutOffDate = DateTime(DateTime.now().year, DateTime.now().month).subtract(const Duration(days: 365 * 3));
+    Iterable<EventData> tooOld = monthlyHive.values.where((event) {
+      EventData e = event;
+      return e.end.isBefore(cutOffDate);
+    }).cast();
+    for (EventData event in tooOld) {
+      event.delete();
+    }
+
+    for (EventData event in monthlyHive.values) {
+      if (event.start.isSameMonthYear(DateTime.now()) || event.end.isSameMonthYear(DateTime.now())) {
+        thisMonthEvents.add(event);
+      }
+    }
+    unfinishedEvents = dailyHive.values.where((event) {
+      EventData e = event;
+      return !e.finished && e.end.isBeforeDate(other: DateTime.now());
+    }).cast();
+    dailyTableEvents = dailyHive.values
+        .where((event) {
+          EventData e = event;
+          return e.start.isSameDate(other: DateTime.now(), daily: true);
+        })
+        .toList()
         .cast();
-    unfinishedEvents = dailyHive.values
-        .where((event) => !event.finished && !event.end.isSameDate(other: DateTime.now(), daily: true))
-        .cast();
-    dailyTableEvents =
-        dailyHive.values.where((event) => event.start.isSameDate(other: DateTime.now(), daily: true)).toList().cast();
-    dailyMonthlyEvents =
-        monthlyHive.values.where((event) => DateTime.now().isBetweenDates(event.start, event.end)).cast();
+
+    for (EventData event in monthlyHive.values) {
+      if (DateTime.now().isBetweenDates(event.start, event.end)) {
+        dailyMonthlyEvents.add(event);
+      }
+    }
 
     for (EventData v in thisMonthEvents) {
       int start = v.start.day;
@@ -72,6 +97,7 @@ class HiveRepository {
       dailyTableEventsMap[event.key] = event;
     } else {
       int start = event.start.day;
+
       while (start <= event.end.day) {
         thisMonthEventsMaps[start - 1][event.key] = event;
         start++;
@@ -96,7 +122,6 @@ class HiveRepository {
           break;
         }
       }
-
       dailyTableEventsMap[event.key] = event;
     } else {
       int start = oldEvent!.start.day;
@@ -154,35 +179,58 @@ class HiveRepository {
 
   // For a new day
   getDailyEvents({required DateTime date}) {
-    dailyTableEvents =
-        dailyHive.values.where((event) => event.start.isSameDate(other: date, daily: true)).toList().cast();
-    dailyTableEventsMap = {for (EventData v in dailyTableEvents) v.key: v};
-    dailyMonthlyEvents = monthlyHive.values.where((event) => date.isBetweenDates(event.start, event.end)).cast();
+    dailyTableEvents = dailyHive.values
+        .where((event) {
+          EventData e = event;
+          return e.start.isSameDate(other: date, daily: true);
+        })
+        .toList()
+        .cast();
+    dailyTableEventsMap.clear();
+    dailyTableEventsMap.addAll({for (EventData v in dailyTableEvents) v.key: v});
+    inOrderDailyTableEvents.clear();
+    for (EventData v in dailyTableEvents) {
+      inOrderDailyTableEvents.add(v.key);
+    }
+
+    dailyMonthlyEvents.clear();
+    for (EventData event in monthlyHive.values) {
+      if (date.isBetweenDates(event.start, event.end)) {
+        dailyMonthlyEvents.add(event);
+      }
+    }
+    dailyMonthlyEventsMap = {for (EventData v in dailyMonthlyEvents) v.key: v};
   }
 
   // For a new month
   getMonthlyEvents({required DateTime date}) {
-    thisMonthEvents = monthlyHive.values
-        .where((event) => (event.start.isSameMonthYear(date) || event.end.isSameMonthYear(date)))
-        .cast();
+    thisMonthEvents.clear();
+    for (EventData event in monthlyHive.values) {
+      if ((event.start.isSameMonthYear(date) || event.end.isSameMonthYear(date))) {
+        thisMonthEvents.add(event);
+      }
+    }
+
     for (int i = 0; i < 31; i++) {
       thisMonthEventsMaps[i].clear();
     }
+
     for (EventData v in thisMonthEvents) {
       int start = v.start.day;
-      while (start > v.end.day) {
+      while (start <= v.end.day) {
         thisMonthEventsMaps[start - 1][v.key] = v;
         start++;
       }
     }
   }
 
-  importFile() async {
+  importFile(bool isAndroid) async {
     String firstBoxPath = monthlyHive.path!;
     String secondBoxPath = dailyHive.path!;
     if (monthlyHive.isNotEmpty || dailyHive.isNotEmpty) {
-      // ask them to pick a directory for backups
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Backup directory");
+      // String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Backup directory");
+      String? selectedDirectory =
+          isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
 
       if (selectedDirectory == null) {
         return;
@@ -192,11 +240,13 @@ class HiveRepository {
       await monthlyHive.close();
       await dailyHive.close();
 
-      encoder.addFile(await (File(firstBoxPath).copy(selectedDirectory + "/firstHive.hive")));
-      encoder.addFile(await (File(secondBoxPath).copy(selectedDirectory + "/secondHive.hive")));
+      encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/firstHive.hive")));
+      encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/secondHive.hive")));
       encoder.close();
       await Hive.openBox<EventData>('monthEventBox');
       await Hive.openBox<EventData>('dailyEventBox');
+      monthlyHive = Hive.box<EventData>('monthEventBox');
+      dailyHive = Hive.box<EventData>('dailyEventBox');
     }
 
     // Get the user to pick a  zip file
@@ -217,29 +267,40 @@ class HiveRepository {
       final secondStream = OutputFileStream(secondBoxPath);
       archive.files[1].writeContent(secondStream);
       secondStream.close();
+      await Hive.openBox<EventData>('monthEventBox');
+      await Hive.openBox<EventData>('dailyEventBox');
+      monthlyHive = Hive.box<EventData>('monthEventBox');
+      dailyHive = Hive.box<EventData>('dailyEventBox');
     }
   }
 
-  exportFile() async {
-    // ask them to pick a directory
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Export directory");
+  Future<String?> exportFile(bool isAndroid) async {
+    if (await Permission.storage.request().isGranted) {
+      {
+        String? selectedDirectory =
+            isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
+        if (selectedDirectory != null) {
+          var encoder = ZipFileEncoder();
+          encoder.create("$selectedDirectory/todo_data.zip");
+          String firstBoxPath = monthlyHive.path!;
+          String secondBoxPath = dailyHive.path!;
 
-    if (selectedDirectory != null) {
-      var encoder = ZipFileEncoder();
-      encoder.create("$selectedDirectory/todo_data.zip");
-      String firstBoxPath = monthlyHive.path!;
-      String secondBoxPath = dailyHive.path!;
+          await monthlyHive.close();
+          await dailyHive.close();
 
-      await monthlyHive.close();
-      await dailyHive.close();
+          encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/firstHive.hive")));
+          encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/secondHive.hive")));
+          encoder.close();
 
-      encoder.addFile(await (File(firstBoxPath).copy(selectedDirectory + "/firstHive.hive")));
-      encoder.addFile(await (File(secondBoxPath).copy(selectedDirectory + "/secondHive.hive")));
-      encoder.close();
-
-      await Hive.openBox<EventData>('monthEventBox');
-      await Hive.openBox<EventData>('dailyEventBox');
-      //show a little alert dialog -> Saved "filename"
+          await Hive.openBox<EventData>('monthEventBox');
+          await Hive.openBox<EventData>('dailyEventBox');
+          monthlyHive = Hive.box<EventData>('monthEventBox');
+          dailyHive = Hive.box<EventData>('dailyEventBox');
+          return selectedDirectory;
+        }
+      }
+      return null;
     }
+    return null;
   }
 }

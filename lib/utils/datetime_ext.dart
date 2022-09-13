@@ -9,6 +9,10 @@ extension DatePrecisionCompare on DateTime {
     }
   }
 
+  bool isBeforeDate({required DateTime other}) {
+    return isBefore(DateTime(other.year, other.month, other.day, 7));
+  }
+
   bool isSameMonthYear(DateTime other) {
     return year == other.year && month == other.month;
   }
@@ -29,12 +33,15 @@ extension DatePrecisionCompare on DateTime {
   bool enclosesOrContains(DateTime end, DateTime otherStart, DateTime otherEnd) {
     return (isAfter(otherStart) || isAtSameMomentAs(otherStart)) &&
             (end.isBefore(otherEnd) || end.isAtSameMomentAs(otherEnd)) ||
-        (isBefore(otherStart) && end.isAfter(otherEnd));
+        isAtSameMomentAs(otherStart) && end.isAfter(otherEnd) ||
+        end.isAtSameMomentAs(otherEnd) && isBefore(otherStart) ||
+        isBefore(otherStart) && end.isAfter(otherEnd);
   }
 
   int startingMonthCalenNum() {
-    int totalDaysInPrevMonth = DateTime(year, month - 1, 1).totalDaysInMonth();
-    return totalDaysInPrevMonth - (weekday - 1);
+    int totalDaysInPrevMonth = DateTime(year, month, 0).day;
+
+    return totalDaysInPrevMonth - (weekday - 2);
   }
 
   int totalDaysInMonth() {

@@ -34,11 +34,11 @@ class MonthlyTodoDateChange extends MonthlyTodoEvent {
   const MonthlyTodoDateChange({required this.date});
 }
 
-abstract class MonthlyTodoState extends Equatable {
+abstract class MonthlyTodoState {
   final List<Map<dynamic, EventData>> monthlyMaps;
   final bool changedDailyList;
   const MonthlyTodoState(this.monthlyMaps, this.changedDailyList);
-  @override
+
   List<Object> get props => [monthlyMaps];
 }
 

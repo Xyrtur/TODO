@@ -4,7 +4,8 @@ import 'package:todo/models/event_data.dart';
 import 'package:todo/utils/hive_repository.dart';
 
 class CheckboxCubit extends Cubit<bool> {
-  CheckboxCubit() : super(false);
+  final bool fullDay;
+  CheckboxCubit(this.fullDay) : super(fullDay);
 
   //Toggles
   void toggle() => emit(!state);
@@ -47,7 +48,20 @@ class CalendarTypeCubit extends Cubit<CalendarType> {
 class DailyMonthlyListCubit extends Cubit<List<EventData>> {
   final HiveRepository hive;
   DailyMonthlyListCubit(this.hive) : super(hive.dailyMonthlyEventsMap.values.toList());
-  void update() => emit(hive.dailyMonthlyEventsMap.values.toList());
+  void update() {
+    return emit(hive.dailyMonthlyEventsMap.values.toList());
+  }
+}
+
+class DraggingSplitBlockCubit extends Cubit<bool> {
+  DraggingSplitBlockCubit() : super(false);
+  void grabbedSplit() {
+    return emit(true);
+  }
+
+  void letGo() {
+    return emit(false);
+  }
 }
 
 class TimeRangeState {

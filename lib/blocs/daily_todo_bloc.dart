@@ -34,45 +34,46 @@ class TodoDateChange extends TodoEvent {
   const TodoDateChange({required this.date});
 }
 
-abstract class TodoState extends Equatable {
+abstract class TodoState {
   final List<dynamic> orderedDailyKeyList;
   final Map<dynamic, EventData> dailyTableMap;
-  const TodoState(this.orderedDailyKeyList, this.dailyTableMap);
-  @override
-  List<Object> get props => [orderedDailyKeyList, dailyTableMap];
+  final bool dateChanged;
+  const TodoState(this.orderedDailyKeyList, this.dailyTableMap, this.dateChanged);
+
+  List<Object> get props => [orderedDailyKeyList, dailyTableMap, dateChanged];
 }
 
 class TodoInitial extends TodoState {
-  const TodoInitial(super.orderedDailyKeyList, super.dailyTableMap);
+  const TodoInitial(super.orderedDailyKeyList, super.dailyTableMap, super.dateChanged);
 }
 
 class TodoRefreshed extends TodoState {
-  const TodoRefreshed(super.orderedDailyKeyList, super.dailyTableMap);
+  const TodoRefreshed(super.orderedDailyKeyList, super.dailyTableMap, super.dateChanged);
 }
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final HiveRepository hive;
 
-  TodoBloc(this.hive) : super(TodoInitial(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap)) {
+  TodoBloc(this.hive) : super(TodoInitial(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false)) {
     on<TodoCreate>((event, emit) {
       hive.createEvent(daily: true, event: event.event);
-      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap));
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoAddUnfinished>((event, emit) {
       hive.addUnfinishedEvent(event: event.event);
-      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap));
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoUpdate>((event, emit) {
       hive.updateEvent(daily: true, event: event.event);
-      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap));
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoDelete>((event, emit) {
       hive.deleteEvent(daily: true, event: event.event);
-      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap));
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoDateChange>((event, emit) {
       hive.getDailyEvents(date: event.date);
-      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap));
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, true));
     });
   }
 }

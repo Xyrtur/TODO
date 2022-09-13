@@ -35,7 +35,7 @@ class MonthYearPicker extends StatelessWidget {
                       child: Icon(
                         Icons.chevron_left_rounded,
                         size: Centre.safeBlockVertical * 3,
-                        color: Centre.colors[9],
+                        color: Centre.secondaryColor,
                       ),
                     ),
                   ),
@@ -50,7 +50,7 @@ class MonthYearPicker extends StatelessWidget {
                       child: Icon(
                         Icons.chevron_right_rounded,
                         size: Centre.safeBlockVertical * 3,
-                        color: Centre.colors[9],
+                        color: Centre.secondaryColor,
                       ),
                     ),
                   )
@@ -70,58 +70,64 @@ class MonthYearPicker extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return SizedBox(
                       height: Centre.safeBlockVertical * 33.5,
-                      child: Column(
-                        children: [
-                          for (int i = 0; i < 6; i++)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                GestureDetector(
-                                    onTap: () {
-                                      context
-                                          .read<MonthDateCubit>()
-                                          .update(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 1));
+                      child: BlocBuilder<MonthDateCubit, DateTime>(
+                        builder: (context, state) => Column(
+                          children: [
+                            for (int i = 0; i < 6; i++)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  GestureDetector(
+                                      onTap: () {
+                                        context
+                                            .read<MonthDateCubit>()
+                                            .update(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 1));
 
-                                      Navigator.pop(context);
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.all(Centre.safeBlockVertical * 0.8),
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: Centre.safeBlockVertical * 0.8,
-                                          horizontal: Centre.safeBlockHorizontal * 5),
-                                      decoration: BoxDecoration(
-                                          color: Centre.lighterDialogColor,
-                                          borderRadius: const BorderRadius.all(Radius.circular(40))),
-                                      child: Text(
-                                        DateFormat.MMM()
-                                            .format(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 1)),
-                                        style: Centre.smallerDialogText,
-                                      ),
-                                    )),
-                                GestureDetector(
-                                    onTap: () {
-                                      context
-                                          .read<MonthDateCubit>()
-                                          .update(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 1));
-                                      Navigator.pop(context);
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.all(Centre.safeBlockVertical * 0.8),
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: Centre.safeBlockVertical * 0.8,
-                                          horizontal: Centre.safeBlockHorizontal * 5),
-                                      decoration: BoxDecoration(
-                                          color: Centre.lighterDialogColor,
-                                          borderRadius: const BorderRadius.all(Radius.circular(40))),
-                                      child: Text(
-                                        DateFormat.MMM()
-                                            .format(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 2)),
-                                        style: Centre.smallerDialogText,
-                                      ),
-                                    ))
-                              ],
-                            ),
-                        ],
+                                        Navigator.pop(context);
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.all(Centre.safeBlockVertical * 0.8),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: Centre.safeBlockVertical * 0.8,
+                                            horizontal: Centre.safeBlockHorizontal * 5),
+                                        decoration: BoxDecoration(
+                                            color: state.month == 2 * i + 1
+                                                ? Centre.secondaryColor
+                                                : Centre.lighterDialogColor,
+                                            borderRadius: const BorderRadius.all(Radius.circular(40))),
+                                        child: Text(
+                                          DateFormat.MMM()
+                                              .format(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 1)),
+                                          style: Centre.smallerDialogText,
+                                        ),
+                                      )),
+                                  GestureDetector(
+                                      onTap: () {
+                                        context
+                                            .read<MonthDateCubit>()
+                                            .update(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 2));
+                                        Navigator.pop(context);
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.all(Centre.safeBlockVertical * 0.8),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: Centre.safeBlockVertical * 0.8,
+                                            horizontal: Centre.safeBlockHorizontal * 5),
+                                        decoration: BoxDecoration(
+                                            color: state.month == 2 * i + 2
+                                                ? Centre.secondaryColor
+                                                : Centre.lighterDialogColor,
+                                            borderRadius: const BorderRadius.all(Radius.circular(40))),
+                                        child: Text(
+                                          DateFormat.MMM()
+                                              .format(DateTime(context.read<YearTrackingCubit>().state, 2 * i + 2)),
+                                          style: Centre.smallerDialogText,
+                                        ),
+                                      ))
+                                ],
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   }),

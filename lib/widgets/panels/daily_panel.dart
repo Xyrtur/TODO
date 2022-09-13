@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:todo/blocs/cubits.dart';
@@ -51,9 +53,12 @@ class DailyPanel extends StatelessWidget {
                           onTap: () async {
                             await showDialog(
                                 context: context,
-                                builder: (BuildContext context) {
-                                  return DeleteConfirmationDialog(
-                                      type: DeletingFrom.unfinishedList, event: state.unfinishedList[index]);
+                                builder: (BuildContext tcontext) {
+                                  return BlocProvider.value(
+                                    value: context.read<UnfinishedListBloc>(),
+                                    child: DeleteConfirmationDialog(
+                                        type: DeletingFrom.unfinishedList, event: state.unfinishedList[index]),
+                                  );
                                 });
                           },
                           child: Container(
@@ -73,29 +78,32 @@ class DailyPanel extends StatelessWidget {
                           onTap: () async {
                             await showDialog<EventData>(
                                 context: context,
-                                builder: (BuildContext context) {
-                                  return MultiBlocProvider(
-                                      providers: [
-                                        BlocProvider<TimeRangeCubit>(
-                                          create: (_) => TimeRangeCubit(TimeRangeState(
-                                              TimeOfDay(
-                                                  hour: state.unfinishedList[index].start.hour,
-                                                  minute: state.unfinishedList[index].start.minute),
-                                              TimeOfDay(
-                                                  hour: state.unfinishedList[index].end.hour,
-                                                  minute: state.unfinishedList[index].end.minute))),
-                                        ),
-                                        BlocProvider<ColorCubit>(
-                                          create: (_) => ColorCubit(
-                                              Centre.colors.indexOf(Color(state.unfinishedList[index].color))),
-                                        ),
-                                      ],
-                                      child: AddEventDialog.daily(
-                                        monthOrDayDate: context.read<DateCubit>().state,
-                                        dailyTableMap: context.read<TodoBloc>().state.dailyTableMap,
-                                        orderedDailyKeyList: context.read<TodoBloc>().state.orderedDailyKeyList,
-                                        event: state.unfinishedList[index],
-                                      ));
+                                builder: (BuildContext tcontext) {
+                                  return Scaffold(
+                                    backgroundColor: Colors.transparent,
+                                    body: MultiBlocProvider(
+                                        providers: [
+                                          BlocProvider<TimeRangeCubit>(
+                                            create: (_) => TimeRangeCubit(TimeRangeState(
+                                                TimeOfDay(
+                                                    hour: state.unfinishedList[index].start.hour,
+                                                    minute: state.unfinishedList[index].start.minute),
+                                                TimeOfDay(
+                                                    hour: state.unfinishedList[index].end.hour,
+                                                    minute: state.unfinishedList[index].end.minute))),
+                                          ),
+                                          BlocProvider<ColorCubit>(
+                                            create: (_) => ColorCubit(
+                                                Centre.colors.indexOf(Color(state.unfinishedList[index].color))),
+                                          ),
+                                          BlocProvider.value(value: context.read<DateCubit>()),
+                                          BlocProvider.value(value: context.read<TodoBloc>()),
+                                          BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                                        ],
+                                        child: AddEventDialog.daily(
+                                          event: state.unfinishedList[index],
+                                        )),
+                                  );
                                 });
                           },
                           child: Container(
@@ -144,24 +152,25 @@ class DailyPanel extends StatelessWidget {
                         onTap: () async {
                           await showDialog<EventData>(
                               context: context,
-                              builder: (BuildContext context) {
-                                return MultiBlocProvider(
-                                    providers: [
-                                      BlocProvider<TimeRangeCubit>(
-                                        create: (_) => TimeRangeCubit(TimeRangeState(
-                                            TimeOfDay(hour: state[index].start.hour, minute: state[index].start.minute),
-                                            TimeOfDay(hour: state[index].end.hour, minute: state[index].end.minute))),
-                                      ),
-                                      BlocProvider<ColorCubit>(
-                                        create: (_) => ColorCubit(Centre.colors.indexOf(Color(state[index].color))),
-                                      ),
-                                    ],
-                                    child: AddEventDialog.daily(
-                                      monthOrDayDate: context.read<DateCubit>().state,
-                                      dailyTableMap: context.read<TodoBloc>().state.dailyTableMap,
-                                      orderedDailyKeyList: context.read<TodoBloc>().state.orderedDailyKeyList,
-                                      event: state[index],
-                                    ));
+                              builder: (BuildContext tcontext) {
+                                return Scaffold(
+                                  backgroundColor: Colors.transparent,
+                                  body: MultiBlocProvider(
+                                      providers: [
+                                        BlocProvider<TimeRangeCubit>(
+                                          create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                                        ),
+                                        BlocProvider<ColorCubit>(
+                                          create: (_) => ColorCubit(Centre.colors.indexOf(Color(state[index].color))),
+                                        ),
+                                        BlocProvider.value(value: context.read<DateCubit>()),
+                                        BlocProvider.value(value: context.read<TodoBloc>()),
+                                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                                      ],
+                                      child: AddEventDialog.daily(
+                                        event: state[index],
+                                      )),
+                                );
                               });
                         },
                         child: Row(

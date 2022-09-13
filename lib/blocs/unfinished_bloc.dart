@@ -18,10 +18,10 @@ class UnfinishedListRemove extends UnfinishedListEvent {
   const UnfinishedListRemove({required this.event});
 }
 
-abstract class UnfinishedListState extends Equatable {
+abstract class UnfinishedListState {
   final List<EventData> unfinishedList;
   const UnfinishedListState(this.unfinishedList);
-  @override
+
   List<Object> get props => [unfinishedList];
 }
 

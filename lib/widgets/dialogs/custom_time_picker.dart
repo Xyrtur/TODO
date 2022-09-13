@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:todo/models/event_data.dart';
 import 'package:todo/utils/centre.dart';
 import '../../utils/datetime_ext.dart';
-import '../../utils/hive_repository.dart';
 
 const Duration _kDialogSizeAnimationDuration = Duration(milliseconds: 200);
 const Duration _kDialAnimateDuration = Duration(milliseconds: 200);
@@ -65,7 +64,7 @@ class _TimePickerFragmentContext {
 }
 
 class _TimePickerHeader extends StatelessWidget {
-  _TimePickerHeader({
+  const _TimePickerHeader({
     required this.selectedTime,
     required this.mode,
     required this.badHour,
@@ -100,7 +99,6 @@ class _TimePickerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
-    final ThemeData themeData = Theme.of(context);
     final TimeOfDayFormat timeOfDayFormat = MaterialLocalizations.of(context).timeOfDayFormat(
       alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
     );
@@ -243,10 +241,10 @@ class _HourMinuteControl extends StatelessWidget {
           return states.contains(MaterialState.selected) ? Centre.yellow : Centre.textColor;
         });
     final Color backgroundColor = Centre.bgColor;
-    final TextStyle style = timePickerTheme.hourMinuteTextStyle ?? themeData.textTheme.headline2!;
+    final TextStyle style = timePickerTheme.hourMinuteTextStyle ?? themeData.textTheme.displayMedium!;
     final ShapeBorder shape = RoundedRectangleBorder(
         side: BorderSide(color: badNotGood ? Centre.red : Centre.darkerBgColor, width: Centre.safeBlockHorizontal),
-        borderRadius: BorderRadius.all(Radius.circular(4)));
+        borderRadius: const BorderRadius.all(Radius.circular(4)));
 
     final Set<MaterialState> states = isSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
     return SizedBox(
@@ -366,7 +364,7 @@ class _StringFragment extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
-    final TextStyle hourMinuteStyle = timePickerTheme.hourMinuteTextStyle ?? theme.textTheme.headline2!;
+    final TextStyle hourMinuteStyle = timePickerTheme.hourMinuteTextStyle ?? theme.textTheme.displayMedium!;
     final Color textColor = Centre.textColor;
 
     return ExcludeSemantics(
@@ -511,7 +509,7 @@ class _DayPeriodControl extends StatelessWidget {
     final Set<MaterialState> amStates = amSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
     final bool pmSelected = !amSelected;
     final Set<MaterialState> pmStates = pmSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
-    final TextStyle textStyle = timePickerTheme.dayPeriodTextStyle ?? Theme.of(context).textTheme.subtitle1!;
+    final TextStyle textStyle = timePickerTheme.dayPeriodTextStyle ?? Theme.of(context).textTheme.titleMedium!;
     final TextStyle amStyle = textStyle.copyWith(
       color: MaterialStateProperty.resolveAs(textColor, amStates),
     );
@@ -1201,9 +1199,6 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final TimePickerThemeData pickerTheme = TimePickerTheme.of(context);
-    final Color backgroundColor =
-        pickerTheme.dialBackgroundColor ?? themeData.colorScheme.onBackground.withOpacity(0.12);
-    final Color accentColor = pickerTheme.dialHandColor ?? themeData.colorScheme.primary;
     final Color primaryLabelColor = MaterialStateProperty.resolveAs(pickerTheme.dialTextColor, <MaterialState>{}) ??
         themeData.colorScheme.onSurface;
     final Color secondaryLabelColor =
@@ -1421,7 +1416,7 @@ class _TimePickerInputState extends State<_TimePickerInput> with RestorationMixi
         MaterialLocalizations.of(context).timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.headline2!;
+    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.displayMedium!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -1469,7 +1464,7 @@ class _TimePickerInputState extends State<_TimePickerInput> with RestorationMixi
                             ExcludeSemantics(
                               child: Text(
                                 widget.hourLabelText ?? MaterialLocalizations.of(context).timePickerHourLabel,
-                                style: theme.textTheme.caption,
+                                style: theme.textTheme.bodySmall,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1522,13 +1517,10 @@ class _TimePickerInputState extends State<_TimePickerInput> with RestorationMixi
               ],
             ],
           ),
-          if (hourHasError.value || minuteHasError.value)
-            Text(
-              widget.errorInvalidText ?? MaterialLocalizations.of(context).invalidTimeLabel,
-              style: theme.textTheme.bodyText2!.copyWith(color: theme.colorScheme.error),
-            )
-          else
-            const SizedBox(height: 2.0),
+          Text(
+            widget.errorInvalidText ?? "",
+            style: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.error),
+          ),
         ],
       ),
     );
@@ -1705,8 +1697,7 @@ class _HourMinuteTextFieldState extends State<_HourMinuteTextField> with Restora
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         hintStyle: widget.style.copyWith(color: colorScheme.onSurface.withOpacity(0.36)),
-        // TODO(rami-a): Remove this logic once https://github.com/flutter/flutter/issues/54104 is fixed.
-        errorStyle: const TextStyle(fontSize: 0.0, height: 0.0), // Prevent the error text from appearing.
+        errorStyle: const TextStyle(fontSize: 0.0, height: 0.0),
       );
     }
     final Color unfocusedFillColor = timePickerTheme.hourMinuteColor ?? colorScheme.onSurface.withOpacity(0.12);
@@ -1714,8 +1705,6 @@ class _HourMinuteTextFieldState extends State<_HourMinuteTextField> with Restora
     // Otherwise, remove the hint text when focused because the centered cursor
     // appears odd above the hint text.
     //
-    // TODO(rami-a): Once https://github.com/flutter/flutter/issues/67571 is
-    // resolved, remove the window check for semantics being enabled on web.
     final String? hintText =
         MediaQuery.of(context).accessibleNavigation || WidgetsBinding.instance.window.semanticsEnabled
             ? widget.semanticHintText
@@ -1766,6 +1755,7 @@ typedef EntryModeChangeCallback = void Function(TimePickerEntryMode);
 /// selected [TimeOfDay] if the user taps the "OK" button, or null if the user
 /// taps the "CANCEL" button. The selected time is reported by calling
 /// [Navigator.pop].
+// ignore: must_be_immutable
 class TimePickerDialog extends StatefulWidget {
   /// Creates a Material Design time picker.
   ///
@@ -2076,6 +2066,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
   void _handleOk() {
     final int newHour = _selectedTime.value.hour;
     final int newMinute = _selectedTime.value.minute;
+    badHour = false;
+    badMinute = false;
 
     if (widget.daily) {
       if (widget.startTime == null) {
@@ -2120,88 +2112,99 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
         });
       }
     }
-    if (widget.daily && !badHour && !badMinute) {
-      if (widget.editingEvent == null) {
-        DateTime start, end;
-        if (widget.startTime == null) {
-          // Checking startTime adding event
-          for (EventData v in widget.dailyTableMap!.values) {
-            start = widget.dailyDate!
-                .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
-            if (start.isInTimeRange(v.start, v.end)) {
-              badHour = true;
-              badMinute = true;
-              setState(() {
-                widget.errorInvalidText = "Clashes with event ${v.text}";
-              });
-              return;
+    if (widget.daily) {
+      if (!badHour && !badMinute) {
+        if (widget.editingEvent == null) {
+          DateTime start, end;
+          if (widget.startTime == null) {
+            // Checking startTime adding event
+            for (EventData v in widget.dailyTableMap!.values) {
+              start = widget.dailyDate!
+                  .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+              if (start.isInTimeRange(v.start, v.end)) {
+                badHour = true;
+                badMinute = true;
+                setState(() {
+                  widget.errorInvalidText = "Clashes with event ${v.text}";
+                });
+                return;
+              }
+            }
+          } else {
+            // Check End time and if new event encompasses / encloses an event
+            for (EventData v in widget.dailyTableMap!.values) {
+              end = widget.dailyDate!
+                  .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+              start = widget.dailyDate!.add(Duration(
+                  hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 2
+                      ? widget.startTime!.hour + 12
+                      : widget.startTime!.hour,
+                  minutes: widget.startTime!.minute));
+              if (end.isInTimeRange(v.start, v.end) || start.enclosesOrContains(end, v.start, v.end)) {
+                badHour = true;
+                badMinute = true;
+                setState(() {
+                  widget.errorInvalidText = "Clashes with event ${v.text}";
+                });
+                return;
+              }
             }
           }
         } else {
-          // Check End time and if new event encompasses / encloses an event
-          for (EventData v in widget.dailyTableMap!.values) {
-            end = widget.dailyDate!
+          // Editing event!
+          if (widget.startTime == null) {
+            DateTime start;
+            start = widget.dailyDate!
                 .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
-            start = widget.dailyDate!.add(Duration(
-                hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 2
-                    ? widget.startTime!.hour + 12
-                    : widget.startTime!.hour,
-                minutes: widget.startTime!.minute));
-            if (end.isInTimeRange(v.start, v.end) || start.enclosesOrContains(end, v.start, v.end)) {
+            int prevEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) - 1;
+            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
+            if (prevEventIndex < 0
+                ? false
+                : start.isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.end)) {
               badHour = true;
               badMinute = true;
               setState(() {
-                widget.errorInvalidText = "Clashes with event ${v.text}";
+                widget.errorInvalidText =
+                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.text}";
+              });
+              return;
+            } else if (nextEventIndex == widget.orderedDailyKeyList!.length
+                ? false
+                : start.isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+              badHour = true;
+              badMinute = true;
+              setState(() {
+                widget.errorInvalidText =
+                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.text}";
+              });
+              return;
+            }
+          } else {
+            DateTime end;
+            end = widget.dailyDate!
+                .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) + 1;
+            if (nextEventIndex == widget.orderedDailyKeyList!.length
+                ? false
+                : end.isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+              badHour = true;
+              badMinute = true;
+              setState(() {
+                widget.errorInvalidText = "Clashes with event ${widget.dailyTableMap![nextEventIndex]!.text}";
               });
               return;
             }
           }
         }
       } else {
-        // Editing event!
-        if (widget.startTime == null) {
-          DateTime start;
-          start = widget.dailyDate!
-              .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
-          int prevEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) - 1;
-          int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) + 1;
-          if (prevEventIndex == -1 ? false : start.isBefore(widget.dailyTableMap![prevEventIndex]!.end)) {
-            badHour = true;
-            badMinute = true;
-            setState(() {
-              widget.errorInvalidText = "Clashes with event ${widget.dailyTableMap![prevEventIndex]!.text}";
-            });
-            return;
-          } else if (nextEventIndex == widget.orderedDailyKeyList!.length
-              ? false
-              : start.isAfter(widget.dailyTableMap![nextEventIndex]!.start)) {
-            badHour = true;
-            badMinute = true;
-            setState(() {
-              widget.errorInvalidText = "Clashes with event ${widget.dailyTableMap![nextEventIndex]!.text}";
-            });
-            return;
-          }
-        } else {
-          DateTime end;
-          end = widget.dailyDate!
-              .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
-          int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) + 1;
-          if (nextEventIndex == widget.orderedDailyKeyList!.length
-              ? false
-              : end.isBefore(widget.dailyTableMap![nextEventIndex]!.start)) {
-            badHour = true;
-            badMinute = true;
-            setState(() {
-              widget.errorInvalidText = "Clashes with event ${widget.dailyTableMap![nextEventIndex]!.text}";
-            });
-            return;
-          }
-        }
+        return;
       }
     }
-    setState(() {}); //refresh to remove errors
-    Navigator.pop(context, _selectedTime.value); //TODO: make it be always okay with monthly
+    setState(() {
+      widget.errorInvalidText = null;
+    });
+    //refresh to remove errors
+    Navigator.pop(context, _selectedTime.value);
   }
 
   Size _dialogSize(BuildContext context) {
@@ -2246,50 +2249,58 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
     const ShapeBorder shape = RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(40)));
     final Orientation orientation = media.orientation;
 
-    final Widget actions = Row(
-      children: <Widget>[
-        SizedBox(width: Centre.safeBlockHorizontal * 5),
-        if (widget.startTime != null)
-          IconButton(
-            color: TimePickerTheme.of(context).entryModeIconColor ??
-                theme.colorScheme.onSurface.withOpacity(
-                  theme.colorScheme.brightness == Brightness.dark ? 1.0 : 0.6,
+    final Widget actions = Column(
+      children: [
+        Text(
+          widget.errorInvalidText ?? "",
+          style: Centre.todoText.copyWith(color: Centre.red),
+        ),
+        Row(
+          children: <Widget>[
+            SizedBox(width: Centre.safeBlockHorizontal * 5),
+            if (widget.startTime != null)
+              IconButton(
+                color: TimePickerTheme.of(context).entryModeIconColor ??
+                    theme.colorScheme.onSurface.withOpacity(
+                      theme.colorScheme.brightness == Brightness.dark ? 1.0 : 0.6,
+                    ),
+                onPressed: () {
+                  Navigator.pop(context, const TimeOfDay(hour: 0, minute: 1));
+                },
+                icon: Icon(
+                  Icons.chevron_left,
+                  size: Centre.safeBlockVertical * 4,
+                  color: Centre.pink,
                 ),
-            onPressed: () {
-              Navigator.pop(context, const TimeOfDay(hour: 0, minute: 1));
-            },
-            icon: Icon(
-              Icons.chevron_left,
-              size: Centre.safeBlockVertical * 4,
-              color: Centre.pink,
+              ),
+            Expanded(
+              child: Container(
+                alignment: AlignmentDirectional.centerEnd,
+                constraints: const BoxConstraints(minHeight: 5.0),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                child: OverflowBar(
+                  spacing: 8,
+                  overflowAlignment: OverflowBarAlignment.end,
+                  children: <Widget>[
+                    TextButton(
+                      onPressed: _handleCancel,
+                      child: Text(
+                        widget.cancelText ?? localizations.cancelButtonLabel,
+                        style: Centre.dialogText,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _handleOk,
+                      child: Text(
+                        widget.confirmText ?? localizations.okButtonLabel,
+                        style: Centre.dialogText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        Expanded(
-          child: Container(
-            alignment: AlignmentDirectional.centerEnd,
-            constraints: const BoxConstraints(minHeight: 5.0),
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-            child: OverflowBar(
-              spacing: 8,
-              overflowAlignment: OverflowBarAlignment.end,
-              children: <Widget>[
-                TextButton(
-                  onPressed: _handleCancel,
-                  child: Text(
-                    widget.cancelText ?? localizations.cancelButtonLabel,
-                    style: Centre.dialogText,
-                  ),
-                ),
-                TextButton(
-                  onPressed: _handleOk,
-                  child: Text(
-                    widget.confirmText ?? localizations.okButtonLabel,
-                    style: Centre.dialogText,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -2476,7 +2487,6 @@ Future<TimeOfDay?> showTimePicker({
   required BuildContext context,
   required TimeOfDay initialTime,
   required bool daily,
-  required HiveRepository hive,
   required DateTime dailyDate,
   EventData? editingEvent,
   TransitionBuilder? builder,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:todo/blocs/monthly_todo_bloc.dart';
 import 'package:todo/models/event_data.dart';
 import 'package:todo/utils/centre.dart';
 import 'package:todo/widgets/dialogs/add_event_dialog.dart';
@@ -50,24 +51,30 @@ class DayDialog extends StatelessWidget {
                     GestureDetector(
                       onTap: () => showDialog(
                           context: context,
-                          builder: (BuildContext context) => MultiBlocProvider(
-                                providers: [
-                                  BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                          builder: (BuildContext tcontext) => Scaffold(
+                                backgroundColor: Colors.transparent,
+                                body: MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider<TimeRangeCubit>(
+                                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                                    ),
+                                    BlocProvider<ColorCubit>(
+                                      create: (_) => ColorCubit(null),
+                                    ),
+                                    BlocProvider<CalendarTypeCubit>(
+                                      create: (_) => CalendarTypeCubit(null),
+                                    ),
+                                    BlocProvider<DialogDatesCubit>(
+                                        create: (_) => DialogDatesCubit(
+                                            [context.read<MonthDateCubit>().state.add(Duration(days: day - 1))])),
+                                    BlocProvider(create: (_) => CheckboxCubit(false)),
+                                    BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                    BlocProvider.value(value: context.read<DateCubit>()),
+                                    BlocProvider.value(value: context.read<MonthDateCubit>())
+                                  ],
+                                  child: AddEventDialog.monthly(
+                                    monthOrDayDate: context.read<MonthDateCubit>().state,
                                   ),
-                                  BlocProvider<ColorCubit>(
-                                    create: (_) => ColorCubit(null),
-                                  ),
-                                  BlocProvider<CalendarTypeCubit>(
-                                    create: (_) => CalendarTypeCubit(null),
-                                  ),
-                                  BlocProvider<DialogDatesCubit>(
-                                      create: (_) => DialogDatesCubit(
-                                          [context.read<MonthDateCubit>().state.add(Duration(days: day))])),
-                                  BlocProvider(create: (_) => CheckboxCubit())
-                                ],
-                                child: AddEventDialog.monthly(
-                                  monthOrDayDate: context.read<MonthDateCubit>().state,
                                 ),
                               )),
                       child: Container(
@@ -75,9 +82,11 @@ class DayDialog extends StatelessWidget {
                         padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
                         height: Centre.safeBlockVertical * 5,
                         width: Centre.safeBlockVertical * 6,
-                        child: SvgPicture.asset(
-                          "assets/icons/add.svg",
-                          color: Centre.colors[3],
+                        child: Icon(
+                          Icons.add_circle_rounded,
+                          weight: 700,
+                          color: Centre.primaryColor,
+                          size: 45,
                         ),
                       ),
                     ),
@@ -89,91 +98,107 @@ class DayDialog extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
-                SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: dayEvents
-                        .map((event) => GestureDetector(
-                              onTap: () => showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) => MultiBlocProvider(
-                                          providers: [
-                                            BlocProvider<TimeRangeCubit>(
-                                              create: (_) => TimeRangeCubit((event.fullDay)
-                                                  ? TimeRangeState(null, null)
-                                                  : TimeRangeState(
-                                                      TimeOfDay(hour: event.start.hour, minute: event.start.minute),
-                                                      TimeOfDay(hour: event.end.hour, minute: event.end.minute))),
+                BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(
+                  builder: (context, state) => SizedBox(
+                    height: Centre.safeBlockVertical * 41,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: state.monthlyMaps[day - 1].values
+                            .toList()
+                            .map((event) => GestureDetector(
+                                  onTap: () => showDialog(
+                                      context: context,
+                                      builder: (BuildContext tcontext) => Scaffold(
+                                            backgroundColor: Colors.transparent,
+                                            body: MultiBlocProvider(
+                                                providers: [
+                                                  BlocProvider<TimeRangeCubit>(
+                                                    create: (_) => TimeRangeCubit((event.fullDay)
+                                                        ? TimeRangeState(null, null)
+                                                        : TimeRangeState(
+                                                            TimeOfDay(
+                                                                hour: event.start.hour, minute: event.start.minute),
+                                                            TimeOfDay(hour: event.end.hour, minute: event.end.minute))),
+                                                  ),
+                                                  BlocProvider<ColorCubit>(
+                                                    create: (_) => ColorCubit(
+                                                        !Centre.colors.contains(Color(event.color))
+                                                            ? null
+                                                            : Centre.colors.indexOf(Color(event.color))),
+                                                  ),
+                                                  BlocProvider<CalendarTypeCubit>(
+                                                    create: (_) => CalendarTypeCubit(event.fullDay &&
+                                                            !event.start.isSameDate(other: event.end, daily: false)
+                                                        ? CalendarType.ranged
+                                                        : CalendarType.single),
+                                                  ),
+                                                  BlocProvider<DialogDatesCubit>(
+                                                      create: (_) => DialogDatesCubit(event.fullDay &&
+                                                              !event.start.isSameDate(other: event.end, daily: false)
+                                                          ? [event.start, event.end]
+                                                          : [event.start])),
+                                                  BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
+                                                  BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                                  BlocProvider.value(value: context.read<DateCubit>()),
+                                                  BlocProvider.value(value: context.read<MonthDateCubit>())
+                                                ],
+                                                child: AddEventDialog.monthly(
+                                                  monthOrDayDate: DateTime(context.read<MonthDateCubit>().state.year,
+                                                      context.read<MonthDateCubit>().state.month, day),
+                                                  event: event,
+                                                )),
+                                          )),
+                                  child: Padding(
+                                    padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      width: Centre.safeBlockHorizontal * 70,
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            margin: EdgeInsets.only(
+                                                left: Centre.safeBlockHorizontal * 6,
+                                                right: Centre.safeBlockHorizontal * 3),
+                                            height: Centre.safeBlockVertical * 3.5,
+                                            width: Centre.safeBlockVertical * 3.5,
+                                            child: SvgPicture.asset(
+                                              "assets/icons/squiggle.svg",
+                                              color: Color(event.color),
                                             ),
-                                            BlocProvider<ColorCubit>(
-                                              create: (_) => ColorCubit(!Centre.colors.contains(Color(event.color))
-                                                  ? null
-                                                  : Centre.colors.indexOf(Color(event.color))),
+                                          ),
+                                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                            Text(
+                                              event.text,
+                                              style: Centre.dialogText,
                                             ),
-                                            BlocProvider<CalendarTypeCubit>(
-                                              create: (_) => CalendarTypeCubit(event.fullDay &&
-                                                      !event.start.isSameDate(other: event.end, daily: false)
-                                                  ? CalendarType.ranged
-                                                  : CalendarType.single),
-                                            ),
-                                            BlocProvider<DialogDatesCubit>(
-                                                create: (_) => DialogDatesCubit(event.fullDay &&
-                                                        !event.start.isSameDate(other: event.end, daily: false)
-                                                    ? [event.start, event.end]
-                                                    : [event.start])),
-                                            BlocProvider(create: (_) => CheckboxCubit())
-                                          ],
-                                          child: AddEventDialog.monthly(
-                                            monthOrDayDate: DateTime(context.read<MonthDateCubit>().state.year,
-                                                context.read<MonthDateCubit>().state.month, day),
-                                            event: event,
-                                          ))),
-                              child: Padding(
-                                padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 2),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(
-                                          left: Centre.safeBlockHorizontal * 6, right: Centre.safeBlockHorizontal * 3),
-                                      height: Centre.safeBlockVertical * 3.5,
-                                      width: Centre.safeBlockVertical * 3.5,
-                                      child: SvgPicture.asset(
-                                        "assets/icons/squiggle.svg",
-                                        color: Color(event.color),
-                                      ),
-                                    ),
-                                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      Text(
-                                        event.text,
-                                        style: Centre.dialogText,
-                                      ),
-                                      event.fullDay
-                                          ? SizedBox(
-                                              width: 0,
-                                              height: 0,
-                                            )
-                                          : Container(
+                                            Container(
                                               margin: EdgeInsets.only(top: Centre.safeBlockVertical * 0.5),
                                               padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                                               decoration: BoxDecoration(
-                                                  color: Colors.grey,
-                                                  borderRadius: BorderRadius.all(Radius.circular(4))),
-                                              height: Centre.safeBlockHorizontal * 5,
+                                                  color: Centre.lighterDialogColor,
+                                                  borderRadius: const BorderRadius.all(Radius.circular(4))),
+                                              height: Centre.safeBlockHorizontal * 6,
                                               child: Center(
                                                 child: Text(
-                                                  "${DateFormat("HHmm").format(event.start)}-${DateFormat("HHmm").format(event.end)}",
+                                                  !event.fullDay
+                                                      ? "${DateFormat("HHmm").format(event.start)}-${DateFormat("HHmm").format(event.end)}"
+                                                      : "All day",
                                                   style: Centre.todoText
                                                       .copyWith(fontSize: Centre.safeBlockHorizontal * 3),
                                                 ),
                                               ),
                                             )
-                                    ])
-                                  ],
-                                ),
-                              ),
-                            ))
-                        .toList(),
+                                          ])
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
                   ),
                 )
               ],

@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo/blocs/cubits.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:swipe/swipe.dart';
+
 import 'package:todo/blocs/daily_todo_bloc.dart';
+import '../blocs/monthly_todo_bloc.dart';
+import '../blocs/unfinished_bloc.dart';
+
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
+
 import 'package:todo/utils/hive_repository.dart';
-import '../blocs/monthly_todo_bloc.dart';
 import '../utils/centre.dart';
 
 class TodoPages extends StatefulWidget {
   TodoPages({super.key});
+  final PanelController dailyPc = PanelController();
+  final PanelController monthlyPc = PanelController();
 
   @override
   State<TodoPages> createState() => _TodoPagesState();
@@ -19,6 +26,8 @@ class _TodoPagesState extends State<TodoPages> {
   PageController controller = PageController(
     initialPage: 0,
   );
+  double _visible = 1;
+  bool finishedAnimating = false;
 
   @override
   void dispose() {
@@ -27,33 +36,113 @@ class _TodoPagesState extends State<TodoPages> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 800), () {
+      setState(() {
+        _visible = 0;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     Centre().init(context);
+
     return ScrollConfiguration(
       behavior: MyBehavior(),
       child: Material(
-        child: PageView(
-          controller: controller,
-          children: [
-            MultiBlocProvider(
-              providers: [
-                BlocProvider(create: (_) => ToggleEditingCubit()),
-                BlocProvider<TodoBloc>(create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
-              ],
-              child: DailyPage(
-                controller: controller,
+        child: Scaffold(
+          backgroundColor: Centre.darkerBgColor,
+          body: Stack(
+            children: [
+              Swipe(
+                onSwipeUp: () {
+                  if (controller.page == 0) {
+                    if (widget.dailyPc.isPanelClosed) {
+                      widget.dailyPc.open();
+                    }
+                  } else {
+                    if (widget.monthlyPc.isPanelClosed) {
+                      widget.monthlyPc.open();
+                    }
+                  }
+                },
+                onSwipeDown: () {
+                  if (controller.page == 0) {
+                    if (widget.dailyPc.isPanelOpen) {
+                      widget.dailyPc.close();
+                    }
+                  } else {
+                    if (widget.monthlyPc.isPanelOpen) {
+                      widget.monthlyPc.close();
+                    }
+                  }
+                },
+                verticalMaxWidthThreshold: 300,
+                verticalMinDisplacement: 10,
+                verticalMinVelocity: 50,
+                horizontalMaxHeightThreshold: 300,
+                horizontalMinDisplacement: 10,
+                horizontalMinVelocity: 50,
+                child: PageView(
+                  controller: controller,
+                  children: [
+                    MultiBlocProvider(
+                      providers: [
+                        BlocProvider<TodoBloc>(
+                            create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
+                        BlocProvider(
+                            create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
+                      ],
+                      child: DailyPage(controller: controller, pc: widget.dailyPc),
+                    ),
+                    MultiBlocProvider(
+                      providers: [
+                        BlocProvider<MonthlyTodoBloc>(
+                          create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
+                        )
+                      ],
+                      child: MonthlyPage(controller: controller, pc: widget.monthlyPc),
+                    )
+                  ],
+                ),
               ),
-            ),
-            MultiBlocProvider(
-              providers: [
-                BlocProvider(create: (_) => MonthDateCubit()),
-                BlocProvider<MonthlyTodoBloc>(
-                  create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
-                )
-              ],
-              child: MonthlyPage(controller: controller),
-            )
-          ],
+              !finishedAnimating
+                  ? AnimatedOpacity(
+                      onEnd: () {
+                        setState(() {
+                          finishedAnimating = true;
+                        });
+                      },
+                      opacity: _visible,
+                      duration: const Duration(milliseconds: 1800),
+                      child: Container(
+                        color: Centre.bgColor,
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Center(
+                                child: Text(
+                              '// TODO:',
+                              style: TextStyle(
+                                fontSize: 32.0,
+                                fontFamily: 'Droid Sans',
+                                color: Centre.primaryColor,
+                              ),
+                            )),
+                            SizedBox(
+                              height: Centre.safeBlockVertical * 5.5,
+                            )
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(),
+            ],
+          ),
         ),
       ),
     );

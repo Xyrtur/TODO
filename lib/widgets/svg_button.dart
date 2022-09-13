@@ -16,7 +16,9 @@ Widget svgButton({
     padding: padding,
     decoration: borderColor != null
         ? ShapeDecoration(
-            shape: RoundedRectangleBorder(side: BorderSide(color: borderColor, width: 2), borderRadius: BorderRadius.all(Radius.circular(10))),
+            shape: RoundedRectangleBorder(
+                side: BorderSide(color: borderColor, width: 2),
+                borderRadius: const BorderRadius.all(Radius.circular(10))),
           )
         : null,
     height: Centre.safeBlockVertical * height,

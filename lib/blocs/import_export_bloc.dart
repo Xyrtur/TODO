@@ -3,27 +3,33 @@ import 'package:equatable/equatable.dart';
 import 'package:todo/utils/hive_repository.dart';
 
 abstract class ImportExportEvent extends Equatable {
-  const ImportExportEvent();
+  const ImportExportEvent(this.isAndroid);
+  final bool isAndroid;
   @override
-  List<Object> get props => [];
+  List<Object> get props => [isAndroid];
 }
 
 class ImportClicked extends ImportExportEvent {
-  const ImportClicked();
+  const ImportClicked(super.isAndroid);
 }
 
 class ExportClicked extends ImportExportEvent {
-  const ExportClicked();
+  const ExportClicked(super.isAndroid);
 }
 
-abstract class ImportExportState extends Equatable {
+abstract class ImportExportState {
   const ImportExportState();
-  @override
+
   List<Object> get props => [];
 }
 
-class ImportExportFinished extends ImportExportState {
-  const ImportExportFinished();
+class ImportFinished extends ImportExportState {
+  const ImportFinished();
+}
+
+class ExportFinished extends ImportExportState {
+  final String? path;
+  const ExportFinished(this.path);
 }
 
 class ImportExportInitial extends ImportExportState {
@@ -34,13 +40,15 @@ class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
   final HiveRepository hive;
   ImportExportBloc(this.hive) : super(const ImportExportInitial()) {
     on<ImportClicked>((event, emit) async {
-      await hive.importFile();
+      await hive.importFile(event.isAndroid);
       hive.cacheInitialData();
-      emit(const ImportExportFinished());
+      emit(const ImportExportInitial());
+      emit(const ImportFinished());
     });
     on<ExportClicked>((event, emit) async {
-      await hive.exportFile();
-      emit(const ImportExportFinished());
+      String? directoryPath = await hive.exportFile(event.isAndroid);
+      emit(const ImportExportInitial());
+      emit(ExportFinished(directoryPath));
     });
   }
 }
