@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:swipe/swipe.dart';
 
-import 'package:todo/blocs/daily_todo_bloc.dart';
-import '../blocs/monthly_todo_bloc.dart';
-import '../blocs/unfinished_bloc.dart';
-
+import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
-
 import 'package:todo/utils/hive_repository.dart';
 import '../utils/centre.dart';
 

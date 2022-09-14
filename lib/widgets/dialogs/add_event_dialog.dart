@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:todo/blocs/cubits.dart';
-import 'package:todo/blocs/daily_todo_bloc.dart';
-import 'package:todo/blocs/monthly_todo_bloc.dart';
-import 'package:todo/blocs/unfinished_bloc.dart';
-import 'package:todo/models/event_data.dart';
-import 'package:todo/utils/centre.dart';
-import 'package:todo/widgets/event_text_field.dart';
-import 'package:calendar_date_picker2/calendar_date_picker2.dart';
-import 'package:todo/widgets/svg_button.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../utils/datetime_ext.dart';
 import 'dart:core';
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+
+import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/utils/centre.dart';
+import 'package:todo/utils/datetime_ext.dart';
+import 'package:todo/widgets/event_text_field.dart';
+import 'package:todo/widgets/svg_button.dart';
+import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
 
 import 'custom_time_picker.dart' as custom_time_picker;
-import 'delete_confirmation_dialog.dart';
 
 class AddEventDialog extends StatelessWidget {
   final bool daily;

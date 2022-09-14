@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:r_dotted_line_border/r_dotted_line_border.dart';
-import 'package:todo/blocs/cubits.dart';
-import 'package:todo/blocs/daily_todo_bloc.dart';
-import 'package:todo/blocs/import_export_bloc.dart';
-import 'package:todo/blocs/unfinished_bloc.dart';
-import 'package:todo/utils/centre.dart';
-import 'package:todo/widgets/dialogs/add_event_dialog.dart';
-import 'package:todo/widgets/panels/daily_panel.dart';
-import 'package:todo/widgets/todo_table.dart';
-import 'package:dotted_line/dotted_line.dart';
-import 'package:todo/widgets/svg_button.dart';
 import 'package:intl/intl.dart';
-import '../utils/datetime_ext.dart';
+
+import 'package:todo/utils/centre.dart';
+import 'package:todo/utils/datetime_ext.dart';
+import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
 
 class DailyPage extends StatelessWidget {
   const DailyPage({super.key, required this.controller, required this.pc});

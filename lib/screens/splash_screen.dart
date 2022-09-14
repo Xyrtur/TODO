@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/hive_repository.dart';
-
-import 'package:todo/blocs/cubits.dart';
-import 'package:todo/blocs/import_export_bloc.dart';
-import 'package:todo/widgets/todo_pages.dart';
+import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/screens/todo_pages.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

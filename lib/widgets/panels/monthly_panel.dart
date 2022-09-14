@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:todo/blocs/cubits.dart';
-import 'package:todo/blocs/monthly_todo_bloc.dart';
-import 'package:todo/models/event_data.dart';
-import 'package:todo/utils/centre.dart';
 import 'package:intl/intl.dart';
+
+import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
 
 class MonthlyPanel extends StatelessWidget {

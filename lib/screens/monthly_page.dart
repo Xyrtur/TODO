@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:todo/blocs/cubits.dart';
-import 'package:todo/blocs/import_export_bloc.dart';
-import 'package:todo/blocs/monthly_todo_bloc.dart';
-import 'package:todo/widgets/dialogs/add_event_dialog.dart';
-import 'package:todo/widgets/month_calen.dart';
-import 'package:todo/widgets/dialogs/month_year_picker.dart';
-import 'package:todo/widgets/panels/monthly_panel.dart';
-import 'package:aligned_dialog/aligned_dialog.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../utils/centre.dart';
+import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/widgets/barrels/monthly_widgets_barrel.dart';
+import 'package:todo/utils/centre.dart';
 
 class MonthlyPage extends StatelessWidget {
   const MonthlyPage({super.key, required this.controller, required this.pc});

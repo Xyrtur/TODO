@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:todo/utils/hive_repository.dart';
-import 'package:todo/widgets/splash_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'models/event_data.dart';
+
+import 'package:todo/utils/hive_repository.dart';
+import 'package:todo/screens/splash_screen.dart';
+import 'package:todo/models/event_data.dart';
 
 void main() async {
   await Hive.initFlutter();
