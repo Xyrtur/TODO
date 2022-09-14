@@ -74,11 +74,14 @@ class ScheduleBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     top = Centre.scheduleBlock * (event.start.difference(currentDate).inMinutes % 540 / 60);
     bottom = top + Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60);
-    left = event.start.hour >= 16 ? Centre.safeBlockHorizontal * 54 : Centre.safeBlockHorizontal * 5;
+    left = event.start.hour < 16 && event.start.hour >= 7
+        ? Centre.safeBlockHorizontal * 5
+        : Centre.safeBlockHorizontal * 54;
     return Positioned(
       top: top.toDouble(),
       left: left,
-      child: Draggable(
+      child: LongPressDraggable(
+        delay: const Duration(milliseconds: 50),
         onDragCompleted: () {
           if (actualEvent != null) {
             context.read<DraggingSplitBlockCubit>().letGo();
@@ -97,9 +100,11 @@ class ScheduleBlock extends StatelessWidget {
         onDragEnd: (drag) {
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
-          if (drag.offset.dy < Centre.safeBlockVertical * 15 && left == Centre.safeBlockHorizontal * 5 ||
-              drag.offset.dy > Centre.safeBlockVertical * 15.5 + Centre.scheduleBlock * 8.75 &&
-                  left == Centre.safeBlockHorizontal * 54) {
+          if (drag.offset.dy < Centre.safeBlockVertical * 16.2 &&
+                  (drag.offset.dx <= (Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2)) ||
+              drag.offset.dy > Centre.safeBlockVertical * 16.2 + Centre.scheduleBlock * 8.75 &&
+                  (drag.offset.dx > (Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2))) {
+            return;
           } else {
             top = ((drag.offset.dy - Centre.safeBlockVertical * 16.2) / (Centre.scheduleBlock * 5 / 60)).round() *
                 (Centre.scheduleBlock * 5 / 60);
@@ -113,6 +118,7 @@ class ScheduleBlock extends StatelessWidget {
               minutes:
                   (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
           DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
+          if (end.isAfter(currentDate.add(const Duration(hours: 18)))) return;
           for (EventData v in context.read<TodoBloc>().state.dailyTableMap.values) {
             if (v.key == (actualEvent?.key ?? event.key)) continue;
             if (start.isInTimeRange(v.start, v.end) ||

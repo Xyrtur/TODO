@@ -1,9 +1,12 @@
 extension DatePrecisionCompare on DateTime {
+  /*
+   * Checks if this is on the same day as other  
+   */
   bool isSameDate({required DateTime other, required bool daily}) {
     if (daily) {
       return year == other.year &&
-          (month == other.month && (day == other.day || day == other.day + 1 && hour <= 2) ||
-              month == other.month + 1 && day == 1 && hour <= 2);
+          (month == other.month && (day == other.day && hour >= 7 || day == other.day + 1 && hour <= 1) ||
+              month == other.month + 1 && day == 1 && hour <= 1);
     } else {
       return year == other.year && month == other.month && day == other.day;
     }

@@ -662,8 +662,11 @@ class AddEventDialog extends StatelessWidget {
             context.read<TodoBloc>().add(TodoCreate(
                 event: EventData(
                     fullDay: false,
-                    start: context.read<DateCubit>().state.add(Duration(hours: start.hour, minutes: start.minute)),
-                    end: context.read<DateCubit>().state.add(Duration(hours: end.hour, minutes: end.minute)),
+                    start: context.read<DateCubit>().state.add(Duration(
+                        hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                        minutes: start.minute)),
+                    end: context.read<DateCubit>().state.add(
+                        Duration(hours: end.hour >= 0 && end.hour < 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
                     color: Centre.colors[context.read<ColorCubit>().state].value,
                     text: controller.text,
                     finished: false)));
@@ -713,12 +716,16 @@ class AddEventDialog extends StatelessWidget {
           } else {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
+
             if (oldEvent.start.isSameDate(other: context.read<DateCubit>().state, daily: true)) {
               context.read<TodoBloc>().add(TodoUpdate(
                   event: event!.edit(
                       fullDay: false,
-                      start: context.read<DateCubit>().state.add(Duration(hours: start.hour, minutes: start.minute)),
-                      end: context.read<DateCubit>().state.add(Duration(hours: end.hour, minutes: end.minute)),
+                      start: context.read<DateCubit>().state.add(Duration(
+                          hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                          minutes: start.minute)),
+                      end: context.read<DateCubit>().state.add(Duration(
+                          hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
                       color: Centre.colors[context.read<ColorCubit>().state].value,
                       text: controller.text,
                       finished: false)));
@@ -726,8 +733,11 @@ class AddEventDialog extends StatelessWidget {
               context.read<TodoBloc>().add(TodoAddUnfinished(
                   event: event!.edit(
                       fullDay: false,
-                      start: context.read<DateCubit>().state.add(Duration(hours: start.hour, minutes: start.minute)),
-                      end: context.read<DateCubit>().state.add(Duration(hours: end.hour, minutes: end.minute)),
+                      start: context.read<DateCubit>().state.add(Duration(
+                          hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                          minutes: start.minute)),
+                      end: context.read<DateCubit>().state.add(Duration(
+                          hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
                       color: Centre.colors[context.read<ColorCubit>().state].value,
                       text: controller.text,
                       finished: false)));

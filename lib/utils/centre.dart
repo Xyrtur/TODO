@@ -8,7 +8,6 @@ class Centre {
 
   static late double scheduleBlock;
   static Color red = const Color.fromARGB(255, 255, 103, 93);
-  static Color brown = const Color.fromARGB(255, 147, 108, 94);
   static Color yellow = const Color.fromARGB(255, 255, 205, 148);
   static Color pink = const Color.fromARGB(255, 255, 205, 200);
   static Color bgColor = const Color.fromARGB(255, 27, 27, 27);
@@ -34,14 +33,19 @@ class Centre {
 
   static final todoText = TextStyle(
       color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 3.5, fontFamily: 'Raleway');
+
   static final todoSemiTitle = TextStyle(
       color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 6.5, fontFamily: 'Raleway');
+
   static final todoTitle = TextStyle(
       color: textColor, fontWeight: FontWeight.w600, fontSize: Centre.safeBlockHorizontal * 6, fontFamily: 'Raleway');
+
   static final dialogText = TextStyle(
       color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 4.5, fontFamily: 'Raleway');
+
   static final smallerDialogText = TextStyle(
       color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 4, fontFamily: 'Raleway');
+
   static final titleDialogText = TextStyle(
       color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 5.5, fontFamily: 'Raleway');
 

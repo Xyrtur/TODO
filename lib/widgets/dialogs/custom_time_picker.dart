@@ -1238,8 +1238,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
           selectedValue: selectedDialValue,
           primaryLabels: primaryLabels,
           secondaryLabels: secondaryLabels,
-          backgroundColor: Centre.brown,
-          accentColor: Centre.red,
+          backgroundColor: Centre.secondaryColor,
+          accentColor: Centre.primaryColor,
           dotColor: Centre.yellow,
           theta: _theta.value,
           textDirection: Directionality.of(context),
@@ -2071,13 +2071,13 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
 
     if (widget.daily) {
       if (widget.startTime == null) {
-        badHour = newHour >= 2 && newHour < 7;
+        badHour = newHour >= 1 && newHour < 7;
         badHour
             ? setState(() {
                 widget.errorInvalidText = "Outside schedule range";
               })
             : null;
-      } else if (newHour < widget.startTime!.hour && newHour > 2) {
+      } else if (newHour < widget.startTime!.hour && newHour > 1) {
         badHour = true;
         setState(() {
           widget.errorInvalidText = "Outside schedule range";
@@ -2094,7 +2094,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
           setState(() {
             widget.errorInvalidText = "Events must be minimum 15 minutes";
           });
-        } else if (newHour == 2 && newMinute != 0) {
+        } else if (newHour == 1 && newMinute != 0) {
           badMinute = true;
           setState(() {
             widget.errorInvalidText = "Outside schedule range";
@@ -2105,7 +2105,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             widget.errorInvalidText = "Events must be minimum 15 minutes";
           });
         }
-      } else if (newHour == 1 && newMinute > 45) {
+      } else if (newHour == 0 && newMinute > 45) {
         badMinute = true;
         setState(() {
           widget.errorInvalidText = "Events must be minimum 15 minutes";
@@ -2120,8 +2120,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             // Checking startTime adding event
             for (EventData v in widget.dailyTableMap!.values) {
               start = widget.dailyDate!
-                  .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
-              if (start.isInTimeRange(v.start, v.end)) {
+                  .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
+              if (start.isInTimeRange(v.start, v.end) || start.isAtSameMomentAs(v.start)) {
                 badHour = true;
                 badMinute = true;
                 setState(() {
@@ -2134,9 +2134,9 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             // Check End time and if new event encompasses / encloses an event
             for (EventData v in widget.dailyTableMap!.values) {
               end = widget.dailyDate!
-                  .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+                  .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
               start = widget.dailyDate!.add(Duration(
-                  hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 2
+                  hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 1
                       ? widget.startTime!.hour + 12
                       : widget.startTime!.hour,
                   minutes: widget.startTime!.minute));
@@ -2155,7 +2155,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
           if (widget.startTime == null) {
             DateTime start;
             start = widget.dailyDate!
-                .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+                .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
             int prevEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) - 1;
             int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
             if (prevEventIndex < 0
@@ -2182,7 +2182,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
           } else {
             DateTime end;
             end = widget.dailyDate!
-                .add(Duration(hours: newHour >= 0 && newHour <= 2 ? newHour + 12 : newHour, minutes: newMinute));
+                .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
             int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) + 1;
             if (nextEventIndex == widget.orderedDailyKeyList!.length
                 ? false
