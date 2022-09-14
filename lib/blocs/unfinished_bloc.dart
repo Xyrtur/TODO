@@ -34,6 +34,10 @@ class UnfinishedListUpdated extends UnfinishedListState {
   const UnfinishedListUpdated(super.unfinishedList);
 }
 
+/*
+ * Keeps track of the todo's in the unfinished list
+ * Updates the list if one is deleted from the list or taken out to add into the daily todo list
+ */
 class UnfinishedListBloc extends Bloc<UnfinishedListEvent, UnfinishedListState> {
   final HiveRepository hive;
 

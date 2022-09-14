@@ -37,8 +37,12 @@ class ImportExportInitial extends ImportExportState {
   const ImportExportInitial();
 }
 
+/*
+ * Asks the repository to import/export the data in the app 
+ */
 class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
   final HiveRepository hive;
+
   ImportExportBloc(this.hive) : super(const ImportExportInitial()) {
     on<ImportClicked>((event, emit) async {
       await hive.importFile(event.isAndroid);
@@ -46,6 +50,7 @@ class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
       emit(const ImportExportInitial());
       emit(const ImportFinished());
     });
+
     on<ExportClicked>((event, emit) async {
       String? directoryPath = await hive.exportFile(event.isAndroid);
       emit(const ImportExportInitial());

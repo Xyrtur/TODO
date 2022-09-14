@@ -51,6 +51,15 @@ class MonthlyTodoRefreshed extends MonthlyTodoState {
   const MonthlyTodoRefreshed(super.monthlyMaps, super.changedDailyList);
 }
 
+/*
+ * Keeps track of the changes in monthly todo's
+ * Possible events: 
+ *    - Create
+ *    - Update
+ *    - Delete
+ *    - Date Changed
+ *  Returns the same state each time as each event updates the same list of data.
+ */
 class MonthlyTodoBloc extends Bloc<MonthlyTodoEvent, MonthlyTodoState> {
   final HiveRepository hive;
 

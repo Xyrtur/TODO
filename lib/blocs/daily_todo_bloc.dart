@@ -55,6 +55,16 @@ class TodoRefreshed extends TodoState {
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final HiveRepository hive;
 
+/*
+ * Keeps track of the changes in daily todo's
+ * Possible events: 
+ *    - Create
+ *    - Update
+ *    - Delete
+ *    - Date Changed
+ *    - Add Unfinished (if it's in the unfinished list, the event already exists in the box so another event should not be created)
+ *  Returns the same state each time as each event updates the same list of data.
+ */
   TodoBloc(this.hive) : super(TodoInitial(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false)) {
     on<TodoCreate>((event, emit) {
       hive.createEvent(daily: true, event: event.event);
