@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           pageTransitionType: PageTransitionType.fade,
           splashTransition: SplashTransition.sizeTransition,
           animationDuration: const Duration(milliseconds: 1),
-          duration: 1200,
+          duration: 1100,
           splash: AnimatedTextKit(
             animatedTexts: [
               TyperAnimatedText(
@@ -42,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ),
           screenFunction: () async {
             context.read<HiveRepository>().cacheInitialData();
+
             return RepositoryProvider.value(
               value: context.read<HiveRepository>(),
               child: MultiBlocProvider(providers: [
@@ -54,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 BlocProvider<ImportExportBloc>(
                   create: (context) => ImportExportBloc(context.read<HiveRepository>()),
                 ),
-                BlocProvider(create: (_) => ToggleEditingCubit()),
+                BlocProvider(create: (_) => ToggleChecklistEditingCubit()),
                 BlocProvider(create: (_) => MonthDateCubit()),
               ], child: TodoPages()),
             );

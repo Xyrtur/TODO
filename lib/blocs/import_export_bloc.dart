@@ -45,10 +45,12 @@ class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
 
   ImportExportBloc(this.hive) : super(const ImportExportInitial()) {
     on<ImportClicked>((event, emit) async {
-      await hive.importFile(event.isAndroid);
-      hive.cacheInitialData();
-      emit(const ImportExportInitial());
-      emit(const ImportFinished());
+      bool importSuccess = await hive.importFile(event.isAndroid);
+      if (importSuccess) {
+        hive.cacheInitialData();
+        emit(const ImportExportInitial());
+        emit(const ImportFinished());
+      }
     });
 
     on<ExportClicked>((event, emit) async {

@@ -164,7 +164,7 @@ class ScheduleBlock extends StatelessWidget {
         ),
         child: GestureDetector(
           onTap: () {
-            if (context.read<ToggleEditingCubit>().state) {
+            if (context.read<ToggleChecklistEditingCubit>().state) {
               showDialog(
                   context: context,
                   builder: (BuildContext tcontext) => Scaffold(

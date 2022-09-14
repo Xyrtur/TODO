@@ -575,6 +575,7 @@ class AddEventDialog extends StatelessWidget {
                   !context.read<CheckboxCubit>().state &&
                   context.read<CalendarTypeCubit>().state != CalendarType.ranged) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
               content: Text(
                 'Missing required info',
@@ -587,6 +588,7 @@ class AddEventDialog extends StatelessWidget {
         } else {
           if (!_formKey.currentState!.validate() || context.read<TimeRangeCubit>().state.endResult == null) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
               content: Text(
                 'Missing required info',

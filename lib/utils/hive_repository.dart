@@ -223,7 +223,7 @@ class HiveRepository {
     }
   }
 
-  importFile(bool isAndroid) async {
+  Future<bool> importFile(bool isAndroid) async {
     String firstBoxPath = monthlyHive.path!;
     String secondBoxPath = dailyHive.path!;
     if (monthlyHive.isNotEmpty || dailyHive.isNotEmpty) {
@@ -232,7 +232,7 @@ class HiveRepository {
           isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
 
       if (selectedDirectory == null) {
-        return;
+        return false;
       }
       var encoder = ZipFileEncoder();
       encoder.create("$selectedDirectory/todo_data.zip");
@@ -270,7 +270,9 @@ class HiveRepository {
       await Hive.openBox<EventData>('dailyEventBox');
       monthlyHive = Hive.box<EventData>('monthEventBox');
       dailyHive = Hive.box<EventData>('dailyEventBox');
+      return true;
     }
+    return false;
   }
 
   Future<String?> exportFile(bool isAndroid) async {

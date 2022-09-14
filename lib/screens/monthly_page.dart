@@ -6,13 +6,87 @@ import 'package:todo/widgets/barrels/monthly_widgets_barrel.dart';
 import 'package:todo/utils/centre.dart';
 
 class MonthlyPage extends StatelessWidget {
-  const MonthlyPage({super.key, required this.controller, required this.pc});
+  const MonthlyPage({super.key, required this.pc});
   final PanelController pc;
-  final PageController controller;
 
   @override
   Widget build(BuildContext context) {
     Centre().init(context);
+
+    Widget fab = Padding(
+      padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 3, right: Centre.safeBlockHorizontal),
+      child: FloatingActionButton(
+        onPressed: () => showDialog(
+            context: context,
+            builder: (BuildContext notUsedContext) => Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: MultiBlocProvider(providers: [
+                    BlocProvider<TimeRangeCubit>(
+                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                    ),
+                    BlocProvider<ColorCubit>(
+                      create: (_) => ColorCubit(null),
+                    ),
+                    BlocProvider<CalendarTypeCubit>(
+                      create: (_) => CalendarTypeCubit(null),
+                    ),
+                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+                    BlocProvider(create: (_) => CheckboxCubit(false)),
+                    BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                    BlocProvider.value(value: context.read<DateCubit>()),
+                    BlocProvider.value(value: context.read<MonthDateCubit>())
+                  ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
+                )),
+        backgroundColor: Centre.primaryColor,
+        child: Icon(
+          Icons.add_rounded,
+          color: Centre.bgColor,
+          size: 40,
+        ),
+      ),
+    );
+
+    Widget yearMonthDate = GestureDetector(
+      onTap: () async {
+        await showAlignedDialog(
+            followerAnchor: Alignment.topLeft,
+            targetAnchor: Alignment.topLeft,
+            offset: Offset(Centre.safeBlockHorizontal * 5, Centre.safeBlockVertical * 8),
+            avoidOverflow: true,
+            context: context,
+            builder: (BuildContext ycontext) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (_) => YearTrackingCubit(context.read<MonthDateCubit>().state.year),
+                  ),
+                  BlocProvider.value(value: context.read<MonthDateCubit>())
+                ],
+                child: MonthYearPicker(),
+              );
+            });
+      },
+      child: Container(
+        color: Colors.transparent,
+        height: Centre.safeBlockVertical * 5,
+        child: BlocBuilder<MonthDateCubit, DateTime>(
+          builder: (context, state) => Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                    left: Centre.safeBlockHorizontal * 9,
+                    right: Centre.safeBlockHorizontal * 2,
+                    top: Centre.safeBlockVertical),
+                child: Text(DateFormat("MMM").format(state), style: Centre.todoSemiTitle),
+              ),
+              Text(DateFormat("y").format(state), style: Centre.smallerDialogText),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return SafeArea(
         child: Scaffold(
       backgroundColor: Centre.darkerBgColor,
@@ -48,80 +122,10 @@ class MonthlyPage extends StatelessWidget {
           maxHeight: Centre.safeBlockVertical * 54,
           panel: const MonthlyPanel(),
           body: Scaffold(
-            floatingActionButton: Padding(
-              padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 3, right: Centre.safeBlockHorizontal),
-              child: FloatingActionButton(
-                onPressed: () => showDialog(
-                    context: context,
-                    builder: (BuildContext tcontext) => Scaffold(
-                          backgroundColor: Colors.transparent,
-                          body: MultiBlocProvider(providers: [
-                            BlocProvider<TimeRangeCubit>(
-                              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                            ),
-                            BlocProvider<ColorCubit>(
-                              create: (_) => ColorCubit(null),
-                            ),
-                            BlocProvider<CalendarTypeCubit>(
-                              create: (_) => CalendarTypeCubit(null),
-                            ),
-                            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                            BlocProvider(create: (_) => CheckboxCubit(false)),
-                            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                            BlocProvider.value(value: context.read<DateCubit>()),
-                            BlocProvider.value(value: context.read<MonthDateCubit>())
-                          ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
-                        )),
-                backgroundColor: Centre.primaryColor,
-                child: Icon(
-                  Icons.add_rounded,
-                  color: Centre.bgColor,
-                  size: 40,
-                ),
-              ),
-            ),
+            floatingActionButton: fab,
             backgroundColor: Centre.bgColor,
             body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              GestureDetector(
-                onTap: () async {
-                  await showAlignedDialog(
-                      followerAnchor: Alignment.topLeft,
-                      targetAnchor: Alignment.topLeft,
-                      offset: Offset(Centre.safeBlockHorizontal * 5, Centre.safeBlockVertical * 8),
-                      avoidOverflow: true,
-                      context: context,
-                      builder: (BuildContext ycontext) {
-                        return MultiBlocProvider(
-                          providers: [
-                            BlocProvider(
-                              create: (_) => YearTrackingCubit(context.read<MonthDateCubit>().state.year),
-                            ),
-                            BlocProvider.value(value: context.read<MonthDateCubit>())
-                          ],
-                          child: MonthYearPicker(),
-                        );
-                      });
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  height: Centre.safeBlockVertical * 5,
-                  child: BlocBuilder<MonthDateCubit, DateTime>(
-                    builder: (context, state) => Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                              left: Centre.safeBlockHorizontal * 9,
-                              right: Centre.safeBlockHorizontal * 2,
-                              top: Centre.safeBlockVertical),
-                          child: Text(DateFormat("MMM").format(state), style: Centre.todoSemiTitle),
-                        ),
-                        Text(DateFormat("y").format(state), style: Centre.smallerDialogText),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              yearMonthDate,
               Expanded(
                 flex: 14,
                 child: MonthCalendar(),

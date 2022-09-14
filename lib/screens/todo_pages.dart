@@ -33,7 +33,8 @@ class _TodoPagesState extends State<TodoPages> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 800), () {
+    // Wait 100ms before fading out
+    Future.delayed(const Duration(milliseconds: 100), () {
       setState(() {
         _visible = 0;
       });
@@ -52,6 +53,7 @@ class _TodoPagesState extends State<TodoPages> {
           body: Stack(
             children: [
               Swipe(
+                // Depending on current pageview, open their respective panel
                 onSwipeUp: () {
                   if (controller.page == 0) {
                     if (widget.dailyPc.isPanelClosed) {
@@ -90,7 +92,7 @@ class _TodoPagesState extends State<TodoPages> {
                         BlocProvider(
                             create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
                       ],
-                      child: DailyPage(controller: controller, pc: widget.dailyPc),
+                      child: DailyPage(pc: widget.dailyPc),
                     ),
                     MultiBlocProvider(
                       providers: [
@@ -98,7 +100,7 @@ class _TodoPagesState extends State<TodoPages> {
                           create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
                         )
                       ],
-                      child: MonthlyPage(controller: controller, pc: widget.monthlyPc),
+                      child: MonthlyPage(pc: widget.monthlyPc),
                     )
                   ],
                 ),
@@ -111,7 +113,7 @@ class _TodoPagesState extends State<TodoPages> {
                         });
                       },
                       opacity: _visible,
-                      duration: const Duration(milliseconds: 1800),
+                      duration: const Duration(milliseconds: 1500),
                       child: Container(
                         color: Centre.bgColor,
                         height: MediaQuery.of(context).size.height,

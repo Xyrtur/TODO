@@ -15,7 +15,14 @@ class EventData extends HiveObject {
   int color;
   @HiveField(5)
   bool finished;
-
+/*
+ * Full day: Whether the event spans the whole day or not (Only an optino for monthly events) 
+ * Start: the starting DateTime of an event
+ * End: the ending DateTime of an event
+ * Color: the color chosen by the user
+ * Text: the name of the event
+ * Finished: Whether the user has crossed it off or not
+ */
   EventData(
       {required this.fullDay,
       required this.start,
@@ -24,6 +31,12 @@ class EventData extends HiveObject {
       required this.text,
       required this.finished});
 
+/*
+ * Used to create a new Event rather than editing the actual one and specifically is used 
+ * when creating a split schedule block 
+ * The original is kept intact and two new events are created with 
+ * different start and end times to split the original event
+ */
   EventData copyWith({DateTime? otherStart, DateTime? otherEnd}) {
     return EventData(
         fullDay: fullDay,
