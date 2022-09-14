@@ -105,7 +105,7 @@ class ScheduleBlock extends StatelessWidget {
               drag.offset.dy > Centre.safeBlockVertical * 15.5 + Centre.scheduleBlock * 8.75 &&
                   left == Centre.safeBlockHorizontal * 54) {
           } else {
-            top = ((drag.offset.dy - Centre.safeBlockVertical * 15) / (Centre.scheduleBlock * 5 / 60)).round() *
+            top = ((drag.offset.dy - Centre.safeBlockVertical * 16.2) / (Centre.scheduleBlock * 5 / 60)).round() *
                 (Centre.scheduleBlock * 5 / 60);
           }
           if (drag.offset.dx > Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2) {
