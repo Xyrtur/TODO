@@ -34,6 +34,7 @@ class DateCubit extends Cubit<DateTime> {
   //Keep track of date chosen
   void nextDay() => emit(state.add(const Duration(days: 1)));
   void prevDay() => emit(state.subtract(const Duration(days: 1)));
+  void setToCurrentDayOnResume() => emit(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
 }
 
 /*

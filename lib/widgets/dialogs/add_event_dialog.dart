@@ -681,18 +681,16 @@ class AddEventDialog extends StatelessWidget {
             bool fullDay = context.read<CheckboxCubit>().state;
             switch (context.read<CalendarTypeCubit>().state) {
               case CalendarType.single:
+                DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
+                DateTime dateWithoutTime = DateTime(prevDate.year, prevDate.month, prevDate.day);
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
                     oldEvent: oldEvent,
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: event!.edit(
                         fullDay: fullDay,
-                        start: context
-                            .read<DialogDatesCubit>()
-                            .state![0]!
+                        start: dateWithoutTime
                             .add(!fullDay ? Duration(hours: start.hour, minutes: start.minute) : const Duration()),
-                        end: context
-                            .read<DialogDatesCubit>()
-                            .state![0]!
+                        end: dateWithoutTime
                             .add(!fullDay ? Duration(hours: end.hour, minutes: end.minute) : const Duration()),
                         color: Centre.colors[context.read<ColorCubit>().state].value,
                         text: controller.text,

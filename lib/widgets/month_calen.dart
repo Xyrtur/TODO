@@ -196,8 +196,9 @@ List<Widget> dayEvents(
           child: dayNum == event.start.day
               ? Center(
                   child: Text(
-                  event.text,
+                  event.text.replaceAll(' ', '\u00A0'),
                   maxLines: 1,
+                  overflow: TextOverflow.clip,
                   style:
                       Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
                 ))
@@ -215,7 +216,8 @@ List<Widget> dayEvents(
           height: Centre.safeBlockVertical * 1.3,
           child: Center(
               child: Text(
-            event.text,
+            event.text.replaceAll(' ', '\u00A0'),
+            overflow: TextOverflow.ellipsis,
             maxLines: 1,
             style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
           )),

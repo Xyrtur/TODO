@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/utils/lifecycle_handler.dart';
 import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
 
 class DailyPage extends StatelessWidget {
@@ -13,6 +14,12 @@ class DailyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Centre().init(context);
+    WidgetsBinding.instance.addObserver(LifecycleEventHandler(resumeCallBack: () async {
+      context.read<DateCubit>().setToCurrentDayOnResume();
+      context
+          .read<TodoBloc>()
+          .add(TodoDateChange(date: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)));
+    }));
 
     showDailyDialog() {
       showDialog(
