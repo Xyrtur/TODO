@@ -1,17 +1,20 @@
 import 'dart:io';
+import 'package:intl/number_symbols_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:todo/models/future_todo.dart';
 import 'datetime_ext.dart';
 import 'package:todo/models/event_data.dart';
 
 class HiveRepository {
   late Box monthlyHive;
   late Box dailyHive;
-  final List<Map<dynamic, EventData>> thisMonthEventsMaps = List.generate(31, (index) => <dynamic, EventData>{});
+  late Box futureTodosHive;
+  final List<Map<dynamic, EventData>> thisMonthEventsMaps = List.generate(42, (index) => <dynamic, EventData>{});
   late Map<dynamic, EventData> unfinishedEventsMap;
   Map<dynamic, EventData> dailyMonthlyEventsMap = {};
   late Map<dynamic, EventData> dailyTableEventsMap;
@@ -20,12 +23,18 @@ class HiveRepository {
   List<EventData> dailyTableEvents = [];
   List<EventData> dailyMonthlyEvents = [];
   List<dynamic> inOrderDailyTableEvents = [];
+  List<FutureTodo> futureList = [];
 
   HiveRepository();
 
   cacheInitialData() {
     monthlyHive = Hive.box<EventData>('monthEventBox');
     dailyHive = Hive.box<EventData>('dailyEventBox');
+    futureTodosHive = Hive.box<FutureTodo>('futureTodosBox');
+
+    // Sort based on the order the user has them in using a saved index
+    futureList = futureTodosHive.values.cast<FutureTodo>().toList();
+    futureList.sort((a, b) => a.index.compareTo(b.index));
 
     // Purge if event was finished or if its more than 7 days old
     Iterable<EventData> finished = dailyHive.values.where((event) {
@@ -46,9 +55,11 @@ class HiveRepository {
     for (EventData event in tooOld) {
       event.delete();
     }
-
+    DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
     for (EventData event in monthlyHive.values) {
-      if (event.start.isSameMonthYear(DateTime.now()) || event.end.isSameMonthYear(DateTime.now())) {
+      if (event.start
+              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
         thisMonthEvents.add(event);
       }
     }
@@ -70,11 +81,22 @@ class HiveRepository {
       }
     }
 
-    for (EventData v in thisMonthEvents) {
-      int start = v.start.day;
-      while (start <= v.end.day) {
-        thisMonthEventsMaps[start - 1][v.key] = v;
-        start++;
+    for (EventData event in thisMonthEvents) {
+      DateTime start =
+          event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+              ? event.start
+              : currentMonth.startingMonthCalenNum();
+      DateTime end =
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+              ? event.end
+              : currentMonth.add(const Duration(days: 41));
+      while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+        thisMonthEventsMaps[start.isBefore(currentMonth)
+            ? start.day - currentMonth.startingMonthCalenNum().day
+            : start.isAfter(currentMonth)
+                ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
+                : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+        start = start.add(const Duration(days: 1));
       }
     }
     unfinishedEventsMap = {for (EventData v in unfinishedEvents) v.key: v};
@@ -87,19 +109,48 @@ class HiveRepository {
     }
   }
 
-  createEvent({required bool daily, required EventData event, bool? containsSelectedDay}) {
+  createFutureTodo({required FutureTodo todo}) {
+    futureTodosHive.add(todo);
+    futureList.insert(todo.index, todo);
+  }
+
+  updateFutureTodo({required List<FutureTodo> todoList}) {
+    for (FutureTodo i in todoList) {
+      i.save();
+    }
+    futureList = todoList;
+  }
+
+  deleteFutureTodo({required FutureTodo todo}) {
+    futureList.removeAt(todo.index);
+    todo.delete();
+  }
+
+  createEvent({required bool daily, required EventData event, bool? containsSelectedDay, DateTime? currentMonth}) {
     daily ? dailyHive.add(event) : monthlyHive.add(event);
     if (daily) {
       dailyTableEvents.add(event);
       dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
       inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
       dailyTableEventsMap[event.key] = event;
-    } else {
-      int start = event.start.day;
-
-      while (start <= event.end.day) {
-        thisMonthEventsMaps[start - 1][event.key] = event;
-        start++;
+    } else if (event.start
+            .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
+        event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
+      DateTime start =
+          event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+              ? event.start
+              : currentMonth.startingMonthCalenNum();
+      DateTime end =
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+              ? event.end
+              : currentMonth.add(const Duration(days: 41));
+      while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+        thisMonthEventsMaps[start.isBefore(currentMonth)
+            ? start.day - currentMonth.startingMonthCalenNum().day
+            : start.isAfter(currentMonth)
+                ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
+                : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+        start = start.add(const Duration(days: 1));
       }
     }
     bool inDay = containsSelectedDay ?? false;
@@ -108,7 +159,12 @@ class HiveRepository {
     }
   }
 
-  updateEvent({required bool daily, required EventData event, bool? containsSelectedDay, EventData? oldEvent}) {
+  updateEvent(
+      {required bool daily,
+      required EventData event,
+      bool? containsSelectedDay,
+      EventData? oldEvent,
+      DateTime? currentMonth}) {
     event.save();
     if (daily) {
       for (int i = 0; i < inOrderDailyTableEvents.length; i++) {
@@ -123,16 +179,49 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
-      int start = oldEvent!.start.day;
-      while (start <= oldEvent.end.day) {
-        thisMonthEventsMaps[start - 1].remove(oldEvent.key);
-        start++;
+      if (oldEvent!.start
+              .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
+          oldEvent.end
+              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
+        DateTime start = oldEvent.start
+                .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+            ? oldEvent.start
+            : currentMonth.startingMonthCalenNum();
+        DateTime end = oldEvent.end
+                .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+            ? oldEvent.end
+            : currentMonth.add(const Duration(days: 41));
+        while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+          thisMonthEventsMaps[start.isBefore(currentMonth)
+                  ? start.day - currentMonth.startingMonthCalenNum().day
+                  : start.isAfter(currentMonth)
+                      ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
+                      : start.day - 1 + (currentMonth.weekday - 1)]
+              .remove(oldEvent.key);
+          start = start.add(const Duration(days: 1));
+        }
       }
-      start = event.start.day;
-      while (start <= event.end.day) {
-        thisMonthEventsMaps[start - 1][event.key] = event;
-        start++;
+      if (event.start
+              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
+        DateTime start =
+            event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+                ? event.start
+                : currentMonth.startingMonthCalenNum();
+        DateTime end =
+            event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+                ? event.end
+                : currentMonth.add(const Duration(days: 41));
+        while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+          thisMonthEventsMaps[start.isBefore(currentMonth)
+              ? start.day - currentMonth.startingMonthCalenNum().day
+              : start.isAfter(currentMonth)
+                  ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
+                  : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+          start = start.add(const Duration(days: 1));
+        }
       }
+
       dailyMonthlyEventsMap.remove(oldEvent.key);
     }
 
@@ -142,7 +231,7 @@ class HiveRepository {
     }
   }
 
-  deleteEvent({required bool daily, required EventData event, bool? containsSelectedDay}) {
+  deleteEvent({required bool daily, required EventData event, bool? containsSelectedDay, DateTime? currentMonth}) {
     if (daily) {
       if (unfinishedEventsMap[event.key] != null) {
         unfinishedEventsMap.remove(event.key);
@@ -153,10 +242,26 @@ class HiveRepository {
         dailyTableEventsMap.remove(event.key);
       }
     } else {
-      int start = event.start.day;
-      while (start <= event.end.day) {
-        thisMonthEventsMaps[start - 1].remove(event.key);
-        start++;
+      if (event.start
+              .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
+        DateTime start =
+            event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+                ? event.start
+                : currentMonth.startingMonthCalenNum();
+        DateTime end =
+            event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+                ? event.end
+                : currentMonth.add(const Duration(days: 41));
+        while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+          thisMonthEventsMaps[start.isBefore(currentMonth)
+                  ? start.day - currentMonth.startingMonthCalenNum().day
+                  : start.isAfter(currentMonth)
+                      ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
+                      : start.day - 1 + (currentMonth.weekday - 1)]
+              .remove(event.key);
+          start = start.add(const Duration(days: 1));
+        }
       }
     }
     bool inDay = containsSelectedDay ?? false;
@@ -205,20 +310,30 @@ class HiveRepository {
   getMonthlyEvents({required DateTime date}) {
     thisMonthEvents.clear();
     for (EventData event in monthlyHive.values) {
-      if ((event.start.isSameMonthYear(date) || event.end.isSameMonthYear(date))) {
+      if (event.start.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))) {
         thisMonthEvents.add(event);
       }
     }
 
-    for (int i = 0; i < 31; i++) {
+    for (int i = 0; i < 42; i++) {
       thisMonthEventsMaps[i].clear();
     }
 
-    for (EventData v in thisMonthEvents) {
-      int start = v.start.day;
-      while (start <= v.end.day) {
-        thisMonthEventsMaps[start - 1][v.key] = v;
-        start++;
+    for (EventData event in thisMonthEvents) {
+      DateTime start = event.start.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))
+          ? event.start
+          : date.startingMonthCalenNum();
+      DateTime end = event.end.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))
+          ? event.end
+          : date.add(const Duration(days: 41));
+      while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+        thisMonthEventsMaps[start.isBefore(date)
+            ? start.day - date.startingMonthCalenNum().day
+            : start.isAfter(date)
+                ? (date.weekday - 1) + date.totalDaysInMonth() + start.day - 1
+                : start.day - 1 + (date.weekday - 1)][event.key] = event;
+        start = start.add(const Duration(days: 1));
       }
     }
   }

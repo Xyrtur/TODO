@@ -8,8 +8,9 @@ enum DeletingFrom { unfinishedList, todoTable, monthCalen }
 class DeleteConfirmationDialog extends StatelessWidget {
   final DeletingFrom type;
   final EventData event;
+  final DateTime? currentMonth;
 
-  const DeleteConfirmationDialog({super.key, required this.type, required this.event});
+  const DeleteConfirmationDialog({super.key, required this.type, required this.event, this.currentMonth});
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +62,10 @@ class DeleteConfirmationDialog extends StatelessWidget {
 
                               break;
                             case DeletingFrom.monthCalen:
-                              context.read<MonthlyTodoBloc>().add(
-                                  MonthlyTodoDelete(event: event, selectedDailyDay: context.read<DateCubit>().state));
+                              context.read<MonthlyTodoBloc>().add(MonthlyTodoDelete(
+                                  event: event,
+                                  selectedDailyDay: context.read<DateCubit>().state,
+                                  currentMonth: currentMonth!));
 
                               break;
                           }

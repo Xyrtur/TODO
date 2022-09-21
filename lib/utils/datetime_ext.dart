@@ -41,10 +41,8 @@ extension DatePrecisionCompare on DateTime {
         isBefore(otherStart) && end.isAfter(otherEnd);
   }
 
-  int startingMonthCalenNum() {
-    int totalDaysInPrevMonth = DateTime(year, month, 0).day;
-
-    return totalDaysInPrevMonth - (weekday - 2);
+  DateTime startingMonthCalenNum() {
+    return subtract(Duration(days: weekday - 1));
   }
 
   int totalDaysInMonth() {

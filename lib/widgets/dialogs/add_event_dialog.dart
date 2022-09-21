@@ -78,7 +78,10 @@ class AddEventDialog extends StatelessWidget {
                                           BlocProvider.value(value: context.read<DateCubit>())
                                         ],
                                   child: DeleteConfirmationDialog(
-                                      type: daily ? DeletingFrom.todoTable : DeletingFrom.monthCalen, event: event!),
+                                    type: daily ? DeletingFrom.todoTable : DeletingFrom.monthCalen,
+                                    event: event!,
+                                    currentMonth: monthOrDayDate,
+                                  ),
                                 );
                               });
                         },
@@ -298,8 +301,8 @@ class AddEventDialog extends StatelessWidget {
                                                         : context.read<CalendarTypeCubit>().state == CalendarType.ranged
                                                             ? CalendarDatePicker2Type.range
                                                             : CalendarDatePicker2Type.multi,
-                                                firstDate: DateTime(monthOrDayDate.year, monthOrDayDate.month, 1),
-                                                lastDate: DateTime(monthOrDayDate.year, monthOrDayDate.month + 1, 0),
+                                                firstDate: DateTime(monthOrDayDate.year),
+                                                lastDate: DateTime(monthOrDayDate.year + 2, 12, 31),
                                                 currentDate: monthOrDayDate,
                                                 selectedDayHighlightColor: Centre.red,
                                               ),
@@ -614,6 +617,7 @@ class AddEventDialog extends StatelessWidget {
             switch (context.read<CalendarTypeCubit>().state) {
               case CalendarType.single:
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoCreate(
+                    currentMonth: monthOrDayDate,
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: EventData(
                         fullDay: fullDay,
@@ -631,6 +635,7 @@ class AddEventDialog extends StatelessWidget {
                 break;
               case CalendarType.ranged:
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoCreate(
+                    currentMonth: monthOrDayDate,
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: EventData(
                         fullDay: true,
@@ -643,6 +648,7 @@ class AddEventDialog extends StatelessWidget {
               case CalendarType.multi:
                 for (DateTime? date in context.read<DialogDatesCubit>().state ?? []) {
                   context.read<MonthlyTodoBloc>().add(MonthlyTodoCreate(
+                      currentMonth: monthOrDayDate,
                       selectedDailyDay: context.read<DateCubit>().state,
                       event: EventData(
                           fullDay: fullDay,
@@ -684,6 +690,7 @@ class AddEventDialog extends StatelessWidget {
                 DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
                 DateTime dateWithoutTime = DateTime(prevDate.year, prevDate.month, prevDate.day);
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
+                    currentMonth: monthOrDayDate,
                     oldEvent: oldEvent,
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: event!.edit(
@@ -698,6 +705,7 @@ class AddEventDialog extends StatelessWidget {
                 break;
               case CalendarType.ranged:
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
+                    currentMonth: monthOrDayDate,
                     oldEvent: oldEvent,
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: event!.edit(

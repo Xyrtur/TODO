@@ -5,6 +5,7 @@ import 'package:swipe/swipe.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
+import 'package:todo/screens/unordered_page.dart';
 import 'package:todo/utils/hive_repository.dart';
 import '../utils/centre.dart';
 
@@ -101,7 +102,8 @@ class _TodoPagesState extends State<TodoPages> {
                         )
                       ],
                       child: MonthlyPage(pc: widget.monthlyPc),
-                    )
+                    ),
+                    const UnorderedPage()
                   ],
                 ),
               ),

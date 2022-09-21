@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todo/models/future_todo.dart';
 
 import 'package:todo/utils/hive_repository.dart';
 import 'package:todo/screens/splash_screen.dart';
@@ -14,6 +15,9 @@ void main() async {
     return deletedEntries > 20;
   });
   await Hive.openBox<EventData>('dailyEventBox', compactionStrategy: (entries, deletedEntries) {
+    return deletedEntries > 20;
+  });
+  await Hive.openBox<FutureTodo>('futureTodosBox', compactionStrategy: (entries, deletedEntries) {
     return deletedEntries > 20;
   });
   runApp(const MyApp());

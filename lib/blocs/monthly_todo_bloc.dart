@@ -14,20 +14,24 @@ abstract class MonthlyTodoEvent extends Equatable {
 class MonthlyTodoCreate extends MonthlyTodoEvent {
   final EventData event;
   final DateTime selectedDailyDay;
-  const MonthlyTodoCreate({required this.event, required this.selectedDailyDay});
+  final DateTime currentMonth;
+  const MonthlyTodoCreate({required this.event, required this.selectedDailyDay, required this.currentMonth});
 }
 
 class MonthlyTodoUpdate extends MonthlyTodoEvent {
   final EventData event;
   final DateTime selectedDailyDay;
   final EventData oldEvent;
-  const MonthlyTodoUpdate({required this.event, required this.selectedDailyDay, required this.oldEvent});
+  final DateTime currentMonth;
+  const MonthlyTodoUpdate(
+      {required this.event, required this.selectedDailyDay, required this.oldEvent, required this.currentMonth});
 }
 
 class MonthlyTodoDelete extends MonthlyTodoEvent {
   final EventData event;
   final DateTime selectedDailyDay;
-  const MonthlyTodoDelete({required this.event, required this.selectedDailyDay});
+  final DateTime currentMonth;
+  const MonthlyTodoDelete({required this.event, required this.selectedDailyDay, required this.currentMonth});
 }
 
 class MonthlyTodoDateChange extends MonthlyTodoEvent {
@@ -66,17 +70,24 @@ class MonthlyTodoBloc extends Bloc<MonthlyTodoEvent, MonthlyTodoState> {
   MonthlyTodoBloc(this.hive) : super(MonthlyTodoInitial(hive.thisMonthEventsMaps, false)) {
     on<MonthlyTodoCreate>((event, emit) {
       bool containsDay = event.selectedDailyDay.isBetweenDates(event.event.start, event.event.end);
-      hive.createEvent(daily: false, event: event.event, containsSelectedDay: containsDay);
+      hive.createEvent(
+          daily: false, event: event.event, containsSelectedDay: containsDay, currentMonth: event.currentMonth);
       emit(MonthlyTodoRefreshed(hive.thisMonthEventsMaps, containsDay));
     });
     on<MonthlyTodoUpdate>((event, emit) {
       bool containsDay = event.selectedDailyDay.isBetweenDates(event.event.start, event.event.end);
-      hive.updateEvent(daily: false, event: event.event, containsSelectedDay: containsDay, oldEvent: event.oldEvent);
+      hive.updateEvent(
+          daily: false,
+          event: event.event,
+          containsSelectedDay: containsDay,
+          oldEvent: event.oldEvent,
+          currentMonth: event.currentMonth);
       emit(MonthlyTodoRefreshed(hive.thisMonthEventsMaps, containsDay));
     });
     on<MonthlyTodoDelete>((event, emit) {
       bool containsDay = event.selectedDailyDay.isBetweenDates(event.event.start, event.event.end);
-      hive.deleteEvent(daily: false, event: event.event, containsSelectedDay: containsDay);
+      hive.deleteEvent(
+          daily: false, event: event.event, containsSelectedDay: containsDay, currentMonth: event.currentMonth);
       emit(MonthlyTodoRefreshed(hive.thisMonthEventsMaps, containsDay));
     });
     on<MonthlyTodoDateChange>((event, emit) {
