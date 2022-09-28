@@ -17,7 +17,7 @@ class FutureTodoAdapter extends TypeAdapter<FutureTodo> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return FutureTodo(
-      indents: fields[2] as int,
+      indented: fields[2] as bool,
       text: fields[0] as String,
       finished: fields[1] as bool,
       index: fields[3] as int,
@@ -33,7 +33,7 @@ class FutureTodoAdapter extends TypeAdapter<FutureTodo> {
       ..writeByte(1)
       ..write(obj.finished)
       ..writeByte(2)
-      ..write(obj.indents)
+      ..write(obj.indented)
       ..writeByte(3)
       ..write(obj.index);
   }

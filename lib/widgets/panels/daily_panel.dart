@@ -101,6 +101,7 @@ class DailyPanel extends StatelessWidget {
                                           BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                                         ],
                                         child: AddEventDialog.daily(
+                                          addingFutureTodo: false,
                                           event: state.unfinishedList[index],
                                         )),
                                   );
@@ -168,6 +169,7 @@ class DailyPanel extends StatelessWidget {
                                         BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                                       ],
                                       child: AddEventDialog.daily(
+                                        addingFutureTodo: false,
                                         event: state[index],
                                       )),
                                 );

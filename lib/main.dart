@@ -11,6 +11,8 @@ import 'package:todo/models/event_data.dart';
 void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(EventDataAdapter());
+  Hive.registerAdapter(FutureTodoAdapter());
+
   await Hive.openBox<EventData>('monthEventBox', compactionStrategy: (entries, deletedEntries) {
     return deletedEntries > 20;
   });

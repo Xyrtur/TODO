@@ -15,9 +15,14 @@ class FutureTodoCreate extends FutureTodoEvent {
   const FutureTodoCreate({required this.event});
 }
 
-class FutureTodoUpdate extends FutureTodoEvent {
+class FutureTodoListUpdate extends FutureTodoEvent {
   final List<FutureTodo> eventList;
-  const FutureTodoUpdate({required this.eventList});
+  const FutureTodoListUpdate({required this.eventList});
+}
+
+class FutureTodoUpdate extends FutureTodoEvent {
+  final FutureTodo event;
+  const FutureTodoUpdate({required this.event});
 }
 
 class FutureTodoDelete extends FutureTodoEvent {
@@ -58,6 +63,10 @@ class FutureTodoBloc extends Bloc<FutureTodoEvent, FutureTodoState> {
     });
 
     on<FutureTodoUpdate>((event, emit) {
+      hive.updateFutureTodo(todo: event.event);
+      emit(FutureTodoRefreshed(hive.futureList));
+    });
+    on<FutureTodoListUpdate>((event, emit) {
       hive.updateFutureTodo(todoList: event.eventList);
       emit(FutureTodoRefreshed(hive.futureList));
     });

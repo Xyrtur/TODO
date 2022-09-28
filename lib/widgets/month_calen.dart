@@ -55,7 +55,7 @@ class MonthCalendar extends StatelessWidget {
               dayNum = currentMonthStuff.startingMonthCalenNum();
               context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(date: state));
               fadedList = List.filled(42, true);
-              bool inMonth = false;
+              bool inMonth = dayNum.day == 1;
               int fakeDayNum = dayNum.day;
               for (int i = 0; i < 42; i++) {
                 if (fakeDayNum > currentMonthStuff.totalDaysInPrevMonth() && !inMonth) {
@@ -78,8 +78,10 @@ class MonthCalendar extends StatelessWidget {
                 List<DateTime> weekEndingNums = [];
                 for (int i = 0; i < 6; i++) {
                   weekStartingNums.add(dayNum.add(Duration(days: i * 7)));
-                  weekEndingNums.add(dayNum.add(Duration(days: i * 6)));
+                  weekEndingNums.add(dayNum.add(Duration(days: 6 + i * 7)));
                 }
+
+                dayNum = dayNum.subtract(const Duration(days: 1));
 
                 return Expanded(
                   child: Table(
@@ -87,6 +89,7 @@ class MonthCalendar extends StatelessWidget {
                       for (int week = 1; week < 7; week++)
                         TableRow(
                             children: weekdays.map((day) {
+                          dayNum = dayNum.add(const Duration(days: 1));
                           DateTime loopDayNum = dayNum;
 
                           return GestureDetector(
@@ -101,19 +104,9 @@ class MonthCalendar extends StatelessWidget {
                                               BlocProvider.value(value: context.read<MonthDateCubit>()),
                                             ],
                                             child: DayDialog(
-                                                day: loopDayNum.day,
-                                                weekday: day,
-                                                dayEvents: state
-                                                    .monthlyMaps[loopDayNum.isBefore(currentMonthStuff)
-                                                        ? loopDayNum.day - currentMonthStuff.startingMonthCalenNum().day
-                                                        : loopDayNum.isAfter(currentMonthStuff)
-                                                            ? (currentMonthStuff.weekday - 1) +
-                                                                currentMonthStuff.totalDaysInMonth() +
-                                                                loopDayNum.day -
-                                                                1
-                                                            : loopDayNum.day - 1 + (currentMonthStuff.weekday - 1)]
-                                                    .values
-                                                    .toList())));
+                                              date: loopDayNum,
+                                              currentMonth: currentMonthStuff,
+                                            )));
                               }
                             },
                             child: Container(
@@ -125,7 +118,8 @@ class MonthCalendar extends StatelessWidget {
                                       state
                                           .monthlyMaps[dayNum.isBefore(currentMonthStuff)
                                               ? dayNum.day - currentMonthStuff.startingMonthCalenNum().day
-                                              : dayNum.isAfter(currentMonthStuff)
+                                              : dayNum.isAfter(currentMonthStuff
+                                                      .add(Duration(days: currentMonthStuff.totalDaysInMonth() - 1)))
                                                   ? (currentMonthStuff.weekday - 1) +
                                                       currentMonthStuff.totalDaysInMonth() +
                                                       dayNum.day -
@@ -133,7 +127,7 @@ class MonthCalendar extends StatelessWidget {
                                                   : dayNum.day - 1 + (currentMonthStuff.weekday - 1)]
                                           .values,
                                       fadedList[(week - 1) * 7 + weekdays.indexOf(day)],
-                                      dayNum.add(const Duration(days: 1)),
+                                      dayNum,
                                       weekStartingNums,
                                       weekEndingNums)),
                             ),
@@ -157,7 +151,7 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
     Padding(
       padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 1),
       child: Text(
-        dayNum.toString(),
+        dayNum.day.toString(),
         style: Centre.todoText.copyWith(color: faded ? Colors.grey : Centre.textColor),
       ),
     ),
@@ -180,6 +174,7 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
     }
     return a.start.compareTo(b.start);
   });
+
   List<Widget> eventList = sortedList.map((event) {
     if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
       return Container(

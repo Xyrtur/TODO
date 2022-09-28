@@ -21,12 +21,10 @@ extension DatePrecisionCompare on DateTime {
   }
 
   bool isBetweenDates(DateTime start, DateTime end) {
-    return year <= end.year &&
-        year >= start.year &&
-        month <= end.month &&
-        month >= start.month &&
-        day <= end.day &&
-        day >= start.day;
+    DateTime dayStart = DateTime(start.year, start.month, start.day);
+    DateTime dayEnd = DateTime(end.year, end.month, end.day);
+
+    return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
   }
 
   bool isInTimeRange(DateTime start, DateTime end) {

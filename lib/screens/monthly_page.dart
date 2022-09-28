@@ -34,7 +34,6 @@ class MonthlyPage extends StatelessWidget {
                     BlocProvider(create: (_) => CheckboxCubit(false)),
                     BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
                     BlocProvider.value(value: context.read<DateCubit>()),
-                    BlocProvider.value(value: context.read<MonthDateCubit>())
                   ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
                 )),
         backgroundColor: Centre.primaryColor,

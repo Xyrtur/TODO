@@ -8,10 +8,10 @@ import 'package:todo/widgets/dialogs/add_event_dialog.dart';
 import 'package:todo/utils/datetime_ext.dart';
 
 class DayDialog extends StatelessWidget {
-  final int day;
-  final String weekday;
-  final List<EventData> dayEvents;
-  const DayDialog({super.key, required this.day, required this.weekday, required this.dayEvents});
+  final DateTime date;
+  final DateTime currentMonth;
+  DayDialog({super.key, required this.date, required this.currentMonth});
+  final List<String> weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +32,11 @@ class DayDialog extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            day.toString(),
+                            date.day.toString(),
                             style: Centre.todoSemiTitle,
                           ),
                           Text(
-                            weekday,
+                            weekdays[date.weekday - 1],
                             style: Centre.todoText,
                           ),
                         ],
@@ -62,13 +62,10 @@ class DayDialog extends StatelessWidget {
                                     BlocProvider<CalendarTypeCubit>(
                                       create: (_) => CalendarTypeCubit(null),
                                     ),
-                                    BlocProvider<DialogDatesCubit>(
-                                        create: (_) => DialogDatesCubit(
-                                            [context.read<MonthDateCubit>().state.add(Duration(days: day - 1))])),
+                                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit([date])),
                                     BlocProvider(create: (_) => CheckboxCubit(false)),
                                     BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
                                     BlocProvider.value(value: context.read<DateCubit>()),
-                                    BlocProvider.value(value: context.read<MonthDateCubit>())
                                   ],
                                   child: AddEventDialog.monthly(
                                     monthOrDayDate: context.read<MonthDateCubit>().state,
@@ -96,13 +93,19 @@ class DayDialog extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
-                BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(
-                  builder: (context, state) => SizedBox(
+                BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(builder: (context, state) {
+                  return SizedBox(
                     height: Centre.safeBlockVertical * 41,
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: state.monthlyMaps[day - 1].values
+                        children: state
+                            .monthlyMaps[date.isBefore(currentMonth)
+                                ? date.day - currentMonth.startingMonthCalenNum().day
+                                : date.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
+                                    ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + date.day - 1
+                                    : date.day - 1 + (currentMonth.weekday - 1)]
+                            .values
                             .toList()
                             .map((event) => GestureDetector(
                                   onTap: () => showDialog(
@@ -139,11 +142,9 @@ class DayDialog extends StatelessWidget {
                                                   BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
                                                   BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
                                                   BlocProvider.value(value: context.read<DateCubit>()),
-                                                  BlocProvider.value(value: context.read<MonthDateCubit>())
                                                 ],
                                                 child: AddEventDialog.monthly(
-                                                  monthOrDayDate: DateTime(context.read<MonthDateCubit>().state.year,
-                                                      context.read<MonthDateCubit>().state.month, day),
+                                                  monthOrDayDate: context.read<MonthDateCubit>().state,
                                                   event: event,
                                                 )),
                                           )),
@@ -197,8 +198,8 @@ class DayDialog extends StatelessWidget {
                             .toList(),
                       ),
                     ),
-                  ),
-                )
+                  );
+                })
               ],
             )));
   }

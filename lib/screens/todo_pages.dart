@@ -3,6 +3,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:swipe/swipe.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/blocs/future_todo_bloc.dart';
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
 import 'package:todo/screens/unordered_page.dart';
@@ -60,7 +61,7 @@ class _TodoPagesState extends State<TodoPages> {
                     if (widget.dailyPc.isPanelClosed) {
                       widget.dailyPc.open();
                     }
-                  } else {
+                  } else if (controller.page == 1) {
                     if (widget.monthlyPc.isPanelClosed) {
                       widget.monthlyPc.open();
                     }
@@ -103,7 +104,16 @@ class _TodoPagesState extends State<TodoPages> {
                       ],
                       child: MonthlyPage(pc: widget.monthlyPc),
                     ),
-                    const UnorderedPage()
+                    MultiBlocProvider(providers: [
+                      BlocProvider<FutureTodoBloc>(
+                        create: (BuildContext context) => FutureTodoBloc(context.read<HiveRepository>()),
+                      ),
+                      BlocProvider<MonthlyTodoBloc>(
+                        create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
+                      ),
+                      BlocProvider<TodoBloc>(
+                          create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
+                    ], child: const UnorderedPage()),
                   ],
                 ),
               ),

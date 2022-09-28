@@ -5,3 +5,4 @@ export 'monthly_todo_bloc.dart';
 export 'unfinished_bloc.dart';
 export 'package:flutter_bloc/flutter_bloc.dart';
 export 'package:todo/models/event_data.dart';
+export 'future_todo_bloc.dart';

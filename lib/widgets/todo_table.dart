@@ -81,7 +81,7 @@ class ScheduleBlock extends StatelessWidget {
       top: top.toDouble(),
       left: left,
       child: LongPressDraggable(
-        delay: const Duration(milliseconds: 50),
+        delay: const Duration(milliseconds: 100),
         onDragCompleted: () {
           if (actualEvent != null) {
             context.read<DraggingSplitBlockCubit>().letGo();
@@ -194,6 +194,7 @@ class ScheduleBlock extends StatelessWidget {
                               BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                             ],
                             child: AddEventDialog.daily(
+                              addingFutureTodo: false,
                               event: actualEvent ?? event,
                             )),
                       ));

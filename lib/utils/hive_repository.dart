@@ -57,9 +57,10 @@ class HiveRepository {
     }
     DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
     for (EventData event in monthlyHive.values) {
-      if (event.start
-              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
+      if (event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
         thisMonthEvents.add(event);
       }
     }
@@ -82,18 +83,18 @@ class HiveRepository {
     }
 
     for (EventData event in thisMonthEvents) {
-      DateTime start =
-          event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-              ? event.start
-              : currentMonth.startingMonthCalenNum();
-      DateTime end =
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-              ? event.end
-              : currentMonth.add(const Duration(days: 41));
+      DateTime start = event.start.isBetweenDates(
+              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+          ? event.start
+          : currentMonth.startingMonthCalenNum();
+      DateTime end = event.end.isBetweenDates(
+              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+          ? event.end
+          : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
         thisMonthEventsMaps[start.isBefore(currentMonth)
             ? start.day - currentMonth.startingMonthCalenNum().day
-            : start.isAfter(currentMonth)
+            : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
                 ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
                 : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
         start = start.add(const Duration(days: 1));
@@ -114,11 +115,16 @@ class HiveRepository {
     futureList.insert(todo.index, todo);
   }
 
-  updateFutureTodo({required List<FutureTodo> todoList}) {
-    for (FutureTodo i in todoList) {
-      i.save();
+  updateFutureTodo({FutureTodo? todo, List<FutureTodo>? todoList}) {
+    if (todo == null) {
+      for (FutureTodo i in todoList!) {
+        i.save();
+      }
+      futureList = todoList;
+    } else {
+      todo.save();
+      futureList[todo.index] = todo;
     }
-    futureList = todoList;
   }
 
   deleteFutureTodo({required FutureTodo todo}) {
@@ -133,21 +139,22 @@ class HiveRepository {
       dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
       inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
       dailyTableEventsMap[event.key] = event;
-    } else if (event.start
-            .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
-        event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
-      DateTime start =
-          event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-              ? event.start
-              : currentMonth.startingMonthCalenNum();
-      DateTime end =
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-              ? event.end
-              : currentMonth.add(const Duration(days: 41));
+    } else if (event.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+        event.end.isBetweenDates(
+            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
+      DateTime start = event.start.isBetweenDates(
+              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+          ? event.start
+          : currentMonth.startingMonthCalenNum();
+      DateTime end = event.end.isBetweenDates(
+              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+          ? event.end
+          : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
         thisMonthEventsMaps[start.isBefore(currentMonth)
             ? start.day - currentMonth.startingMonthCalenNum().day
-            : start.isAfter(currentMonth)
+            : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
                 ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
                 : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
         start = start.add(const Duration(days: 1));
@@ -179,43 +186,44 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
-      if (oldEvent!.start
-              .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
-          oldEvent.end
-              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
-        DateTime start = oldEvent.start
-                .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+      if (oldEvent!.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+          oldEvent.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
+        DateTime start = oldEvent.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
             ? oldEvent.start
             : currentMonth.startingMonthCalenNum();
-        DateTime end = oldEvent.end
-                .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
+        DateTime end = oldEvent.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
             ? oldEvent.end
-            : currentMonth.add(const Duration(days: 41));
+            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
           thisMonthEventsMaps[start.isBefore(currentMonth)
                   ? start.day - currentMonth.startingMonthCalenNum().day
-                  : start.isAfter(currentMonth)
+                  : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
                       ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
                       : start.day - 1 + (currentMonth.weekday - 1)]
               .remove(oldEvent.key);
           start = start.add(const Duration(days: 1));
         }
       }
-      if (event.start
-              .isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
-        DateTime start =
-            event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-                ? event.start
-                : currentMonth.startingMonthCalenNum();
-        DateTime end =
-            event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-                ? event.end
-                : currentMonth.add(const Duration(days: 41));
+      if (event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
+        DateTime start = event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+            ? event.start
+            : currentMonth.startingMonthCalenNum();
+        DateTime end = event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+            ? event.end
+            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
           thisMonthEventsMaps[start.isBefore(currentMonth)
               ? start.day - currentMonth.startingMonthCalenNum().day
-              : start.isAfter(currentMonth)
+              : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
                   ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
                   : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
           start = start.add(const Duration(days: 1));
@@ -242,24 +250,27 @@ class HiveRepository {
         dailyTableEventsMap.remove(event.key);
       }
     } else {
-      if (event.start
-              .isBetweenDates(currentMonth!.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))) {
-        DateTime start =
-            event.start.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-                ? event.start
-                : currentMonth.startingMonthCalenNum();
-        DateTime end =
-            event.end.isBetweenDates(currentMonth.startingMonthCalenNum(), currentMonth.add(const Duration(days: 41)))
-                ? event.end
-                : currentMonth.add(const Duration(days: 41));
+      if (event.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
+        DateTime start = event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+            ? event.start
+            : currentMonth.startingMonthCalenNum();
+        DateTime end = event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+            ? event.end
+            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+          print("deleting a thing ${thisMonthEventsMaps}");
           thisMonthEventsMaps[start.isBefore(currentMonth)
                   ? start.day - currentMonth.startingMonthCalenNum().day
-                  : start.isAfter(currentMonth)
+                  : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
                       ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
                       : start.day - 1 + (currentMonth.weekday - 1)]
               .remove(event.key);
+          print("deleted a thing ${thisMonthEventsMaps}");
           start = start.add(const Duration(days: 1));
         }
       }
@@ -310,8 +321,10 @@ class HiveRepository {
   getMonthlyEvents({required DateTime date}) {
     thisMonthEvents.clear();
     for (EventData event in monthlyHive.values) {
-      if (event.start.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))) {
+      if (event.start.isBetweenDates(
+              date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41))) ||
+          event.end.isBetweenDates(
+              date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))) {
         thisMonthEvents.add(event);
       }
     }
@@ -321,16 +334,18 @@ class HiveRepository {
     }
 
     for (EventData event in thisMonthEvents) {
-      DateTime start = event.start.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))
+      DateTime start = event.start
+              .isBetweenDates(date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))
           ? event.start
           : date.startingMonthCalenNum();
-      DateTime end = event.end.isBetweenDates(date.startingMonthCalenNum(), date.add(const Duration(days: 41)))
+      DateTime end = event.end
+              .isBetweenDates(date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))
           ? event.end
-          : date.add(const Duration(days: 41));
+          : date.startingMonthCalenNum().add(const Duration(days: 41));
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
         thisMonthEventsMaps[start.isBefore(date)
             ? start.day - date.startingMonthCalenNum().day
-            : start.isAfter(date)
+            : start.isAfter(date.add(Duration(days: date.totalDaysInMonth() - 1)))
                 ? (date.weekday - 1) + date.totalDaysInMonth() + start.day - 1
                 : start.day - 1 + (date.weekday - 1)][event.key] = event;
         start = start.add(const Duration(days: 1));

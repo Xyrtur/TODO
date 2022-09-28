@@ -8,19 +8,17 @@ class FutureTodo extends HiveObject {
   @HiveField(1)
   bool finished;
   @HiveField(2)
-  int indents;
+  bool indented;
   @HiveField(3)
   int index;
 
 /*
- * Full day: Whether the event spans the whole day or not (Only an optino for monthly events) 
- * Start: the starting DateTime of an event
- * End: the ending DateTime of an event
- * Color: the color chosen by the user
+ * Indented: Whether the event is indented by the user (only one indent allowed; Need more? change this implementation)
  * Text: the name of the event
  * Finished: Whether the user has crossed it off or not
+ * Index: Where the user put it in the list
  */
-  FutureTodo({required this.indents, required this.text, required this.finished, required this.index});
+  FutureTodo({required this.indented, required this.text, required this.finished, required this.index});
 
   FutureTodo toggleFinished() {
     finished = !finished;
@@ -32,8 +30,8 @@ class FutureTodo extends HiveObject {
     return this;
   }
 
-  FutureTodo indent(bool forwardIndent) {
-    indents += (forwardIndent ? 1 : -1);
+  FutureTodo toggleIndent() {
+    indented = !indented;
     return this;
   }
 
@@ -44,6 +42,6 @@ class FutureTodo extends HiveObject {
 
   @override
   toString() {
-    return {'text': text, 'finished': finished, 'indents': indents}.toString();
+    return {'text': text, 'finished': finished, 'indented': indented}.toString();
   }
 }
