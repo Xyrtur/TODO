@@ -1,4 +1,32 @@
 extension DatePrecisionCompare on DateTime {
+  // Return whether or not the event occurs inside the calendar window
+  bool inCalendarWindow({required DateTime end, required DateTime currentMonth}) {
+    return isBetweenDates(
+            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+        end.isBetweenDates(
+            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)));
+  }
+
+  // Return either the events date or a date just inside the calendar window
+  DateTime dateInCalendarWindow({required DateTime currentMonth}) {
+    return isBetweenDates(
+            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+        ? this
+        : currentMonth.startingMonthCalenNum();
+  }
+
+  /* 
+   * Returns the proper day index for the monthly maps list since it covers the 6 weeks surrounding the current month
+   * This means that the first day of the month is not necessarily the first index of the list
+   */
+  int monthlyMapDayIndex({required DateTime currentMonth}) {
+    return isBefore(currentMonth)
+        ? day - currentMonth.startingMonthCalenNum().day
+        : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
+            ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + day - 1
+            : day - 1 + (currentMonth.weekday - 1);
+  }
+
   /*
    * Checks if this is on the same day as other  
    */

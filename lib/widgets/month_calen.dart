@@ -37,6 +37,7 @@ class MonthCalendar extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
+            // Weekday strings to display across the top of calendar
             child: Row(
               children: weekdays
                   .map((day) => SizedBox(
@@ -51,9 +52,12 @@ class MonthCalendar extends StatelessWidget {
           ),
           BlocListener<MonthDateCubit, DateTime>(
             listener: ((context, state) {
+              // Listen for when the month date is changed and update the calendar
               currentMonthStuff = state;
               dayNum = currentMonthStuff.startingMonthCalenNum();
               context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(date: state));
+
+              // Make a list that tracks if the day is considered faded or not
               fadedList = List.filled(42, true);
               bool inMonth = dayNum.day == 1;
               int fakeDayNum = dayNum.day;
@@ -83,6 +87,7 @@ class MonthCalendar extends StatelessWidget {
 
                 dayNum = dayNum.subtract(const Duration(days: 1));
 
+                // Month calendar table
                 return Expanded(
                   child: Table(
                     children: [
@@ -116,15 +121,9 @@ class MonthCalendar extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: dayEvents(
                                       state
-                                          .monthlyMaps[dayNum.isBefore(currentMonthStuff)
-                                              ? dayNum.day - currentMonthStuff.startingMonthCalenNum().day
-                                              : dayNum.isAfter(currentMonthStuff
-                                                      .add(Duration(days: currentMonthStuff.totalDaysInMonth() - 1)))
-                                                  ? (currentMonthStuff.weekday - 1) +
-                                                      currentMonthStuff.totalDaysInMonth() +
-                                                      dayNum.day -
-                                                      1
-                                                  : dayNum.day - 1 + (currentMonthStuff.weekday - 1)]
+                                          // This index logic ensure the correct for the day is grabbed since the list
+                                          // contains events starting from the previous month into the next month afterwards as well
+                                          .monthlyMaps[dayNum.monthlyMapDayIndex(currentMonth: currentMonthStuff)]
                                           .values,
                                       fadedList[(week - 1) * 7 + weekdays.indexOf(day)],
                                       dayNum,
@@ -145,9 +144,11 @@ class MonthCalendar extends StatelessWidget {
   }
 }
 
+// Returns the list of event bars to display on each day of the calendar
 List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime dayNum, List<DateTime> weekStartingNums,
     List<DateTime> weekEndingNums) {
   List<Widget> list = [
+    // Start the list with the day number in the top left always
     Padding(
       padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 1),
       child: Text(
@@ -156,6 +157,9 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
       ),
     ),
   ];
+
+  // Sort the list to ensure the ranged event bars stay together across the calendar
+  // Ensure that ranged events come first and then sort by time
   List<EventData> sortedList = dayEventsList.toList();
   sortedList.sort((a, b) {
     if (a.fullDay && !a.start.isSameDate(other: a.end, daily: false)) {
@@ -176,8 +180,10 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
   });
 
   List<Widget> eventList = sortedList.map((event) {
+    // If the event is ranged
     if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
       return Container(
+        // Margin and border logic to make the event look seamless across days on the calendar
         margin: EdgeInsets.only(
             left: dayNum.isSameDate(other: event.start, daily: false) ? Centre.safeBlockHorizontal * 0.7 : 0,
             right: dayNum.isSameDate(other: event.end, daily: false) ? Centre.safeBlockHorizontal * 0.7 : 0,
@@ -225,5 +231,6 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
   }).toList();
   list.addAll(eventList);
 
+  // Only shows a max of 7 events on the calendar per day
   return list.length > 7 ? list.getRange(0, 8).toList() : list;
 }

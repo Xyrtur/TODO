@@ -161,6 +161,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
                   width: Centre.safeBlockHorizontal * 2,
                 ),
                 TextFormField(
+                  decoration: const InputDecoration(border: InputBorder.none),
                   initialValue: todo.text,
                   maxLines: 1,
                   style: Centre.dialogText,
@@ -194,6 +195,88 @@ class _UnorderedPageState extends State<UnorderedPage> {
   Widget build(BuildContext context) {
     Centre().init(context);
 
+    Widget addButton = GestureDetector(
+      onTap: () {
+        if (formKey.currentState!.validate()) {
+          context.read<FutureTodoBloc>().add(FutureTodoCreate(
+              event: FutureTodo(
+                  indented: false,
+                  text: controller.text,
+                  finished: false,
+                  index: context.read<FutureTodoBloc>().state.futureList.length)));
+          controller.clear();
+          FocusScopeNode currentFocus = FocusScope.of(context);
+
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+        padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
+        height: Centre.safeBlockVertical * 5,
+        width: Centre.safeBlockVertical * 6,
+        child: Icon(
+          Icons.add_circle_rounded,
+          weight: 700,
+          color: Centre.primaryColor,
+          size: 35,
+        ),
+      ),
+    );
+
+    Widget textField = SizedBox(
+      width: Centre.safeBlockHorizontal * 70,
+      child: Form(
+        key: formKey,
+        child: TextFormField(
+          controller: controller,
+          validator: (text) {
+            if (text == null || text.isEmpty) {
+              return 'Can\'t be empty';
+            } else if (text.length > 100) {
+              return 'Too long';
+            }
+            return null;
+          },
+          style: Centre.dialogText.copyWith(fontSize: Centre.safeBlockHorizontal * 5),
+          decoration: InputDecoration(
+            hintText: "Todo item",
+            hintStyle: Centre.dialogText.copyWith(color: Colors.grey, fontSize: Centre.safeBlockHorizontal * 5),
+            isDense: true,
+          ),
+        ),
+      ),
+    );
+
+    Widget floatingForm = Container(
+      height: Centre.safeBlockVertical * 10,
+      width: Centre.safeBlockHorizontal * 90,
+      decoration: BoxDecoration(
+          color: Centre.dialogBgColor,
+          boxShadow: [
+            BoxShadow(
+              color: Centre.darkerBgColor,
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: Offset(0, 2),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(10)),
+      margin: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 2,
+          Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 5),
+      child: Row(
+        children: [
+          SizedBox(
+            width: Centre.safeBlockHorizontal * 5,
+          ),
+          textField,
+          addButton
+        ],
+      ),
+    );
+
     return SafeArea(
         child: Scaffold(
       backgroundColor: Centre.bgColor,
@@ -226,85 +309,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
                     })),
           ),
         ),
-        Container(
-          height: Centre.safeBlockVertical * 10,
-          width: Centre.safeBlockHorizontal * 90,
-          decoration: BoxDecoration(
-              color: Centre.dialogBgColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Centre.darkerBgColor,
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: Offset(0, 2),
-                ),
-              ],
-              borderRadius: BorderRadius.circular(10)),
-          margin: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 2,
-              Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 5),
-          child: Row(
-            children: [
-              SizedBox(
-                width: Centre.safeBlockHorizontal * 5,
-              ),
-              SizedBox(
-                width: Centre.safeBlockHorizontal * 70,
-                child: Form(
-                  key: formKey,
-                  child: TextFormField(
-                    controller: controller,
-                    validator: (text) {
-                      if (text == null || text.isEmpty) {
-                        return 'Can\'t be empty';
-                      } else if (text.length > 100) {
-                        return 'Too long';
-                      }
-                      return null;
-                    },
-                    style: Centre.dialogText.copyWith(fontSize: Centre.safeBlockHorizontal * 5),
-                    decoration: InputDecoration(
-                      hintText: "Todo item",
-                      hintStyle:
-                          Centre.dialogText.copyWith(color: Colors.grey, fontSize: Centre.safeBlockHorizontal * 5),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-              ),
-              // AddTodoTextField(controller: controller, formKey: _formKey),
-              GestureDetector(
-                onTap: () {
-                  if (formKey.currentState!.validate()) {
-                    context.read<FutureTodoBloc>().add(FutureTodoCreate(
-                        event: FutureTodo(
-                            indented: false,
-                            text: controller.text,
-                            finished: false,
-                            index: context.read<FutureTodoBloc>().state.futureList.length)));
-                    controller.clear();
-                    FocusScopeNode currentFocus = FocusScope.of(context);
-
-                    if (!currentFocus.hasPrimaryFocus) {
-                      currentFocus.unfocus();
-                    }
-                  }
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
-                  padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
-                  height: Centre.safeBlockVertical * 5,
-                  width: Centre.safeBlockVertical * 6,
-                  child: Icon(
-                    Icons.add_circle_rounded,
-                    weight: 700,
-                    color: Centre.primaryColor,
-                    size: 35,
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
+        floatingForm,
       ]),
     ));
   }

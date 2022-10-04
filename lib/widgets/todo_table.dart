@@ -14,14 +14,26 @@ class TodoTable extends StatelessWidget {
     }, builder: (context, state) {
       DateTime currentDate = context.read<DateCubit>().state;
       List<Widget> schedBlockList = [];
+
+      // Marks whether or not going through the events has passed 1600 yet or not
+      // We only want to make the checks once
       bool barrierHit = false;
+
+      // Go through each of the events in their order
       for (dynamic key in state.orderedDailyKeyList) {
         EventData event = state.dailyTableMap[key]!;
+
+        // Marks the middle of the table schedule where it breaks to the next side
         DateTime mark16 = currentDate.add(const Duration(hours: 16));
+
         if (!barrierHit && event.start.isBefore(mark16) && event.end.isAfter(mark16)) {
           barrierHit = true;
+          // Creates two schedule blocks for one event, one block for each side of the table
+
+          // Want to know which block is larger, the block before 1600 or after to see which block displays the event text
           bool firstBlockLarger = mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
 
+          // Only wrap the split schedule blocks with the cubit so that dragging one also affects the other
           schedBlockList.add(BlocBuilder<DraggingSplitBlockCubit, bool>(
             builder: (context, state) => ScheduleBlock(
                 event: event.copyWith(otherEnd: mark16),
@@ -70,13 +82,78 @@ class ScheduleBlock extends StatelessWidget {
   double left = 0;
   bool firstBlockLarger;
 
+  double topOfTable = Centre.safeBlockVertical * 16.2;
+  double middleOfTableWithBlockOffset = Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2;
+
   @override
   Widget build(BuildContext context) {
+    Widget containerBlock(bool feedBack) {
+      return Material(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+              color: event.finished ? Colors.transparent : Color(event.color),
+              border: event.finished
+                  ? Border.all(
+                      color: Color(event.color),
+                      width: Centre.safeBlockHorizontal * 0.5,
+                    )
+                  : Border.all(width: 0)),
+          width: Centre.safeBlockHorizontal * 35,
+          height: Centre.scheduleBlock *
+              ((feedBack ? actualEvent ?? event : event)
+                      .end
+                      .difference((feedBack ? actualEvent ?? event : event).start)
+                      .inMinutes /
+                  60),
+          child: Center(
+            child: Text(
+              event.text,
+              style: Centre.todoText.copyWith(
+                  color: event.finished ? Centre.textColor : Colors.black,
+                  decoration: event.finished ? TextDecoration.lineThrough : null),
+            ),
+          ),
+        ),
+      );
+    }
+
+    showDailyDialog() {
+      showDialog(
+          context: context,
+          builder: (BuildContext tcontext) => Scaffold(
+                backgroundColor: Colors.transparent,
+                body: MultiBlocProvider(
+                    providers: [
+                      BlocProvider<TimeRangeCubit>(
+                        create: (_) => TimeRangeCubit(TimeRangeState(
+                            TimeOfDay(
+                                hour: (actualEvent ?? event).start.hour, minute: (actualEvent ?? event).start.minute),
+                            TimeOfDay(
+                                hour: (actualEvent ?? event).end.hour, minute: (actualEvent ?? event).end.minute))),
+                      ),
+                      BlocProvider<ColorCubit>(
+                        create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
+                      ),
+                      BlocProvider.value(value: context.read<DateCubit>()),
+                      BlocProvider.value(value: context.read<TodoBloc>()),
+                      BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                    ],
+                    child: AddEventDialog.daily(
+                      addingFutureTodo: false,
+                      event: actualEvent ?? event,
+                    )),
+              ));
+    }
+
+    // Get the initial position of the block on the table
     top = Centre.scheduleBlock * (event.start.difference(currentDate).inMinutes % 540 / 60);
     bottom = top + Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60);
     left = event.start.hour < 16 && event.start.hour >= 7
         ? Centre.safeBlockHorizontal * 5
         : Centre.safeBlockHorizontal * 54;
+
     return Positioned(
       top: top.toDouble(),
       left: left,
@@ -100,25 +177,35 @@ class ScheduleBlock extends StatelessWidget {
         onDragEnd: (drag) {
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
-          if (drag.offset.dy < Centre.safeBlockVertical * 16.2 &&
-                  (drag.offset.dx <= (Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2)) ||
-              drag.offset.dy > Centre.safeBlockVertical * 16.2 + Centre.scheduleBlock * 8.75 &&
-                  (drag.offset.dx > (Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2))) {
+
+          // Ensure the block was dragged to an appropriate spot, if not return it to its original spot
+          if (drag.offset.dy < topOfTable && (drag.offset.dx <= middleOfTableWithBlockOffset) ||
+              drag.offset.dy > topOfTable + Centre.scheduleBlock * 8.75 &&
+                  (drag.offset.dx > middleOfTableWithBlockOffset)) {
             return;
           } else {
-            top = ((drag.offset.dy - Centre.safeBlockVertical * 16.2) / (Centre.scheduleBlock * 5 / 60)).round() *
+            // Round to the nearest 5 minutes
+            top = ((drag.offset.dy - topOfTable) / (Centre.scheduleBlock * 5 / 60)).round() *
                 (Centre.scheduleBlock * 5 / 60);
           }
-          if (drag.offset.dx > Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2) {
+
+          // Set the left side of the block
+          if (drag.offset.dx > middleOfTableWithBlockOffset) {
             left = Centre.safeBlockHorizontal * 54;
           } else {
             left = Centre.safeBlockHorizontal * 5;
           }
+
+          // Get the start and end times from the position the block was dragged to
           DateTime start = currentDate.add(Duration(
               minutes:
                   (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
           DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
+
+          // If it adds such that the end goes past 1 am, ignore the drag
           if (end.isAfter(currentDate.add(const Duration(hours: 18)))) return;
+
+          // Check if the event clashes/overlaps with any other events on the table
           for (EventData v in context.read<TodoBloc>().state.dailyTableMap.values) {
             if (v.key == (actualEvent?.key ?? event.key)) continue;
             if (start.isInTimeRange(v.start, v.end) ||
@@ -128,6 +215,7 @@ class ScheduleBlock extends StatelessWidget {
             }
           }
 
+          // Update the event with the new times, which rebuilds the table
           context.read<TodoBloc>().add(TodoUpdate(
               event: (actualEvent ?? event).edit(
                   fullDay: (actualEvent ?? event).fullDay,
@@ -137,31 +225,7 @@ class ScheduleBlock extends StatelessWidget {
                   text: (actualEvent ?? event).text,
                   finished: (actualEvent ?? event).finished)));
         },
-        feedback: Material(
-          color: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
-                color: event.finished ? Colors.transparent : Color(event.color),
-                border: event.finished
-                    ? Border.all(
-                        color: Color(event.color),
-                        width: Centre.safeBlockHorizontal * 0.5,
-                      )
-                    : Border.all(width: 0)),
-            width: Centre.safeBlockHorizontal * 35,
-            height: Centre.scheduleBlock *
-                ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60),
-            child: Center(
-              child: Text(
-                event.text,
-                style: Centre.todoText.copyWith(
-                    color: event.finished ? Centre.textColor : Colors.black,
-                    decoration: event.finished ? TextDecoration.lineThrough : null),
-              ),
-            ),
-          ),
-        ),
+        feedback: containerBlock(true),
         childWhenDragging: Container(
           color: Colors.transparent,
           width: Centre.safeBlockHorizontal * 35,
@@ -171,61 +235,13 @@ class ScheduleBlock extends StatelessWidget {
         child: GestureDetector(
           onTap: () {
             if (context.read<ToggleChecklistEditingCubit>().state) {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext tcontext) => Scaffold(
-                        backgroundColor: Colors.transparent,
-                        body: MultiBlocProvider(
-                            providers: [
-                              BlocProvider<TimeRangeCubit>(
-                                create: (_) => TimeRangeCubit(TimeRangeState(
-                                    TimeOfDay(
-                                        hour: (actualEvent ?? event).start.hour,
-                                        minute: (actualEvent ?? event).start.minute),
-                                    TimeOfDay(
-                                        hour: (actualEvent ?? event).end.hour,
-                                        minute: (actualEvent ?? event).end.minute))),
-                              ),
-                              BlocProvider<ColorCubit>(
-                                create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
-                              ),
-                              BlocProvider.value(value: context.read<DateCubit>()),
-                              BlocProvider.value(value: context.read<TodoBloc>()),
-                              BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-                            ],
-                            child: AddEventDialog.daily(
-                              addingFutureTodo: false,
-                              event: actualEvent ?? event,
-                            )),
-                      ));
+              showDailyDialog();
             } else {
               context.read<TodoBloc>().add(TodoUpdate(event: (actualEvent ?? event).toggleFinished()));
             }
           },
           child: !(dragging ?? false)
-              ? Container(
-                  decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(5)),
-                      color: event.finished ? Colors.transparent : Color(event.color),
-                      border: event.finished
-                          ? Border.all(
-                              color: Color(event.color),
-                              width: Centre.safeBlockHorizontal * 0.5,
-                            )
-                          : null),
-                  width: Centre.safeBlockHorizontal * 35,
-                  height: Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60),
-                  child: firstBlockLarger
-                      ? Center(
-                          child: Text(
-                            event.text,
-                            style: Centre.todoText.copyWith(
-                                color: event.finished ? Centre.textColor : Colors.black,
-                                decoration: event.finished ? TextDecoration.lineThrough : null),
-                          ),
-                        )
-                      : null,
-                )
+              ? containerBlock(false)
               : Container(
                   color: Colors.transparent,
                   width: Centre.safeBlockHorizontal * 35,

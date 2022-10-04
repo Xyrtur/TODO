@@ -43,11 +43,16 @@ class MonthlyPanel extends StatelessWidget {
   List<Widget> getWeekList(
       int firstEnd, int i, int numWeeks, BuildContext context, List<Map<dynamic, EventData>> monthlyList) {
     List<Widget> temp = [];
+    int prevMonthOffset = (context.read<MonthDateCubit>().state.weekday - 1);
+
     for (int dayIndex = i == 0 ? 1 : firstEnd + 7 * i - 6;
         dayIndex <= (i == (numWeeks - 1) ? context.read<MonthDateCubit>().state.totalDaysInMonth() : firstEnd + 7 * i);
         dayIndex++) {
-      for (EventData event in monthlyList[dayIndex - 1].values) {
-        if (dayIndex == (i == 0 ? 1 : firstEnd + 7 * i - 6) || monthlyList[dayIndex - 2][event.key] == null) {
+      for (EventData event in monthlyList[dayIndex - 1 + prevMonthOffset].values) {
+        // if block ensures duplicates won't appear in the week list
+        // If the dayIndex is for the beginning of a week or if the event did not exist on the previous day as well (possible if ranged)
+        if (dayIndex == (i == 0 ? 1 : firstEnd + 7 * i - 6) ||
+            monthlyList[dayIndex - 2 + prevMonthOffset][event.key] == null) {
           temp.add(Padding(
             padding: EdgeInsets.only(bottom: Centre.safeBlockVertical),
             child: Row(
@@ -99,18 +104,18 @@ class MonthlyPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(builder: (context, state) {
-        int firstEnd = 8 - context.read<MonthDateCubit>().state.weekday;
+        DateTime currentMonth = context.read<MonthDateCubit>().state;
+
+        // First Sunday of the month
+        int firstEnd = 8 - currentMonth.weekday;
+
+        // Number of week tiles to create
+        // Add 1 for the first week
+        // Get number of days in month excluding those in the first week
+        // Add the number of full weeks and then add another week using %
         int numWeeks = 1 +
-            ((DateTime.utc(2022, 7 + 1, 0).day - firstEnd) / 7).floor() +
-            (((DateTime.utc(2022, 7 + 1, 0).day - firstEnd) % 7) == 0 ? 0 : 1);
-        List<int> listLengths = List.filled(numWeeks, 0);
-        for (int i = 0; i < numWeeks; i++) {
-          for (int j = (i == 0 ? 1 : firstEnd + 7 * i - 6);
-              j <= (i == (numWeeks - 1) ? context.read<MonthDateCubit>().state.totalDaysInMonth() : firstEnd + 7 * i);
-              j++) {
-            listLengths[i] += state.monthlyMaps[j - 1].length;
-          }
-        }
+            ((currentMonth.totalDaysInMonth() - firstEnd) / 7).floor() +
+            (((currentMonth.totalDaysInMonth() - firstEnd) % 7) == 0 ? 0 : 1);
 
         return Column(
           mainAxisSize: MainAxisSize.min,

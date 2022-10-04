@@ -62,6 +62,7 @@ class Centre {
     safeBlockHorizontal = (screenWidth - safeAreaHorizontal) / 100;
     safeBlockVertical = (screenHeight - safeAreaVertical) / 100;
 
+    // Size of one hour on the Todo table
     scheduleBlock = Centre.safeBlockVertical * 9.5;
   }
 }

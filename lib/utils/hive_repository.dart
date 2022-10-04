@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:intl/number_symbols_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -55,15 +54,16 @@ class HiveRepository {
     for (EventData event in tooOld) {
       event.delete();
     }
+
+    // Set up the month events list
     DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
     for (EventData event in monthlyHive.values) {
-      if (event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
+      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
         thisMonthEvents.add(event);
       }
     }
+
+    // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {
       EventData e = event;
       return !e.finished && e.end.isBeforeDate(other: DateTime.now());
@@ -76,27 +76,20 @@ class HiveRepository {
         .toList()
         .cast();
 
+    // Set up the daily list of month events
     for (EventData event in monthlyHive.values) {
       if (DateTime.now().isBetweenDates(event.start, event.end)) {
         dailyMonthlyEvents.add(event);
       }
     }
 
+    // Set up the maps
     for (EventData event in thisMonthEvents) {
-      DateTime start = event.start.isBetweenDates(
-              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.start
-          : currentMonth.startingMonthCalenNum();
-      DateTime end = event.end.isBetweenDates(
-              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.end
-          : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+      DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
+      DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.isBefore(currentMonth)
-            ? start.day - currentMonth.startingMonthCalenNum().day
-            : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
-                ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
-                : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -132,6 +125,7 @@ class HiveRepository {
     todo.delete();
   }
 
+  // Add the event to the proper lists/maps
   createEvent({required bool daily, required EventData event, bool? containsSelectedDay, DateTime? currentMonth}) {
     daily ? dailyHive.add(event) : monthlyHive.add(event);
     if (daily) {
@@ -139,24 +133,12 @@ class HiveRepository {
       dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
       inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
       dailyTableEventsMap[event.key] = event;
-    } else if (event.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
-            currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-        event.end.isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
-      DateTime start = event.start.isBetweenDates(
-              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.start
-          : currentMonth.startingMonthCalenNum();
-      DateTime end = event.end.isBetweenDates(
-              currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.end
-          : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+    } else if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth!)) {
+      DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
+      DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.isBefore(currentMonth)
-            ? start.day - currentMonth.startingMonthCalenNum().day
-            : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
-                ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
-                : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -173,7 +155,10 @@ class HiveRepository {
       EventData? oldEvent,
       DateTime? currentMonth}) {
     event.save();
+
     if (daily) {
+      // Find the event in the in order list and remove it
+      // Add the event back in and insert in the right spot
       for (int i = 0; i < inOrderDailyTableEvents.length; i++) {
         if (inOrderDailyTableEvents[i] == event.key) {
           inOrderDailyTableEvents.removeAt(i);
@@ -186,46 +171,23 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
-      if (oldEvent!.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-          oldEvent.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
-        DateTime start = oldEvent.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? oldEvent.start
-            : currentMonth.startingMonthCalenNum();
-        DateTime end = oldEvent.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? oldEvent.end
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+      if (oldEvent!.start.inCalendarWindow(end: oldEvent.end, currentMonth: currentMonth!)) {
+        DateTime start = oldEvent.start.dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = oldEvent.end.dateInCalendarWindow(currentMonth: currentMonth);
+
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-          thisMonthEventsMaps[start.isBefore(currentMonth)
-                  ? start.day - currentMonth.startingMonthCalenNum().day
-                  : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
-                      ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
-                      : start.day - 1 + (currentMonth.weekday - 1)]
-              .remove(oldEvent.key);
+          // Remove the event from each day list that it existed in
+          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(oldEvent.key);
           start = start.add(const Duration(days: 1));
         }
       }
-      if (event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
-        DateTime start = event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? event.start
-            : currentMonth.startingMonthCalenNum();
-        DateTime end = event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? event.end
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
+        DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-          thisMonthEventsMaps[start.isBefore(currentMonth)
-              ? start.day - currentMonth.startingMonthCalenNum().day
-              : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
-                  ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
-                  : start.day - 1 + (currentMonth.weekday - 1)][event.key] = event;
+          // Add the new event back into the day lists
+          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
           start = start.add(const Duration(days: 1));
         }
       }
@@ -241,6 +203,8 @@ class HiveRepository {
 
   deleteEvent({required bool daily, required EventData event, bool? containsSelectedDay, DateTime? currentMonth}) {
     if (daily) {
+      // Remove from either the unfinished list or the daily table and inorder list.
+      // The event cannot exist in both
       if (unfinishedEventsMap[event.key] != null) {
         unfinishedEventsMap.remove(event.key);
       } else {
@@ -250,27 +214,12 @@ class HiveRepository {
         dailyTableEventsMap.remove(event.key);
       }
     } else {
-      if (event.start.isBetweenDates(currentMonth!.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-              currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))) {
-        DateTime start = event.start.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? event.start
-            : currentMonth.startingMonthCalenNum();
-        DateTime end = event.end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-                currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-            ? event.end
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth!)) {
+        DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-          print("deleting a thing ${thisMonthEventsMaps}");
-          thisMonthEventsMaps[start.isBefore(currentMonth)
-                  ? start.day - currentMonth.startingMonthCalenNum().day
-                  : start.isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
-                      ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + start.day - 1
-                      : start.day - 1 + (currentMonth.weekday - 1)]
-              .remove(event.key);
-          print("deleted a thing ${thisMonthEventsMaps}");
+          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
           start = start.add(const Duration(days: 1));
         }
       }
@@ -284,11 +233,16 @@ class HiveRepository {
 
   // For adding from the unfinished list to the day
   addUnfinishedEvent({required EventData event}) {
+    // Remove from the unfinished list
     unfinishedEventsMap.remove(event.key);
+
+    // Add to the daily table as well as the in order list
     dailyTableEvents.add(event);
     dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
     inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
     dailyTableEventsMap[event.key] = event;
+
+    // Save in the hive
     event.save();
   }
 
@@ -301,13 +255,19 @@ class HiveRepository {
         })
         .toList()
         .cast();
+
+    // Clear the map and add the daily table events
     dailyTableEventsMap.clear();
     dailyTableEventsMap.addAll({for (EventData v in dailyTableEvents) v.key: v});
+
+    // Clear the in order list and add the stuff in order
+    dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
     inOrderDailyTableEvents.clear();
     for (EventData v in dailyTableEvents) {
       inOrderDailyTableEvents.add(v.key);
     }
 
+    // Get the monthly events that fall on the day
     dailyMonthlyEvents.clear();
     for (EventData event in monthlyHive.values) {
       if (date.isBetweenDates(event.start, event.end)) {
@@ -319,63 +279,72 @@ class HiveRepository {
 
   // For a new month
   getMonthlyEvents({required DateTime date}) {
+    // Clear the events from the monthly data structures
     thisMonthEvents.clear();
-    for (EventData event in monthlyHive.values) {
-      if (event.start.isBetweenDates(
-              date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41))) ||
-          event.end.isBetweenDates(
-              date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))) {
-        thisMonthEvents.add(event);
-      }
-    }
-
     for (int i = 0; i < 42; i++) {
       thisMonthEventsMaps[i].clear();
     }
 
+    // If either the start or end of the event fall within the calendar windoww, add it
+    // The calendar window consists of the 6 weeks surrounding the current month
+    for (EventData event in monthlyHive.values) {
+      if (event.start.inCalendarWindow(end: event.end, currentMonth: date)) {
+        thisMonthEvents.add(event);
+      }
+    }
+
     for (EventData event in thisMonthEvents) {
-      DateTime start = event.start
-              .isBetweenDates(date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.start
-          : date.startingMonthCalenNum();
-      DateTime end = event.end
-              .isBetweenDates(date.startingMonthCalenNum(), date.startingMonthCalenNum().add(const Duration(days: 41)))
-          ? event.end
-          : date.startingMonthCalenNum().add(const Duration(days: 41));
+      // If the start or end fall outside of the calendar window, just set it the the start/end of the calendar window
+      DateTime start = event.start.dateInCalendarWindow(currentMonth: date);
+      DateTime end = event.end.dateInCalendarWindow(currentMonth: date);
+
+      // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.isBefore(date)
-            ? start.day - date.startingMonthCalenNum().day
-            : start.isAfter(date.add(Duration(days: date.totalDaysInMonth() - 1)))
-                ? (date.weekday - 1) + date.totalDaysInMonth() + start.day - 1
-                : start.day - 1 + (date.weekday - 1)][event.key] = event;
+        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: date)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
   }
 
+  // Create a backup of current data and import data from the selected zip file
   Future<bool> importFile(bool isAndroid) async {
+    // Get the paths to each of the box files
     String firstBoxPath = monthlyHive.path!;
     String secondBoxPath = dailyHive.path!;
-    if (monthlyHive.isNotEmpty || dailyHive.isNotEmpty) {
-      // String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Backup directory");
+    String thirdBoxPath = futureTodosHive.path!;
+
+    // If any data is present in the app, export a backup for the user
+    if (monthlyHive.isNotEmpty || dailyHive.isNotEmpty || futureTodosHive.isNotEmpty) {
+      // Get a directory to export to
       String? selectedDirectory =
           isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
 
       if (selectedDirectory == null) {
         return false;
       }
+
+      // Create a zip file
       var encoder = ZipFileEncoder();
       encoder.create("$selectedDirectory/todo_data.zip");
+
+      // Close the hives first
       await monthlyHive.close();
       await dailyHive.close();
+      await futureTodosHive.close();
 
-      encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/firstHive.hive")));
-      encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/secondHive.hive")));
+      // Add the box files to the zip
+      encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/daily.hive")));
+      encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/monthly.hive")));
+      encoder.addFile(await (File(thirdBoxPath).copy("$selectedDirectory/future.hive")));
       encoder.close();
+
+      // Re-open the boxes
       await Hive.openBox<EventData>('monthEventBox');
       await Hive.openBox<EventData>('dailyEventBox');
+      await Hive.openBox<EventData>('futureTodosBox');
       monthlyHive = Hive.box<EventData>('monthEventBox');
       dailyHive = Hive.box<EventData>('dailyEventBox');
+      futureTodosHive = Hive.box<EventData>('futureTodosBox');
     }
 
     // Get the user to pick a  zip file
@@ -385,9 +354,11 @@ class HiveRepository {
     if (result != null) {
       await monthlyHive.close();
       await dailyHive.close();
+      await futureTodosHive.close();
 
       final inputStream = InputFileStream(result.files.single.path!);
       final archive = ZipDecoder().decodeBuffer(inputStream);
+
       // For all of the entries in the archive
       final firstStream = OutputFileStream(firstBoxPath);
       archive.files[0].writeContent(firstStream);
@@ -396,15 +367,24 @@ class HiveRepository {
       final secondStream = OutputFileStream(secondBoxPath);
       archive.files[1].writeContent(secondStream);
       secondStream.close();
+
+      final thirdStream = OutputFileStream(thirdBoxPath);
+      archive.files[2].writeContent(thirdStream);
+      thirdStream.close();
+
       await Hive.openBox<EventData>('monthEventBox');
       await Hive.openBox<EventData>('dailyEventBox');
+      await Hive.openBox<EventData>('futureTodosBox');
+
       monthlyHive = Hive.box<EventData>('monthEventBox');
       dailyHive = Hive.box<EventData>('dailyEventBox');
+      futureTodosHive = Hive.box<EventData>('futureTodosBox');
       return true;
     }
     return false;
   }
 
+  // Export the data in the app to a zip file
   Future<String?> exportFile(bool isAndroid) async {
     if (await Permission.storage.request().isGranted) {
       {
@@ -415,18 +395,23 @@ class HiveRepository {
           encoder.create("$selectedDirectory/todo_data.zip");
           String firstBoxPath = monthlyHive.path!;
           String secondBoxPath = dailyHive.path!;
+          String thirdBoxPath = futureTodosHive.path!;
 
           await monthlyHive.close();
           await dailyHive.close();
+          await futureTodosHive.close();
 
-          encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/firstHive.hive")));
-          encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/secondHive.hive")));
+          encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/daily.hive")));
+          encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/monthly.hive")));
+          encoder.addFile(await (File(thirdBoxPath).copy("$selectedDirectory/future.hive")));
           encoder.close();
-
           await Hive.openBox<EventData>('monthEventBox');
           await Hive.openBox<EventData>('dailyEventBox');
+          await Hive.openBox<EventData>('futureTodosBox');
           monthlyHive = Hive.box<EventData>('monthEventBox');
           dailyHive = Hive.box<EventData>('dailyEventBox');
+          futureTodosHive = Hive.box<EventData>('futureTodosBox');
+
           return selectedDirectory;
         }
       }
