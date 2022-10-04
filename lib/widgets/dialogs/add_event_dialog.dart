@@ -13,46 +13,466 @@ import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'custom_time_picker.dart' as custom_time_picker;
 
 class AddEventDialog extends StatelessWidget {
+  // Whether adding an event to the daily page or the monthly page
   final bool daily;
+
+  // If adding to daily page, this date represents the date currently shown
+  // If adding to monthly page, this date represents the currently chosen first day of month
   late DateTime monthOrDayDate;
+
+  // If editing an event, this will be set
   final EventData? event;
+
+  // If adding a future todo from the unordered page
   final bool addingFutureTodo;
+
+  // The name of the future todo
   final String? futureTodoText;
+
+  // Value notifiers to send events to their respective blocs when needed since shouldn't call context in async gaps
   final ValueNotifier<List<DateTime?>?> dateResults = ValueNotifier<List<DateTime?>?>(null);
   final ValueNotifier<TimeRangeState> timeRangeChosen = ValueNotifier<TimeRangeState>(TimeRangeState(null, null));
   final ValueNotifier<bool?> deleting = ValueNotifier<bool?>(false);
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
+
   AddEventDialog.daily({super.key, this.daily = true, this.event, required this.addingFutureTodo, this.futureTodoText});
   AddEventDialog.monthly(
       {super.key,
       this.daily = false,
       this.event,
       required this.monthOrDayDate,
-      this.addingFutureTodo = false,
+      this.addingFutureTodo = false, // Can set this to false because the dialog does not change in any way
       this.futureTodoText});
-
-  // if time range is tried to be set, send a snackbar saying they should pick the day first
 
   @override
   Widget build(BuildContext context) {
+    // Only if adding to monthly or from unordered page does the user set dates for the event
     if (!daily || addingFutureTodo) {
       dateResults.addListener(() {
         context.read<DialogDatesCubit>().update(dateResults.value);
         if (addingFutureTodo && daily && dateResults.value?[0] != null) {
+          // Set the date chosen so that the user can pick a time range next associated with this date
           monthOrDayDate = dateResults.value![0]!;
         }
       });
     } else {
+      // Adding to daily page so set this date to the current date shown on the daily page
       monthOrDayDate = context.read<DateCubit>().state;
     }
+
     timeRangeChosen.addListener(() {
       context.read<TimeRangeCubit>().update(timeRangeChosen.value.startResult, timeRangeChosen.value.endResult);
     });
+
     deleting.addListener(() {
       if (deleting.value ?? false) Navigator.pop(context);
     });
+
     controller = TextEditingController(text: event?.text ?? futureTodoText);
+
+    // Title and cancel/delete button
+    Widget dialogHeader = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 4),
+          child: Text(
+            event == null ? "New Event" : "Edit Event",
+            style: Centre.todoSemiTitle,
+          ),
+        ),
+        // Show a trash can or a cancel button depending on whether or not user is editing an event
+        event != null
+            ? GestureDetector(
+                onTap: () async {
+                  deleting.value = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext tcontext) {
+                        return MultiBlocProvider(
+                          providers: daily
+                              ? [BlocProvider.value(value: context.read<TodoBloc>())]
+                              : [
+                                  BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                  BlocProvider.value(value: context.read<DateCubit>())
+                                ],
+                          child: DeleteConfirmationDialog(
+                            type: daily ? DeletingFrom.todoTable : DeletingFrom.monthCalen,
+                            event: event!,
+                            currentMonth: monthOrDayDate,
+                          ),
+                        );
+                      });
+                },
+                child: Container(
+                  height: Centre.safeBlockVertical * 3.5,
+                  width: Centre.safeBlockVertical * 3.5,
+                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
+                  child: Icon(Icons.delete_rounded, color: Color(event!.color), size: 35),
+                ),
+              )
+            : GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  height: Centre.safeBlockVertical * 3.5,
+                  width: Centre.safeBlockVertical * 3.5,
+                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
+                  child: Icon(Icons.cancel_outlined, color: Centre.red, size: 35),
+                ),
+              ),
+      ],
+    );
+
+    // Select the colour that the event will be
+    Widget colourBtn(int i) {
+      return GestureDetector(
+        onTap: () {
+          context.read<ColorCubit>().update(i);
+        },
+        child: Container(
+          width: 25,
+          height: 25,
+          decoration: BoxDecoration(
+              color: Centre.colors[i],
+              border: Border.all(color: Colors.white, width: 1.5),
+              borderRadius: const BorderRadius.all(Radius.circular(40))),
+          child: context.read<ColorCubit>().state == i
+              ? Icon(
+                  Icons.check,
+                  size: Centre.safeBlockHorizontal * 5,
+                  color: Centre.bgColor,
+                )
+              : null,
+        ),
+      );
+    }
+
+    Widget firstColorRow = Padding(
+      padding: EdgeInsets.symmetric(vertical: Centre.safeBlockVertical * 1),
+      child: BlocBuilder<ColorCubit, int>(
+        builder: (context, state) => Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [for (int i = 0; i < 5; i++) colourBtn(i)],
+        ),
+      ),
+    );
+
+    Widget secondColourRow = BlocBuilder<ColorCubit, int>(
+      builder: (context, state) => Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [for (int i = 5; i < 10; i++) colourBtn(i)],
+      ),
+    );
+
+    Widget calendarTypeBtn(CalendarType state, CalendarType type, String name) {
+      return GestureDetector(
+        onTap: () {
+          if (event == null) {
+            context.read<CalendarTypeCubit>().pressed(type);
+            context.read<DialogDatesCubit>().update(null);
+          }
+        },
+        child: svgButton(
+            name: name,
+            color: event == null
+                ? (state == type ? Centre.yellow : Centre.colors[4])
+                : (state == type ? Centre.yellow : Centre.lighterDialogColor),
+            height: 7,
+            width: 7,
+            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+            borderColor: event == null && state == type ? Centre.colors[8] : Colors.transparent),
+      );
+    }
+
+    // Column of three buttons to toggle between the type of event it will be
+    Widget calendarTypeToggleBtns = Container(
+      margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
+      height: Centre.safeBlockHorizontal * 43,
+      width: Centre.safeBlockVertical * 8,
+      decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 77, 77, 77), borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: BlocBuilder<CalendarTypeCubit, CalendarType>(
+        builder: (context, state) => Column(
+          children: [
+            calendarTypeBtn(state, CalendarType.single, "single_date"),
+            calendarTypeBtn(state, CalendarType.ranged, "range_date"),
+            calendarTypeBtn(state, CalendarType.multi, "multi_date"),
+          ],
+        ),
+      ),
+    );
+
+    // Button to select the dates and the text widgets that show the chosen dates
+    List<Widget> calendarPickerRow = [
+      daily && addingFutureTodo
+          ? GestureDetector(
+              onTap: () async {
+                List<DateTime?>? results = await showCalendarDatePicker2Dialog(
+                  dialogBackgroundColor: Centre.dialogBgColor,
+                  barrierColor: Colors.transparent,
+                  borderRadius: 40,
+                  context: context,
+                  config: CalendarDatePicker2WithActionButtonsConfig(
+                    weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
+                    controlsTextStyle: Centre.dialogText,
+                    gapBetweenCalendarAndButtons: 0,
+                    lastMonthIcon: const SizedBox(
+                      width: 0,
+                      height: 0,
+                    ),
+                    nextMonthIcon: const SizedBox(
+                      width: 0,
+                      height: 0,
+                    ),
+                    shouldCloseDialogAfterCancelTapped: true,
+                    cancelButtonTextStyle: Centre.dialogText,
+                    okButton: Container(
+                      margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 3),
+                      child: Text(
+                        "OK",
+                        style: Centre.dialogText,
+                      ),
+                    ),
+                    dayTextStyle: Centre.todoText,
+                    calendarType: context.read<CalendarTypeCubit>().state == CalendarType.single || addingFutureTodo
+                        ? CalendarDatePicker2Type.single
+                        : context.read<CalendarTypeCubit>().state == CalendarType.ranged
+                            ? CalendarDatePicker2Type.range
+                            : CalendarDatePicker2Type.multi,
+                    firstDate: addingFutureTodo
+                        ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                        : DateTime(monthOrDayDate.year),
+                    lastDate: addingFutureTodo
+                        ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                            .add(const Duration(days: 4))
+                        : DateTime(monthOrDayDate.year + 2, 12, 31),
+                    currentDate: addingFutureTodo ? DateTime.now() : monthOrDayDate,
+                    selectedDayHighlightColor: Centre.red,
+                  ),
+                  dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 48),
+                  initialValue: context.read<DialogDatesCubit>().state ?? [],
+                );
+                if (results != null) dateResults.value = results;
+              },
+              child: BlocBuilder<CalendarTypeCubit, CalendarType>(
+                builder: (context, state) {
+                  return svgButton(
+                    name: state == CalendarType.single || addingFutureTodo
+                        ? "single_date"
+                        : state == CalendarType.ranged
+                            ? "range_date"
+                            : "multi_date",
+                    color: Centre.yellow,
+                    height: 7,
+                    width: 7,
+                    margin: addingFutureTodo
+                        ? EdgeInsets.fromLTRB(0, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical * 1.5)
+                        : EdgeInsets.symmetric(
+                            horizontal: Centre.safeBlockHorizontal * 2,
+                            vertical: state == CalendarType.ranged ? Centre.safeBlockVertical * 3.5 : 0),
+                    padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                  );
+                },
+              ),
+            )
+          : SizedBox(),
+      daily && addingFutureTodo
+          ? Builder(builder: (context) {
+              CalendarType calendarState = CalendarType.single;
+              if (!addingFutureTodo) calendarState = context.watch<CalendarTypeCubit>().state;
+              final dateResultsState = context.watch<DialogDatesCubit>().state;
+
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: calendarState != CalendarType.ranged
+                      ? [
+                          Padding(
+                            padding:
+                                EdgeInsets.only(bottom: addingFutureTodo ? Centre.safeBlockVertical * 3.5 : 043908744),
+                            child: SizedBox(
+                                width: addingFutureTodo
+                                    ? Centre.safeBlockHorizontal * 15
+                                    : Centre.safeBlockHorizontal * 30,
+                                child: Text(
+                                  calendarState == CalendarType.single
+                                      ? (dateResultsState?[0] != null
+                                          ? DateFormat('MMM d').format(dateResultsState![0]!)
+                                          : "")
+                                      : (dateResultsState?[0] != null
+                                          ? [for (DateTime? i in dateResultsState!) DateFormat('MMM d').format(i!)]
+                                              .join(', ')
+                                          : ""),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: Centre.dialogText,
+                                )),
+                          )
+                        ]
+                      : [
+                          SizedBox(
+                              width: Centre.safeBlockHorizontal * 21,
+                              child: Text(
+                                dateResultsState?[0] != null ? DateFormat('MMM d').format(dateResultsState![0]!) : "",
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: Centre.dialogText,
+                              )),
+                          SizedBox(
+                              width: Centre.safeBlockHorizontal * 21,
+                              child: Text(
+                                dateResultsState?[1] != null ? DateFormat('MMM d').format(dateResultsState![1]!) : "",
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: Centre.dialogText,
+                              )),
+                        ]);
+            })
+          : SizedBox(),
+    ];
+
+    // Button to select the times and the text widgets to show the chosen times
+    Widget timePickerRow = Builder(builder: (context) {
+      bool checkBoxState = false;
+      CalendarType calendarState = CalendarType.single;
+      if (!daily) {
+        checkBoxState = context.watch<CheckboxCubit>().state;
+        calendarState = context.watch<CalendarTypeCubit>().state;
+      }
+      final TimeRangeState timeRangeState = context.watch<TimeRangeCubit>().state;
+
+      return calendarState != CalendarType.ranged
+          ? Row(
+              children: [
+                GestureDetector(
+                    onTap: () async {
+                      if (addingFutureTodo && dateResults.value?[0] == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          backgroundColor: Centre.dialogBgColor,
+                          behavior: SnackBarBehavior.floating,
+                          content: Text(
+                            'Please select a day first',
+                            style: Centre.dialogText,
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ));
+                        return;
+                      }
+                      if (!checkBoxState) {
+                        TimeRangeState? value = await chooseTimeRange(
+                            context: context,
+                            daily: daily,
+                            editingEvent: event,
+                            prevChosenStart: timeRangeState.startResult);
+                        if (value.startResult != null && value.endResult != null) {
+                          timeRangeChosen.value = value;
+                        }
+                      }
+                    },
+                    child: svgButton(
+                      name: "range_time",
+                      color: Centre.yellow,
+                      height: 7,
+                      width: 7,
+                      margin: daily
+                          ? EdgeInsets.fromLTRB(
+                              addingFutureTodo ? Centre.safeBlockHorizontal * 2 : Centre.safeBlockHorizontal * 5,
+                              0,
+                              Centre.safeBlockHorizontal,
+                              Centre.safeBlockVertical * 2)
+                          : EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+                      padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                    )),
+                Padding(
+                    padding: EdgeInsets.only(bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
+                    child: Column(
+                      mainAxisAlignment: daily ? MainAxisAlignment.start : MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          timeRangeState.startResult == null
+                              ? ""
+                              : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
+                          style: daily
+                              ? Centre.dialogText
+                              : Centre.dialogText
+                                  .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
+                        ),
+                        Text(
+                          timeRangeState.endResult == null
+                              ? ""
+                              : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
+                          style: daily
+                              ? Centre.dialogText
+                              : Centre.dialogText
+                                  .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
+                        ),
+                      ],
+                    ))
+              ],
+            )
+          : const SizedBox(
+              height: 0,
+              width: 0,
+            );
+    });
+
+    Widget fullDayCheckbox = BlocBuilder<CalendarTypeCubit, CalendarType>(builder: (unUsedcontext, state) {
+      return state != CalendarType.ranged
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BlocBuilder<CheckboxCubit, bool>(
+                  builder: (unUsedcontext, state) {
+                    return GestureDetector(
+                      onTap: () {
+                        context.read<CheckboxCubit>().toggle();
+                      },
+                      child: Container(
+                        margin:
+                            EdgeInsets.only(left: Centre.safeBlockHorizontal * 6, right: Centre.safeBlockHorizontal),
+                        height: Centre.safeBlockHorizontal * 6,
+                        width: Centre.safeBlockHorizontal * 6,
+                        decoration: BoxDecoration(
+                            border: Border.all(width: 2, color: Centre.colors[4]),
+                            borderRadius: const BorderRadius.all(Radius.circular(3)),
+                            color: Colors.transparent),
+                        child: state
+                            ? Center(
+                                child: Icon(
+                                Icons.check,
+                                color: Centre.textColor,
+                                size: Centre.safeBlockHorizontal * 4,
+                              ))
+                            : const SizedBox(
+                                height: 0,
+                                width: 0,
+                              ),
+                      ),
+                    );
+                  },
+                ),
+                Text(
+                  "Full day",
+                  style: Centre.todoText,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 7.5),
+                  child: editButton(height: 5, width: 15, context: context, oldEvent: event),
+                )
+              ],
+            )
+          : Padding(
+              padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 33),
+              child: editButton(height: 5, width: 15, context: context, oldEvent: event),
+            );
+    });
 
     return AlertDialog(
       scrollable: true,
@@ -67,55 +487,7 @@ class AddEventDialog extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 4),
-                  child: Text(
-                    event == null ? "New Event" : "Edit Event",
-                    style: Centre.todoSemiTitle,
-                  ),
-                ),
-                event != null
-                    ? GestureDetector(
-                        onTap: () async {
-                          deleting.value = await showDialog<bool>(
-                              context: context,
-                              builder: (BuildContext tcontext) {
-                                return MultiBlocProvider(
-                                  providers: daily
-                                      ? [BlocProvider.value(value: context.read<TodoBloc>())]
-                                      : [
-                                          BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                                          BlocProvider.value(value: context.read<DateCubit>())
-                                        ],
-                                  child: DeleteConfirmationDialog(
-                                    type: daily ? DeletingFrom.todoTable : DeletingFrom.monthCalen,
-                                    event: event!,
-                                    currentMonth: monthOrDayDate,
-                                  ),
-                                );
-                              });
-                        },
-                        child: Container(
-                          height: Centre.safeBlockVertical * 3.5,
-                          width: Centre.safeBlockVertical * 3.5,
-                          margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-                          child: Icon(Icons.delete_rounded, color: Color(event!.color), size: 35),
-                        ),
-                      )
-                    : GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: Centre.safeBlockVertical * 3.5,
-                          width: Centre.safeBlockVertical * 3.5,
-                          margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-                          child: Icon(Icons.cancel_outlined, color: Centre.red, size: 35),
-                        ),
-                      ),
-              ],
-            ),
+            dialogHeader,
             Padding(
               padding: EdgeInsets.only(
                   top: Centre.safeBlockVertical * 1,
@@ -125,67 +497,8 @@ class AddEventDialog extends StatelessWidget {
                 color: Colors.grey,
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: Centre.safeBlockVertical * 1),
-              child: BlocBuilder<ColorCubit, int>(
-                builder: (context, state) => Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    for (int i = 0; i < 5; i++)
-                      GestureDetector(
-                        onTap: () {
-                          context.read<ColorCubit>().update(i);
-                        },
-                        child: Container(
-                          width: 25,
-                          height: 25,
-                          decoration: BoxDecoration(
-                              color: Centre.colors[i],
-                              border: Border.all(color: Colors.white, width: 1.5),
-                              borderRadius: const BorderRadius.all(Radius.circular(40))),
-                          child: context.read<ColorCubit>().state == i
-                              ? Icon(
-                                  Icons.check,
-                                  size: Centre.safeBlockHorizontal * 5,
-                                  color: Centre.bgColor,
-                                )
-                              : null,
-                        ),
-                      )
-                  ],
-                ),
-              ),
-            ),
-            BlocBuilder<ColorCubit, int>(
-              builder: (context, state) => Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (int i = 5; i < 10; i++)
-                    GestureDetector(
-                      onTap: () {
-                        context.read<ColorCubit>().update(i);
-                      },
-                      child: Container(
-                        width: 25,
-                        height: 25,
-                        decoration: BoxDecoration(
-                            color: Centre.colors[i],
-                            border: Border.all(color: Colors.white, width: 1.5),
-                            borderRadius: const BorderRadius.all(Radius.circular(40))),
-                        child: context.read<ColorCubit>().state == i
-                            ? Icon(
-                                Icons.check,
-                                size: Centre.safeBlockHorizontal * 5,
-                                color: Centre.bgColor,
-                              )
-                            : null,
-                      ),
-                    )
-                ],
-              ),
-            ),
+            firstColorRow,
+            secondColourRow,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,81 +509,7 @@ class AddEventDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: !daily
                           ? [
-                              Container(
-                                margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
-                                height: Centre.safeBlockHorizontal * 43,
-                                width: Centre.safeBlockVertical * 8,
-                                decoration: const BoxDecoration(
-                                    color: Color.fromARGB(255, 77, 77, 77),
-                                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                                child: BlocBuilder<CalendarTypeCubit, CalendarType>(
-                                  builder: (context, state) => Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (event == null) {
-                                            context.read<CalendarTypeCubit>().pressed(CalendarType.single);
-                                            context.read<DialogDatesCubit>().update(null);
-                                          }
-                                        },
-                                        child: svgButton(
-                                            name: "single_date",
-                                            color: event == null
-                                                ? (state == CalendarType.single ? Centre.yellow : Centre.colors[4])
-                                                : (state == CalendarType.single
-                                                    ? Centre.yellow
-                                                    : Centre.lighterDialogColor),
-                                            height: 7,
-                                            width: 7,
-                                            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                            borderColor: event == null && state == CalendarType.single
-                                                ? Centre.colors[8]
-                                                : Colors.transparent),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (event == null) {
-                                            context.read<CalendarTypeCubit>().pressed(CalendarType.ranged);
-                                            context.read<DialogDatesCubit>().update(null);
-                                          }
-                                        },
-                                        child: svgButton(
-                                            name: "range_date",
-                                            color: event == null
-                                                ? (state == CalendarType.ranged ? Centre.yellow : Centre.colors[4])
-                                                : (state == CalendarType.ranged
-                                                    ? Centre.yellow
-                                                    : Centre.lighterDialogColor),
-                                            height: 7,
-                                            width: 7,
-                                            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                            borderColor: event == null && state == CalendarType.ranged
-                                                ? Centre.colors[8]
-                                                : Colors.transparent),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (event == null) {
-                                            context.read<CalendarTypeCubit>().pressed(CalendarType.multi);
-                                            context.read<DialogDatesCubit>().update(null);
-                                          }
-                                        },
-                                        child: svgButton(
-                                            name: "multi_date",
-                                            color: event == null
-                                                ? (state == CalendarType.multi ? Centre.yellow : Centre.colors[4])
-                                                : Centre.lighterDialogColor,
-                                            height: 7,
-                                            width: 7,
-                                            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                            borderColor: event == null && state == CalendarType.multi
-                                                ? Centre.colors[8]
-                                                : Colors.transparent),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              calendarTypeToggleBtns,
                               SizedBox(
                                 height: Centre.safeBlockHorizontal * 43,
                                 child: Column(
@@ -278,389 +517,24 @@ class AddEventDialog extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () async {
-                                            List<DateTime?>? results = await showCalendarDatePicker2Dialog(
-                                              dialogBackgroundColor: Centre.dialogBgColor,
-                                              barrierColor: Colors.transparent,
-                                              borderRadius: 40,
-                                              context: context,
-                                              config: CalendarDatePicker2WithActionButtonsConfig(
-                                                weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
-                                                controlsTextStyle: Centre.dialogText,
-                                                gapBetweenCalendarAndButtons: 0,
-                                                lastMonthIcon: const SizedBox(
-                                                  width: 0,
-                                                  height: 0,
-                                                ),
-                                                nextMonthIcon: const SizedBox(
-                                                  width: 0,
-                                                  height: 0,
-                                                ),
-                                                shouldCloseDialogAfterCancelTapped: true,
-                                                cancelButtonTextStyle: Centre.dialogText,
-                                                okButton: Container(
-                                                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 3),
-                                                  child: Text(
-                                                    "OK",
-                                                    style: Centre.dialogText,
-                                                  ),
-                                                ),
-                                                dayTextStyle: Centre.todoText,
-                                                calendarType:
-                                                    context.read<CalendarTypeCubit>().state == CalendarType.single
-                                                        ? CalendarDatePicker2Type.single
-                                                        : context.read<CalendarTypeCubit>().state == CalendarType.ranged
-                                                            ? CalendarDatePicker2Type.range
-                                                            : CalendarDatePicker2Type.multi,
-                                                firstDate: DateTime(monthOrDayDate.year),
-                                                lastDate: DateTime(monthOrDayDate.year + 2, 12, 31),
-                                                currentDate: monthOrDayDate,
-                                                selectedDayHighlightColor: Centre.red,
-                                              ),
-                                              dialogSize:
-                                                  Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 48),
-                                              initialValue: context.read<DialogDatesCubit>().state ?? [],
-                                            );
-                                            if (results != null) dateResults.value = results;
-                                          },
-                                          child: BlocBuilder<CalendarTypeCubit, CalendarType>(
-                                            builder: (context, state) {
-                                              return svgButton(
-                                                name: state == CalendarType.single
-                                                    ? "single_date"
-                                                    : state == CalendarType.ranged
-                                                        ? "range_date"
-                                                        : "multi_date",
-                                                color: Centre.yellow,
-                                                height: 7,
-                                                width: 7,
-                                                margin: EdgeInsets.symmetric(
-                                                    horizontal: Centre.safeBlockHorizontal * 2,
-                                                    vertical: state == CalendarType.ranged
-                                                        ? Centre.safeBlockVertical * 3.5
-                                                        : 0),
-                                                padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        Builder(builder: (context) {
-                                          final calendarState = context.watch<CalendarTypeCubit>().state;
-                                          final dateResultsState = context.watch<DialogDatesCubit>().state;
-
-                                          return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: calendarState != CalendarType.ranged
-                                                  ? [
-                                                      SizedBox(
-                                                          width: Centre.safeBlockHorizontal * 30,
-                                                          child: Text(
-                                                            calendarState == CalendarType.single
-                                                                ? (dateResultsState?[0] != null
-                                                                    ? DateFormat('MMM d').format(dateResultsState![0]!)
-                                                                    : "")
-                                                                : (dateResultsState?[0] != null
-                                                                    ? [
-                                                                        for (DateTime? i in dateResultsState!)
-                                                                          DateFormat('MMM d').format(i!)
-                                                                      ].join(', ')
-                                                                    : ""),
-                                                            maxLines: 3,
-                                                            overflow: TextOverflow.ellipsis,
-                                                            softWrap: true,
-                                                            style: Centre.dialogText,
-                                                          )),
-                                                    ]
-                                                  : [
-                                                      SizedBox(
-                                                          width: Centre.safeBlockHorizontal * 21,
-                                                          child: Text(
-                                                            dateResultsState?[0] != null
-                                                                ? DateFormat('MMM d').format(dateResultsState![0]!)
-                                                                : "",
-                                                            maxLines: 3,
-                                                            overflow: TextOverflow.ellipsis,
-                                                            softWrap: true,
-                                                            style: Centre.dialogText,
-                                                          )),
-                                                      SizedBox(
-                                                          width: Centre.safeBlockHorizontal * 21,
-                                                          child: Text(
-                                                            dateResultsState?[1] != null
-                                                                ? DateFormat('MMM d').format(dateResultsState![1]!)
-                                                                : "",
-                                                            maxLines: 3,
-                                                            overflow: TextOverflow.ellipsis,
-                                                            softWrap: true,
-                                                            style: Centre.dialogText,
-                                                          )),
-                                                    ]);
-                                        }),
-                                      ],
+                                      children: [calendarPickerRow[0], calendarPickerRow[1]],
                                     ),
                                     SizedBox(
                                       height: Centre.safeBlockVertical * 1,
                                     ),
-                                    Builder(builder: (context) {
-                                      final calendarState = context.watch<CalendarTypeCubit>().state;
-                                      final checkBoxState = context.watch<CheckboxCubit>().state;
-                                      final TimeRangeState timeRangeState = context.watch<TimeRangeCubit>().state;
-
-                                      return calendarState != CalendarType.ranged
-                                          ? Row(
-                                              children: [
-                                                GestureDetector(
-                                                    onTap: () async {
-                                                      if (!checkBoxState) {
-                                                        TimeRangeState? value = await chooseTimeRange(
-                                                            context: context,
-                                                            daily: daily,
-                                                            editingEvent: event,
-                                                            prevChosenStart: timeRangeState.startResult);
-                                                        if (value.startResult != null && value.endResult != null) {
-                                                          timeRangeChosen.value = value;
-                                                        }
-                                                      }
-                                                    },
-                                                    child: svgButton(
-                                                      name: "range_time",
-                                                      color: Centre.yellow,
-                                                      height: 7,
-                                                      width: 7,
-                                                      margin: EdgeInsets.symmetric(
-                                                          horizontal: Centre.safeBlockHorizontal * 2),
-                                                      padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                                    )),
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      timeRangeState.startResult == null
-                                                          ? ""
-                                                          : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
-                                                      style: Centre.dialogText.copyWith(
-                                                          decoration:
-                                                              checkBoxState ? TextDecoration.lineThrough : null),
-                                                    ),
-                                                    Text(
-                                                      timeRangeState.endResult == null
-                                                          ? ""
-                                                          : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
-                                                      style: Centre.dialogText.copyWith(
-                                                          decoration:
-                                                              checkBoxState ? TextDecoration.lineThrough : null),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            )
-                                          : const SizedBox(
-                                              height: 0,
-                                              width: 0,
-                                            );
-                                    }),
-                                    BlocBuilder<CalendarTypeCubit, CalendarType>(builder: (context, state) {
-                                      return state != CalendarType.ranged
-                                          ? Row(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                BlocBuilder<CheckboxCubit, bool>(
-                                                  builder: (context, state) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        context.read<CheckboxCubit>().toggle();
-                                                      },
-                                                      child: Container(
-                                                        margin: EdgeInsets.only(
-                                                            left: Centre.safeBlockHorizontal * 6,
-                                                            right: Centre.safeBlockHorizontal),
-                                                        height: Centre.safeBlockHorizontal * 6,
-                                                        width: Centre.safeBlockHorizontal * 6,
-                                                        decoration: BoxDecoration(
-                                                            border: Border.all(width: 2, color: Centre.colors[4]),
-                                                            borderRadius: const BorderRadius.all(Radius.circular(3)),
-                                                            color: Colors.transparent),
-                                                        child: state
-                                                            ? Center(
-                                                                child: Icon(
-                                                                Icons.check,
-                                                                color: Centre.textColor,
-                                                                size: Centre.safeBlockHorizontal * 4,
-                                                              ))
-                                                            : const SizedBox(
-                                                                height: 0,
-                                                                width: 0,
-                                                              ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                Text(
-                                                  "Full day",
-                                                  style: Centre.todoText,
-                                                ),
-                                                Padding(
-                                                  padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 7.5),
-                                                  child: editButton(
-                                                      height: 5, width: 15, context: context, oldEvent: event),
-                                                )
-                                              ],
-                                            )
-                                          : Padding(
-                                              padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 33),
-                                              child:
-                                                  editButton(height: 5, width: 15, context: context, oldEvent: event),
-                                            );
-                                    }),
+                                    timePickerRow,
+                                    fullDayCheckbox,
                                   ],
                                 ),
                               ),
                             ]
                           : [
-                              addingFutureTodo
-                                  ? GestureDetector(
-                                      onTap: () async {
-                                        List<DateTime?>? results = await showCalendarDatePicker2Dialog(
-                                          dialogBackgroundColor: Centre.dialogBgColor,
-                                          barrierColor: Colors.transparent,
-                                          borderRadius: 40,
-                                          context: context,
-                                          config: CalendarDatePicker2WithActionButtonsConfig(
-                                            weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
-                                            controlsTextStyle: Centre.dialogText,
-                                            gapBetweenCalendarAndButtons: 0,
-                                            lastMonthIcon: const SizedBox(
-                                              width: 0,
-                                              height: 0,
-                                            ),
-                                            nextMonthIcon: const SizedBox(
-                                              width: 0,
-                                              height: 0,
-                                            ),
-                                            shouldCloseDialogAfterCancelTapped: true,
-                                            cancelButtonTextStyle: Centre.dialogText,
-                                            okButton: Container(
-                                              margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 3),
-                                              child: Text(
-                                                "OK",
-                                                style: Centre.dialogText,
-                                              ),
-                                            ),
-                                            dayTextStyle: Centre.todoText,
-                                            calendarType: CalendarDatePicker2Type.single,
-                                            firstDate:
-                                                DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
-                                            lastDate:
-                                                DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-                                                    .add(const Duration(days: 4)),
-                                            currentDate: DateTime.now(),
-                                            selectedDayHighlightColor: Centre.red,
-                                          ),
-                                          dialogSize:
-                                              Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 48),
-                                        );
-                                        if (results != null) dateResults.value = results;
-                                      },
-                                      child: svgButton(
-                                        name: "single_date",
-                                        color: Centre.yellow,
-                                        height: 7,
-                                        width: 7,
-                                        margin: EdgeInsets.fromLTRB(
-                                            0, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical * 1.5),
-                                        padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                                      ))
-                                  : SizedBox(),
-                              addingFutureTodo
-                                  ? Builder(builder: (context) {
-                                      final dateResultsState = context.watch<DialogDatesCubit>().state;
-
-                                      return Padding(
-                                        padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 3.5),
-                                        child: SizedBox(
-                                            width: Centre.safeBlockHorizontal * 15,
-                                            child: Text(
-                                              dateResultsState?[0] != null
-                                                  ? DateFormat('MMM d').format(dateResultsState![0]!)
-                                                  : "",
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              softWrap: false,
-                                              style: Centre.dialogText,
-                                            )),
-                                      );
-                                    })
-                                  : SizedBox(),
+                              calendarPickerRow[0],
+                              calendarPickerRow[1],
                               SizedBox(
                                 width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
                               ),
-                              BlocBuilder<TimeRangeCubit, TimeRangeState>(
-                                builder: (context, state) => GestureDetector(
-                                    onTap: () async {
-                                      if (addingFutureTodo && dateResults.value?[0] == null) {
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                          backgroundColor: Centre.dialogBgColor,
-                                          behavior: SnackBarBehavior.floating,
-                                          content: Text(
-                                            'Please select a day first',
-                                            style: Centre.dialogText,
-                                          ),
-                                          duration: const Duration(seconds: 2),
-                                        ));
-                                        return;
-                                      }
-                                      TimeRangeState? value = await chooseTimeRange(
-                                          context: context,
-                                          daily: daily,
-                                          dailyDate: monthOrDayDate,
-                                          editingEvent: event,
-                                          prevChosenStart: state.startResult);
-                                      if (value.startResult != null && value.endResult != null) {
-                                        timeRangeChosen.value = value;
-                                      }
-                                    },
-                                    child: svgButton(
-                                        name: "range_time",
-                                        color: Centre.yellow,
-                                        height: 7,
-                                        width: 7,
-                                        margin: EdgeInsets.fromLTRB(
-                                            addingFutureTodo
-                                                ? Centre.safeBlockHorizontal * 2
-                                                : Centre.safeBlockHorizontal * 5,
-                                            0,
-                                            Centre.safeBlockHorizontal,
-                                            Centre.safeBlockVertical * 2),
-                                        padding: EdgeInsets.all(Centre.safeBlockHorizontal))),
-                              ),
-                              BlocBuilder<TimeRangeCubit, TimeRangeState>(
-                                builder: (context, state) {
-                                  return Padding(
-                                    padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 2.5),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          state.startResult == null
-                                              ? ""
-                                              : "${state.startResult!.hour.toString().padLeft(2, '0')}${state.startResult!.minute.toString().padLeft(2, '0')}",
-                                          style: Centre.dialogText,
-                                        ),
-                                        Text(
-                                          state.endResult == null
-                                              ? ""
-                                              : "${state.endResult!.hour.toString().padLeft(2, '0')}${state.endResult!.minute.toString().padLeft(2, '0')}",
-                                          style: Centre.dialogText,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
+                              timePickerRow,
                               Expanded(child: editButton(height: 7, width: 15, context: context, oldEvent: event))
                             ],
                     ),
@@ -762,8 +636,12 @@ class AddEventDialog extends StatelessWidget {
                     text: controller.text,
                     finished: false)));
           } else {
+            // Set the start and end times
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
+
+            // Add the event to the repository
+            // If the hours fall past 00:00, event is on the next day, so another 24 hours must be added
             context.read<TodoBloc>().add(TodoCreate(
                 event: EventData(
                     fullDay: false,
@@ -783,75 +661,55 @@ class AddEventDialog extends StatelessWidget {
                     finished: false)));
           }
         } else {
+          // Editing an event
           if (!daily) {
             if (context.read<CalendarTypeCubit>().state != CalendarType.ranged &&
                 !context.read<CheckboxCubit>().state) {
+              // If the event is not ranged and a time range was provided
+              // Set the start and end times
+
               start = context.read<TimeRangeCubit>().state.startResult!;
               end = context.read<TimeRangeCubit>().state.endResult!;
             }
             bool fullDay = context.read<CheckboxCubit>().state;
-            switch (context.read<CalendarTypeCubit>().state) {
-              case CalendarType.single:
-                DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
-                DateTime dateWithoutTime = DateTime(prevDate.year, prevDate.month, prevDate.day);
-                context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
-                    currentMonth: monthOrDayDate,
-                    oldEvent: oldEvent,
-                    selectedDailyDay: context.read<DateCubit>().state,
-                    event: event!.edit(
-                        fullDay: fullDay,
-                        start: dateWithoutTime
-                            .add(!fullDay ? Duration(hours: start.hour, minutes: start.minute) : const Duration()),
-                        end: dateWithoutTime
-                            .add(!fullDay ? Duration(hours: end.hour, minutes: end.minute) : const Duration()),
-                        color: Centre.colors[context.read<ColorCubit>().state].value,
-                        text: controller.text,
-                        finished: false)));
-                break;
-              case CalendarType.ranged:
-                context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
-                    currentMonth: monthOrDayDate,
-                    oldEvent: oldEvent,
-                    selectedDailyDay: context.read<DateCubit>().state,
-                    event: event!.edit(
-                        fullDay: true,
-                        start: context.read<DialogDatesCubit>().state![0]!,
-                        end: context.read<DialogDatesCubit>().state![1]!,
-                        color: Centre.colors[context.read<ColorCubit>().state].value,
-                        text: controller.text,
-                        finished: false)));
-                break;
-              default:
-                break;
+
+            DateTime? dateWithoutTime;
+            if (context.read<CalendarTypeCubit>().state == CalendarType.single) {
+              DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
+              dateWithoutTime = DateTime(prevDate.year, prevDate.month, prevDate.day);
             }
+            context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
+                currentMonth: monthOrDayDate,
+                oldEvent: oldEvent,
+                selectedDailyDay: context.read<DateCubit>().state,
+                event: event!.edit(
+                    fullDay: fullDay,
+                    start: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![0]!)
+                        .add(Duration(hours: start.hour, minutes: start.minute)),
+                    end: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![1]!)
+                        .add(Duration(hours: end.hour, minutes: end.minute)),
+                    color: Centre.colors[context.read<ColorCubit>().state].value,
+                    text: controller.text,
+                    finished: false)));
           } else {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
+            EventData newEvent = event!.edit(
+                fullDay: false,
+                start: context.read<DateCubit>().state.add(Duration(
+                    hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
+                end: context.read<DateCubit>().state.add(
+                    Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                color: Centre.colors[context.read<ColorCubit>().state].value,
+                text: controller.text,
+                finished: false);
 
             if (oldEvent.start.isSameDate(other: context.read<DateCubit>().state, daily: true)) {
-              context.read<TodoBloc>().add(TodoUpdate(
-                  event: event!.edit(
-                      fullDay: false,
-                      start: context.read<DateCubit>().state.add(Duration(
-                          hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
-                          minutes: start.minute)),
-                      end: context.read<DateCubit>().state.add(Duration(
-                          hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                      color: Centre.colors[context.read<ColorCubit>().state].value,
-                      text: controller.text,
-                      finished: false)));
+              context.read<TodoBloc>().add(TodoUpdate(event: newEvent));
             } else {
-              context.read<TodoBloc>().add(TodoAddUnfinished(
-                  event: event!.edit(
-                      fullDay: false,
-                      start: context.read<DateCubit>().state.add(Duration(
-                          hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
-                          minutes: start.minute)),
-                      end: context.read<DateCubit>().state.add(Duration(
-                          hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                      color: Centre.colors[context.read<ColorCubit>().state].value,
-                      text: controller.text,
-                      finished: false)));
+              // Add the unfinished event to the daily page and remove it from the unfinished list
+
+              context.read<TodoBloc>().add(TodoAddUnfinished(event: newEvent));
               context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
             }
           }
@@ -873,6 +731,10 @@ class AddEventDialog extends StatelessWidget {
     );
   }
 
+  /*
+   * Opens a time picker dialog for both the start time and end time.
+   * Loops until the user has picked both
+   */
   Future<TimeRangeState> chooseTimeRange({
     required BuildContext context,
     required bool daily,
@@ -884,11 +746,15 @@ class AddEventDialog extends StatelessWidget {
     TimeOfDay? startResult;
     double time = 0;
     do {
+      // Pick the start time first
+
       time = 0;
       startResult = await showDialog(
           context: context,
           builder: (BuildContext tcontext) {
             return custom_time_picker.TimePickerDialog(
+              // Start the initial time with either something previously chosen or the current time rounded to the
+              // nearest 5 minutes
               initialTime: prevChosenStart ??
                   TimeOfDay.now().replacing(
                       minute:
@@ -905,10 +771,13 @@ class AddEventDialog extends StatelessWidget {
             );
           });
       if (startResult != null) {
+        // Pick the end time
+
         endResult = await showDialog(
             context: context,
             builder: (BuildContext tcontext) {
               return custom_time_picker.TimePickerDialog(
+                // Start the initial time 15 minutes time after the chosen start time
                 initialTime: startResult!.replacing(
                     minute: (startResult.minute + 15) % 60,
                     hour: startResult.minute + 15 >= 60 ? startResult.hour + 1 : startResult.hour),
@@ -924,6 +793,7 @@ class AddEventDialog extends StatelessWidget {
         time = endResult != null ? endResult.hour + endResult.minute / 60.0 : 0;
       }
     } while (time == 1 / 60.0);
+    // time only has this value if user decides to go back to change start time from end time
     return TimeRangeState(startResult, endResult);
   }
 }

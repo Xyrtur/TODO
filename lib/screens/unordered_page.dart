@@ -160,18 +160,29 @@ class _UnorderedPageState extends State<UnorderedPage> {
                 SizedBox(
                   width: Centre.safeBlockHorizontal * 2,
                 ),
+                TextFormField(
+                  initialValue: todo.text,
+                  maxLines: 1,
+                  style: Centre.dialogText,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      setState(() {
+                        // Rebuilds and sets the text field back
+                      });
+                    } else {
+                      context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.changeName(value)));
+                    }
+                  },
+                ),
                 GestureDetector(
-                    onTap: () {
-                      context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
-                    },
-                    child: SizedBox(
-                        width: todo.indented ? Centre.safeBlockHorizontal * 68 : Centre.safeBlockHorizontal * 75,
-                        child: Text(
-                          todo.text,
-                          style: Centre.dialogText,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ))),
+                  onTap: () {
+                    context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
+                  },
+                  child: Expanded(
+                      child: Container(
+                    color: Colors.blueAccent,
+                  )),
+                )
               ],
             ),
           ),
