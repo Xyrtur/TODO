@@ -293,8 +293,7 @@ class AddEventDialog extends StatelessWidget {
                   children: calendarState != CalendarType.ranged
                       ? [
                           Padding(
-                            padding:
-                                EdgeInsets.only(bottom: addingFutureTodo ? Centre.safeBlockVertical * 3.5 : 043908744),
+                            padding: EdgeInsets.only(bottom: addingFutureTodo ? Centre.safeBlockVertical * 3.5 : 0),
                             child: SizedBox(
                                 width: addingFutureTodo
                                     ? Centre.safeBlockHorizontal * 15
@@ -513,7 +512,7 @@ class AddEventDialog extends StatelessWidget {
                           ? [
                               calendarTypeToggleBtns,
                               SizedBox(
-                                height: Centre.safeBlockHorizontal * 43,
+                                height: Centre.safeBlockVertical * 43,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
