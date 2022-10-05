@@ -207,7 +207,7 @@ class AddEventDialog extends StatelessWidget {
 
     // Button to select the dates and the text widgets that show the chosen dates
     List<Widget> calendarPickerRow = [
-      daily && addingFutureTodo
+      !daily || addingFutureTodo
           ? GestureDetector(
               onTap: () async {
                 List<DateTime?>? results = await showCalendarDatePicker2Dialog(
@@ -237,7 +237,7 @@ class AddEventDialog extends StatelessWidget {
                       ),
                     ),
                     dayTextStyle: Centre.todoText,
-                    calendarType: context.read<CalendarTypeCubit>().state == CalendarType.single || addingFutureTodo
+                    calendarType: addingFutureTodo || context.read<CalendarTypeCubit>().state == CalendarType.single
                         ? CalendarDatePicker2Type.single
                         : context.read<CalendarTypeCubit>().state == CalendarType.ranged
                             ? CalendarDatePicker2Type.range
@@ -257,10 +257,12 @@ class AddEventDialog extends StatelessWidget {
                 );
                 if (results != null) dateResults.value = results;
               },
-              child: BlocBuilder<CalendarTypeCubit, CalendarType>(
-                builder: (context, state) {
+              child: Builder(
+                builder: (context) {
+                  CalendarType state = CalendarType.single;
+                  if (!addingFutureTodo) state = context.watch<CalendarTypeCubit>().state;
                   return svgButton(
-                    name: state == CalendarType.single || addingFutureTodo
+                    name: state == CalendarType.single
                         ? "single_date"
                         : state == CalendarType.ranged
                             ? "range_date"
@@ -279,7 +281,7 @@ class AddEventDialog extends StatelessWidget {
               ),
             )
           : SizedBox(),
-      daily && addingFutureTodo
+      !daily || addingFutureTodo
           ? Builder(builder: (context) {
               CalendarType calendarState = CalendarType.single;
               if (!addingFutureTodo) calendarState = context.watch<CalendarTypeCubit>().state;
@@ -382,17 +384,17 @@ class AddEventDialog extends StatelessWidget {
                       width: 7,
                       margin: daily
                           ? EdgeInsets.fromLTRB(
-                              addingFutureTodo ? Centre.safeBlockHorizontal * 2 : Centre.safeBlockHorizontal * 5,
+                              addingFutureTodo ? Centre.safeBlockHorizontal : Centre.safeBlockHorizontal * 5,
                               0,
                               Centre.safeBlockHorizontal,
-                              Centre.safeBlockVertical * 2)
+                              0)
                           : EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
                       padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                     )),
                 Padding(
                     padding: EdgeInsets.only(bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
                     child: Column(
-                      mainAxisAlignment: daily ? MainAxisAlignment.start : MainAxisAlignment.end,
+                      mainAxisAlignment: daily ? MainAxisAlignment.center : MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -643,6 +645,7 @@ class AddEventDialog extends StatelessWidget {
             // Add the event to the repository
             // If the hours fall past 00:00, event is on the next day, so another 24 hours must be added
             context.read<TodoBloc>().add(TodoCreate(
+                date: addingFutureTodo ? context.read<DateCubit>().state : null,
                 event: EventData(
                     fullDay: false,
                     start: (addingFutureTodo

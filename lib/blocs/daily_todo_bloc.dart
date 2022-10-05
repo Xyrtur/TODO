@@ -12,7 +12,8 @@ abstract class TodoEvent extends Equatable {
 
 class TodoCreate extends TodoEvent {
   final EventData event;
-  const TodoCreate({required this.event});
+  final DateTime? date;
+  const TodoCreate({required this.event, this.date});
 }
 
 class TodoAddUnfinished extends TodoEvent {
@@ -67,7 +68,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
  */
   TodoBloc(this.hive) : super(TodoInitial(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false)) {
     on<TodoCreate>((event, emit) {
-      hive.createEvent(daily: true, event: event.event);
+      hive.createEvent(daily: true, event: event.event, currentDailyDate: event.date);
       emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoAddUnfinished>((event, emit) {

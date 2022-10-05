@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -17,14 +19,28 @@ class _UnorderedPageState extends State<UnorderedPage> {
 // class UnorderedPage extends StatelessWidget {
   // UnorderedPage({super.key});
   final TextEditingController controller = TextEditingController();
+  final TextEditingController textListController = TextEditingController();
+
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final ValueNotifier<FutureTodo?> deletingTodo = ValueNotifier<FutureTodo?>(null);
-
+  FutureTodo? todoTextEditing;
+  FocusNode focusNode = FocusNode();
   @override
   initState() {
     deletingTodo.addListener(() {
       if (deletingTodo.value != null) context.read<FutureTodoBloc>().add(FutureTodoDelete(event: deletingTodo.value!));
     });
+    focusNode.addListener(() {
+      if (!focusNode.hasFocus) {
+        if (textListController.text.isNotEmpty && todoTextEditing != null) {
+          todoTextEditing!.changeName(textListController.text);
+          todoTextEditing!.toggleEditing();
+          context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todoTextEditing!));
+        }
+        todoTextEditing = null;
+      }
+    });
+
     super.initState();
   }
 
@@ -71,6 +87,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
                     ),
                     BlocProvider.value(value: context.read<TodoBloc>()),
                     BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+                    BlocProvider.value(value: context.read<DateCubit>()),
                   ],
                   child: AddEventDialog.daily(
                     addingFutureTodo: true,
@@ -120,11 +137,28 @@ class _UnorderedPageState extends State<UnorderedPage> {
                 context.read<FutureTodoBloc>().add(FutureTodoDelete(event: todo));
               },
             ),
-            extentRatio: 0.25,
+            extentRatio: 0.4,
             motion: const BehindMotion(),
             children: [
               SlidableAction(
-                // An action can be bigger than the others.
+                onPressed: (unUsedContext) {
+                  if (todoTextEditing != null) {
+                    todoTextEditing!.toggleEditing();
+                    context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todoTextEditing!));
+                  }
+
+                  todo.toggleEditing();
+                  context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo));
+                  textListController.text = todo.text;
+                  todoTextEditing = todo;
+                  focusNode.requestFocus();
+                },
+                backgroundColor: Centre.bgColor,
+                foregroundColor: Centre.secondaryColor,
+                icon: Icons.edit,
+                label: 'Edit',
+              ),
+              SlidableAction(
                 onPressed: (unUsedContext) {
                   context.read<FutureTodoBloc>().add(FutureTodoDelete(event: todo));
                 },
@@ -160,30 +194,37 @@ class _UnorderedPageState extends State<UnorderedPage> {
                 SizedBox(
                   width: Centre.safeBlockHorizontal * 2,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  initialValue: todo.text,
-                  maxLines: 1,
-                  style: Centre.dialogText,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      setState(() {
-                        // Rebuilds and sets the text field back
-                      });
-                    } else {
-                      context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.changeName(value)));
-                    }
-                  },
-                ),
-                GestureDetector(
-                  onTap: () {
-                    context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
-                  },
-                  child: Expanded(
-                      child: Container(
-                    color: Colors.blueAccent,
-                  )),
-                )
+                !todo.todoTextEditing
+                    ? Text(
+                        todo.text,
+                        maxLines: 1,
+                        style: Centre.dialogText,
+                      )
+                    : Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
+                          child: TextFormField(
+                            controller: textListController,
+                            maxLines: 1,
+                            focusNode: focusNode,
+                            style: Centre.dialogText,
+                          ),
+                        ),
+                      ),
+                !todo.todoTextEditing
+                    ? Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                          ),
+                        ),
+                      )
+                    : const SizedBox(
+                        width: 0,
+                      )
               ],
             ),
           ),
@@ -200,6 +241,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
         if (formKey.currentState!.validate()) {
           context.read<FutureTodoBloc>().add(FutureTodoCreate(
               event: FutureTodo(
+                  todoTextEditing: false,
                   indented: false,
                   text: controller.text,
                   finished: false,
@@ -280,37 +322,42 @@ class _UnorderedPageState extends State<UnorderedPage> {
     return SafeArea(
         child: Scaffold(
       backgroundColor: Centre.bgColor,
-      body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding:
-              EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
-          child: Text(
-            "Near Future",
-            style: Centre.todoSemiTitle,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
+            child: Text(
+              "Todo List",
+              style: Centre.todoSemiTitle,
+            ),
           ),
-        ),
-        Expanded(
-          child: BlocBuilder<FutureTodoBloc, FutureTodoState>(
-            builder: (tcontext, state) => Container(
-                height: Centre.safeBlockVertical * 75,
-                child: ReorderableListView(
-                    children: reorderableTodos(state.futureList, context),
-                    onReorder: (int old, int news) {
-                      List<FutureTodo> oldList = state.futureList;
+          Expanded(
+            child: BlocBuilder<FutureTodoBloc, FutureTodoState>(
+              builder: (tcontext, state) => SizedBox(
+                  height: Centre.safeBlockVertical * 75,
+                  child: ReorderableListView(
+                      children: reorderableTodos(state.futureList, context),
+                      onReorder: (int old, int news) {
+                        List<FutureTodo> oldList = state.futureList;
 
-                      if (old < news) news -= 1;
+                        if (old < news) news -= 1;
 
-                      final FutureTodo item = oldList.removeAt(old);
-                      oldList.insert(news, item);
-                      for (int i = 0; i < oldList.length; i++) {
-                        oldList[i].changeIndex(i);
-                      }
-                      context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
-                    })),
+                        final FutureTodo item = oldList.removeAt(old);
+                        oldList.insert(news, item);
+                        for (int i = 0; i < oldList.length; i++) {
+                          oldList[i].changeIndex(i);
+                        }
+                        context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
+                      })),
+            ),
           ),
-        ),
-        floatingForm,
-      ]),
+          floatingForm,
+        ]),
+      ),
     ));
   }
 }
