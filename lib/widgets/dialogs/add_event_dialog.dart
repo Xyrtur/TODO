@@ -588,7 +588,7 @@ class AddEventDialog extends StatelessWidget {
 
           if (!_formKey.currentState!.validate() ||
               context.read<TimeRangeCubit>().state.endResult == null ||
-              (context.read<DialogDatesCubit>().state ?? []).isEmpty) {
+              (addingFutureTodo && (context.read<DialogDatesCubit>().state ?? []).isEmpty)) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
