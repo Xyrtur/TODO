@@ -9,17 +9,17 @@ import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/widgets/dialogs/add_event_dialog.dart';
 
 class UnorderedPage extends StatefulWidget {
-  const UnorderedPage({super.key});
+  const UnorderedPage({super.key, required this.pageController});
+  final PageController pageController;
 
   @override
   State<UnorderedPage> createState() => _UnorderedPageState();
 }
 
 class _UnorderedPageState extends State<UnorderedPage> {
-// class UnorderedPage extends StatelessWidget {
-  // UnorderedPage({super.key});
   final TextEditingController controller = TextEditingController();
   final TextEditingController textListController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final ValueNotifier<FutureTodo?> deletingTodo = ValueNotifier<FutureTodo?>(null);
@@ -169,65 +169,92 @@ class _UnorderedPageState extends State<UnorderedPage> {
               ),
             ],
           ),
-          child: SizedBox(
-            height: Centre.safeBlockVertical * 6,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: todo.indented ? Centre.safeBlockHorizontal * 13 : Centre.safeBlockHorizontal * 6,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleFinished()));
-                  },
-                  child: Container(
-                    width: Centre.safeBlockHorizontal * 7,
-                    height: Centre.safeBlockHorizontal * 7,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Centre.primaryColor, width: Centre.safeBlockHorizontal * 0.5),
-                        borderRadius: const BorderRadius.all(Radius.circular(40))),
-                    child: todo.finished
-                        ? Icon(Icons.check, size: Centre.safeBlockHorizontal * 5, color: Centre.primaryColor)
-                        : null,
+          child: Builder(builder: (slidableContext) {
+            Slidable.of(slidableContext)!.actionPaneType.addListener(() {
+              setState(() {});
+            });
+            return SizedBox(
+              height: Centre.safeBlockVertical * 6,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: todo.indented ? Centre.safeBlockHorizontal * 13 : Centre.safeBlockHorizontal * 6,
                   ),
-                ),
-                SizedBox(
-                  width: Centre.safeBlockHorizontal * 2,
-                ),
-                !todo.todoTextEditing
-                    ? Text(
-                        todo.text,
-                        maxLines: 1,
-                        style: Centre.dialogText,
-                      )
-                    : Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
-                          child: TextFormField(
-                            controller: textListController,
-                            maxLines: 1,
-                            focusNode: focusNode,
-                            style: Centre.dialogText,
+                  GestureDetector(
+                    onTap: () {
+                      context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleFinished()));
+                    },
+                    child: Container(
+                      width: Centre.safeBlockHorizontal * 7,
+                      height: Centre.safeBlockHorizontal * 7,
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                  ? Colors.transparent
+                                  : Centre.primaryColor,
+                              width: Centre.safeBlockHorizontal * 0.5),
+                          borderRadius: const BorderRadius.all(Radius.circular(40))),
+                      child: todo.finished
+                          ? Icon(Icons.check,
+                              size: Centre.safeBlockHorizontal * 5,
+                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                  ? Colors.transparent
+                                  : Centre.primaryColor)
+                          : null,
+                    ),
+                  ),
+                  SizedBox(
+                    width: Centre.safeBlockHorizontal * 2,
+                  ),
+                  !todo.todoTextEditing
+                      ? Text(
+                          todo.text,
+                          maxLines: 1,
+                          style: Centre.dialogText.copyWith(
+                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                  ? Colors.transparent
+                                  : Centre.textColor),
+                        )
+                      : Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                          ? Colors.transparent
+                                          : Colors.amber),
+                                ),
+                              ),
+                              controller: textListController,
+                              maxLines: 1,
+                              focusNode: focusNode,
+                              style: Centre.dialogText.copyWith(
+                                  color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                      ? Colors.transparent
+                                      : Centre.textColor),
+                            ),
                           ),
                         ),
-                      ),
-                !todo.todoTextEditing
-                    ? Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
-                          },
-                          child: Container(
-                            color: Colors.transparent,
+                  !todo.todoTextEditing
+                      ? Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                            ),
                           ),
-                        ),
-                      )
-                    : const SizedBox(
-                        width: 0,
-                      )
-              ],
-            ),
-          ),
+                        )
+                      : const SizedBox(
+                          width: 0,
+                        )
+                ],
+              ),
+            );
+          }),
         ),
     ];
   }
@@ -302,7 +329,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
               color: Centre.darkerBgColor,
               spreadRadius: 5,
               blurRadius: 7,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
           borderRadius: BorderRadius.circular(10)),
@@ -340,6 +367,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
               builder: (tcontext, state) => SizedBox(
                   height: Centre.safeBlockVertical * 75,
                   child: ReorderableListView(
+                      scrollController: scrollController,
                       children: reorderableTodos(state.futureList, context),
                       onReorder: (int old, int news) {
                         List<FutureTodo> oldList = state.futureList;
