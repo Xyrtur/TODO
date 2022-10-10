@@ -112,7 +112,7 @@ class DayDialog extends StatelessWidget {
                   child: Center(
                     child: Text(
                       !event.fullDay
-                          ? "${DateFormat("HHmm").format(event.start)}-${DateFormat("HHmm").format(event.end)}"
+                          ? "${DateFormat("HHmm").format(event.start.toLocal())}-${DateFormat("HHmm").format(event.end.toLocal())}"
                           : "All day",
                       style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 3),
                     ),
@@ -161,8 +161,12 @@ class DayDialog extends StatelessWidget {
                                                   create: (_) => TimeRangeCubit((event.fullDay)
                                                       ? TimeRangeState(null, null)
                                                       : TimeRangeState(
-                                                          TimeOfDay(hour: event.start.hour, minute: event.start.minute),
-                                                          TimeOfDay(hour: event.end.hour, minute: event.end.minute))),
+                                                          TimeOfDay(
+                                                              hour: event.start.toLocal().hour,
+                                                              minute: event.start.toLocal().minute),
+                                                          TimeOfDay(
+                                                              hour: event.end.toLocal().hour,
+                                                              minute: event.end.toLocal().minute))),
                                                 ),
                                                 BlocProvider<ColorCubit>(
                                                   create: (_) => ColorCubit(!Centre.colors.contains(Color(event.color))

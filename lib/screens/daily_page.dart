@@ -16,9 +16,8 @@ class DailyPage extends StatelessWidget {
     Centre().init(context);
     WidgetsBinding.instance.addObserver(LifecycleEventHandler(resumeCallBack: () async {
       context.read<DateCubit>().setToCurrentDayOnResume();
-      context
-          .read<TodoBloc>()
-          .add(TodoDateChange(date: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)));
+      context.read<TodoBloc>().add(TodoDateChange(
+          date: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day)));
     }));
 
     showDailyDialog() {
@@ -161,7 +160,7 @@ class DailyPage extends StatelessWidget {
     Widget dailyDateRow = BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
       return Row(
         children: [
-          (state.isSameDate(other: DateTime.now(), daily: false))
+          (state.isSameDate(other: DateTime.now().toUtc(), daily: false))
               ? SizedBox(
                   width: Centre.safeBlockHorizontal * 11.5,
                 )
@@ -181,7 +180,7 @@ class DailyPage extends StatelessWidget {
               Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
             ],
           ),
-          (state.isSameDate(other: DateTime.now().add(const Duration(days: 5)), daily: false))
+          (state.isSameDate(other: DateTime.now().toUtc().add(const Duration(days: 5)), daily: false))
               ? const SizedBox()
               : IconButton(
                   onPressed: () {

@@ -66,7 +66,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
                     BlocProvider.value(value: context.read<DateCubit>()),
                   ],
                   child: AddEventDialog.monthly(
-                    monthOrDayDate: DateTime(DateTime.now().year, DateTime.now().month),
+                    monthOrDayDate: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month),
                     futureTodoText: text,
                   )),
             ));

@@ -94,7 +94,7 @@ class MonthCalendar extends StatelessWidget {
                       for (int week = 1; week < 7; week++)
                         TableRow(
                             children: weekdays.map((day) {
-                          dayNum = dayNum.add(const Duration(days: 1));
+                          dayNum = dayNum.add(const Duration(hours: 24));
                           DateTime loopDayNum = dayNum;
 
                           return GestureDetector(

@@ -2113,6 +2113,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
       }
     }
     if (widget.daily) {
+      Duration localTimeDiff = DateTime.now().timeZoneOffset;
       if (!badHour && !badMinute) {
         if (widget.editingEvent == null) {
           DateTime start, end;
@@ -2121,7 +2122,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             for (EventData v in widget.dailyTableMap!.values) {
               start = widget.dailyDate!
                   .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
-              if (start.isInTimeRange(v.start, v.end) || start.isAtSameMomentAs(v.start)) {
+              if (start.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
+                  start.subtract(localTimeDiff).isAtSameMomentAs(v.start)) {
                 badHour = true;
                 badMinute = true;
                 setState(() {
@@ -2140,7 +2142,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
                       ? widget.startTime!.hour + 12
                       : widget.startTime!.hour,
                   minutes: widget.startTime!.minute));
-              if (end.isInTimeRange(v.start, v.end) || start.enclosesOrContains(end, v.start, v.end)) {
+              if (end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
+                  start.subtract(localTimeDiff).enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
                 badHour = true;
                 badMinute = true;
                 setState(() {
@@ -2160,7 +2163,9 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
             if (prevEventIndex < 0
                 ? false
-                : start.isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.end)) {
+                : start
+                    .subtract(localTimeDiff)
+                    .isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.end)) {
               badHour = true;
               badMinute = true;
               setState(() {
@@ -2170,7 +2175,9 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
               return;
             } else if (nextEventIndex == widget.orderedDailyKeyList!.length
                 ? false
-                : start.isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+                : start
+                    .subtract(localTimeDiff)
+                    .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
               badHour = true;
               badMinute = true;
               setState(() {
@@ -2183,14 +2190,17 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             DateTime end;
             end = widget.dailyDate!
                 .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
-            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent) + 1;
+            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
             if (nextEventIndex == widget.orderedDailyKeyList!.length
                 ? false
-                : end.isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+                : end
+                    .subtract(localTimeDiff)
+                    .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
               badHour = true;
               badMinute = true;
               setState(() {
-                widget.errorInvalidText = "Clashes with event ${widget.dailyTableMap![nextEventIndex]!.text}";
+                widget.errorInvalidText =
+                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.text}";
               });
               return;
             }

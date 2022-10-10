@@ -38,15 +38,16 @@ class HiveRepository {
     // Purge if event was finished or if its more than 7 days old
     Iterable<EventData> finished = dailyHive.values.where((event) {
       EventData e = event;
-      return e.finished && !e.start.isSameDate(other: DateTime.now(), daily: true) ||
-          e.end.isBefore(DateTime.now().subtract(const Duration(days: 7)));
+      return e.finished && !e.start.isSameDate(other: DateTime.now().toUtc(), daily: true) ||
+          e.end.isBefore(DateTime.now().toUtc().subtract(const Duration(days: 7)));
     }).cast();
     for (EventData event in finished) {
       event.delete();
     }
 
     // Purge if event is older than 3 years
-    DateTime cutOffDate = DateTime(DateTime.now().year, DateTime.now().month).subtract(const Duration(days: 365 * 3));
+    DateTime cutOffDate =
+        DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month).subtract(const Duration(days: 365 * 3));
     Iterable<EventData> tooOld = monthlyHive.values.where((event) {
       EventData e = event;
       return e.end.isBefore(cutOffDate);
@@ -56,7 +57,7 @@ class HiveRepository {
     }
 
     // Set up the month events list
-    DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
+    DateTime currentMonth = DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month);
     for (EventData event in monthlyHive.values) {
       if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
         thisMonthEvents.add(event);
@@ -66,19 +67,19 @@ class HiveRepository {
     // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {
       EventData e = event;
-      return !e.finished && e.end.isBeforeDate(other: DateTime.now());
+      return !e.finished && e.end.isBeforeDate(other: DateTime.now().toUtc());
     }).cast();
     dailyTableEvents = dailyHive.values
         .where((event) {
           EventData e = event;
-          return e.start.isSameDate(other: DateTime.now(), daily: true);
+          return e.start.isSameDate(other: DateTime.now().toUtc(), daily: true);
         })
         .toList()
         .cast();
 
     // Set up the daily list of month events
     for (EventData event in monthlyHive.values) {
-      if (DateTime.now().isBetweenDates(event.start, event.end)) {
+      if (DateTime.now().toUtc().isBetweenDates(event.start, event.end)) {
         dailyMonthlyEvents.add(event);
       }
     }
@@ -132,6 +133,9 @@ class HiveRepository {
       bool? containsSelectedDay,
       DateTime? currentMonth,
       DateTime? currentDailyDate}) {
+    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    event.start = event.start.subtract(localTimeDiff);
+    event.end = event.end.subtract(localTimeDiff);
     daily ? dailyHive.add(event) : monthlyHive.add(event);
     // Only update daily lists and maps if the event falls on the selected daily date
     if (daily && event.start.isSameDate(other: currentDailyDate ?? event.start, daily: daily)) {
@@ -160,6 +164,9 @@ class HiveRepository {
       bool? containsSelectedDay,
       EventData? oldEvent,
       DateTime? currentMonth}) {
+    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    event.start = event.start.subtract(localTimeDiff);
+    event.end = event.end.subtract(localTimeDiff);
     event.save();
 
     if (daily) {
@@ -239,6 +246,10 @@ class HiveRepository {
 
   // For adding from the unfinished list to the day
   addUnfinishedEvent({required EventData event}) {
+    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    event.start = event.start.subtract(localTimeDiff);
+    event.end = event.end.subtract(localTimeDiff);
+
     // Remove from the unfinished list
     unfinishedEventsMap.remove(event.key);
 

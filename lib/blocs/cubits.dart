@@ -29,12 +29,14 @@ class ToggleChecklistEditingCubit extends Cubit<bool> {
  * Needed in monthly page as well to know if the day has any monthly events
  */
 class DateCubit extends Cubit<DateTime> {
-  DateCubit() : super(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  DateCubit()
+      : super(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day));
 
   //Keep track of date chosen
   void nextDay() => emit(state.add(const Duration(days: 1)));
   void prevDay() => emit(state.subtract(const Duration(days: 1)));
-  void setToCurrentDayOnResume() => emit(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  void setToCurrentDayOnResume() =>
+      emit(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day));
 }
 
 /*
@@ -42,7 +44,7 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit() : super(DateTime(DateTime.now().year, DateTime.now().month));
+  MonthDateCubit() : super(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month));
   void update(DateTime date) => emit(date);
 }
 

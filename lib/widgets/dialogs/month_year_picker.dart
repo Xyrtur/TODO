@@ -34,7 +34,7 @@ class MonthYearPicker extends StatelessWidget {
     Widget monthBtn(int monthNum, int selectedMonth) {
       return GestureDetector(
           onTap: () {
-            context.read<MonthDateCubit>().update(DateTime(context.read<YearTrackingCubit>().state, monthNum));
+            context.read<MonthDateCubit>().update(DateTime.utc(context.read<YearTrackingCubit>().state, monthNum));
             Navigator.pop(context);
           },
           child: Container(

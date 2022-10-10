@@ -12,6 +12,8 @@ class TodoTable extends StatelessWidget {
     return BlocBuilder<TodoBloc, TodoState>(buildWhen: (previousState, state) {
       return true;
     }, builder: (context, state) {
+      Duration localTimeDiff = DateTime.now().timeZoneOffset;
+
       DateTime currentDate = context.read<DateCubit>().state;
       List<Widget> schedBlockList = [];
 
@@ -24,7 +26,7 @@ class TodoTable extends StatelessWidget {
         EventData event = state.dailyTableMap[key]!;
 
         // Marks the middle of the table schedule where it breaks to the next side
-        DateTime mark16 = currentDate.add(const Duration(hours: 16));
+        DateTime mark16 = currentDate.add(const Duration(hours: 16)).subtract(localTimeDiff);
 
         if (!barrierHit && event.start.isBefore(mark16) && event.end.isAfter(mark16)) {
           barrierHit = true;
@@ -40,7 +42,7 @@ class TodoTable extends StatelessWidget {
                 dragging: state,
                 actualEvent: event,
                 firstBlockLarger: firstBlockLarger,
-                currentDate: currentDate.add(const Duration(hours: 7)),
+                currentDate: currentDate.add(const Duration(hours: 7)).subtract(localTimeDiff),
                 context: context),
           ));
 
@@ -50,11 +52,13 @@ class TodoTable extends StatelessWidget {
                   dragging: state,
                   event: event.copyWith(otherStart: mark16),
                   actualEvent: event,
-                  currentDate: currentDate.add(const Duration(hours: 7)),
+                  currentDate: currentDate.add(const Duration(hours: 7)).subtract(localTimeDiff),
                   context: context)));
         } else {
-          schedBlockList.add(
-              ScheduleBlock(event: event, currentDate: currentDate.add(const Duration(hours: 7)), context: context));
+          schedBlockList.add(ScheduleBlock(
+              event: event,
+              currentDate: currentDate.add(const Duration(hours: 7)).subtract(localTimeDiff),
+              context: context));
         }
       }
       return Stack(children: schedBlockList);
@@ -107,14 +111,19 @@ class ScheduleBlock extends StatelessWidget {
                       .difference((feedBack ? actualEvent ?? event : event).start)
                       .inMinutes /
                   60),
-          child: Center(
-            child: Text(
-              event.text,
-              style: Centre.todoText.copyWith(
-                  color: event.finished ? Centre.textColor : Colors.black,
-                  decoration: event.finished ? TextDecoration.lineThrough : null),
-            ),
-          ),
+          child: firstBlockLarger
+              ? Center(
+                  child: Text(
+                    event.text,
+                    style: Centre.todoText.copyWith(
+                        color: event.finished ? Centre.textColor : Colors.black,
+                        decoration: event.finished ? TextDecoration.lineThrough : null),
+                  ),
+                )
+              : const SizedBox(
+                  width: 0,
+                  height: 0,
+                ),
         ),
       );
     }
@@ -129,9 +138,11 @@ class ScheduleBlock extends StatelessWidget {
                       BlocProvider<TimeRangeCubit>(
                         create: (_) => TimeRangeCubit(TimeRangeState(
                             TimeOfDay(
-                                hour: (actualEvent ?? event).start.hour, minute: (actualEvent ?? event).start.minute),
+                                hour: (actualEvent ?? event).start.toLocal().hour,
+                                minute: (actualEvent ?? event).start.toLocal().minute),
                             TimeOfDay(
-                                hour: (actualEvent ?? event).end.hour, minute: (actualEvent ?? event).end.minute))),
+                                hour: (actualEvent ?? event).end.toLocal().hour,
+                                minute: (actualEvent ?? event).end.toLocal().minute))),
                       ),
                       BlocProvider<ColorCubit>(
                         create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
@@ -150,7 +161,8 @@ class ScheduleBlock extends StatelessWidget {
     // Get the initial position of the block on the table
     top = Centre.scheduleBlock * (event.start.difference(currentDate).inMinutes % 540 / 60);
     bottom = top + Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60);
-    left = event.start.hour < 16 && event.start.hour >= 7
+    left = event.start.isBefore(currentDate.add(const Duration(hours: 9))) &&
+            (event.start.isAfter(currentDate) || event.start.isAtSameMomentAs(currentDate))
         ? Centre.safeBlockHorizontal * 5
         : Centre.safeBlockHorizontal * 54;
 
@@ -175,6 +187,7 @@ class ScheduleBlock extends StatelessWidget {
           }
         },
         onDragEnd: (drag) {
+          Duration localTimeDiff = DateTime.now().timeZoneOffset;
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
 
@@ -200,17 +213,25 @@ class ScheduleBlock extends StatelessWidget {
           DateTime start = currentDate.add(Duration(
               minutes:
                   (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
+          // Hive repository expects that when todo's are being created/updated, for the DateTime to be UTC
+          // and for the hours that were added to be in local hours
+          // Usually this means currentDate would give isUTC = true and then if we wanted 7am local time, we would add 7 hours and give that to the repo
+          // This is 7am with isUTC=true which is not 7am localtime (making this like a fake UTC time since we add 7 hours like its local)
+          // but the repo deals with this for us
+
+          // But for example here, currentDate is 7am UTC time already and adding our Duration makes it a true UTC time so we turn it back to fake
+          start = start.add(localTimeDiff);
           DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
 
           // If it adds such that the end goes past 1 am, ignore the drag
-          if (end.isAfter(currentDate.add(const Duration(hours: 18)))) return;
+          if (end.isAfter(currentDate.add(const Duration(hours: 18)).subtract(localTimeDiff))) return;
 
           // Check if the event clashes/overlaps with any other events on the table
           for (EventData v in context.read<TodoBloc>().state.dailyTableMap.values) {
             if (v.key == (actualEvent?.key ?? event.key)) continue;
-            if (start.isInTimeRange(v.start, v.end) ||
-                end.isInTimeRange(v.start, v.end) ||
-                start.enclosesOrContains(end, v.start, v.end)) {
+            if (start.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
+                end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
+                start.subtract(localTimeDiff).enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
               return;
             }
           }
@@ -237,6 +258,8 @@ class ScheduleBlock extends StatelessWidget {
             if (context.read<ToggleChecklistEditingCubit>().state) {
               showDailyDialog();
             } else {
+              (actualEvent ?? event).start = (actualEvent ?? event).start.add(DateTime.now().timeZoneOffset);
+              (actualEvent ?? event).end = (actualEvent ?? event).end.add(DateTime.now().timeZoneOffset);
               context.read<TodoBloc>().add(TodoUpdate(event: (actualEvent ?? event).toggleFinished()));
             }
           },
