@@ -42,18 +42,18 @@ dependencies:
   intl: ^0.17.0
   flutter_svg: ^1.1.3
   time_range_picker: ^2.2.0
-  calendar_date_picker2: ^0.2.2
+  calendar_date_picker2: ^0.2.5
   aligned_dialog: ^0.0.6
   dotted_line: ^3.1.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   archive: ^3.3.1
-  file_picker: ^5.0.1
+  file_picker: ^5.2.0
   equatable: ^2.0.5
   animated_splash_screen: ^1.3.0
   animated_text_kit: ^4.2.2
   page_transition: ^2.0.9
-  permission_handler: ^10.0.0
+  permission_handler: ^10.1.0
   path_provider: ^2.0.11
   flutter_slidable: ^2.0.0
   
