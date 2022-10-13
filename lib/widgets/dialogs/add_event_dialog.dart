@@ -213,7 +213,7 @@ class AddEventDialog extends StatelessWidget {
                 List<DateTime?>? results = await showCalendarDatePicker2Dialog(
                   dialogBackgroundColor: Centre.dialogBgColor,
                   barrierColor: Colors.transparent,
-                  borderRadius: 40,
+                  borderRadius: BorderRadius.circular(40),
                   context: context,
                   config: CalendarDatePicker2WithActionButtonsConfig(
                     weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),

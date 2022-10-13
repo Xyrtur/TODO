@@ -30,13 +30,20 @@ class ToggleChecklistEditingCubit extends Cubit<bool> {
  */
 class DateCubit extends Cubit<DateTime> {
   DateCubit()
-      : super(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day));
+      : super(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
 
   //Keep track of date chosen
   void nextDay() => emit(state.add(const Duration(days: 1)));
   void prevDay() => emit(state.subtract(const Duration(days: 1)));
-  void setToCurrentDayOnResume() =>
-      emit(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day));
+  void setToCurrentDayOnResume() => emit(DateTime.utc(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day -
+          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
 }
 
 /*
@@ -44,7 +51,7 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit() : super(DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month));
+  MonthDateCubit() : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
   void update(DateTime date) => emit(date);
 }
 

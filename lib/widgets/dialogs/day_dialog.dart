@@ -182,8 +182,8 @@ class DayDialog extends StatelessWidget {
                                                 BlocProvider<DialogDatesCubit>(
                                                     create: (_) => DialogDatesCubit(event.fullDay &&
                                                             !event.start.isSameDate(other: event.end, daily: false)
-                                                        ? [event.start, event.end]
-                                                        : [event.start])),
+                                                        ? [event.start.toLocal(), event.end.toLocal()]
+                                                        : [event.start.toLocal()])),
                                                 BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
                                                 BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
                                                 BlocProvider.value(value: context.read<DateCubit>()),

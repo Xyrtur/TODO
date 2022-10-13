@@ -41,7 +41,13 @@ extension DatePrecisionCompare on DateTime {
   }
 
   bool isBeforeDate({required DateTime other}) {
-    return isBefore(DateTime.utc(other.year, other.month, other.day, 7));
+    // Datetime other is local
+    // First determine if it is considered next day or not, daily-wise (before 1am?)
+    if (other.hour == 0 || other.hour == 1 && other.minute <= 59) {
+      // Still considered the previous day
+      return isBefore(DateTime(other.year, other.month, other.day - 1, 7).toUtc());
+    }
+    return isBefore(DateTime(other.year, other.month, other.day, 7).toUtc());
   }
 
   bool isSameMonthYear(DateTime other) {
@@ -49,8 +55,8 @@ extension DatePrecisionCompare on DateTime {
   }
 
   bool isBetweenDates(DateTime start, DateTime end) {
-    DateTime dayStart = DateTime.utc(start.year, start.month, start.day);
-    DateTime dayEnd = DateTime.utc(end.year, end.month, end.day);
+    DateTime dayStart = DateTime(start.year, start.month, start.day);
+    DateTime dayEnd = DateTime(end.year, end.month, end.day);
 
     return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
   }

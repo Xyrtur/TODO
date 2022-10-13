@@ -38,8 +38,11 @@ class HiveRepository {
     // Purge if event was finished or if its more than 7 days old
     Iterable<EventData> finished = dailyHive.values.where((event) {
       EventData e = event;
-      return e.finished && !e.start.isSameDate(other: DateTime.now().toUtc(), daily: true) ||
-          e.end.isBefore(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+      return e.finished &&
+              e.start.toLocal().isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 7)) ||
+          e.end.isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 7)
+              .toUtc()
+              .subtract(const Duration(days: 7)));
     }).cast();
     for (EventData event in finished) {
       event.delete();
@@ -57,9 +60,9 @@ class HiveRepository {
     }
 
     // Set up the month events list
-    DateTime currentMonth = DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month);
+    DateTime currentMonth = DateTime.utc(DateTime.now().year, DateTime.now().month);
     for (EventData event in monthlyHive.values) {
-      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
+      if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth)) {
         thisMonthEvents.add(event);
       }
     }
@@ -67,30 +70,30 @@ class HiveRepository {
     // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {
       EventData e = event;
-      return !e.finished && e.end.isBeforeDate(other: DateTime.now().toUtc());
+      return !e.finished && e.end.isBeforeDate(other: DateTime.now());
     }).cast();
     dailyTableEvents = dailyHive.values
         .where((event) {
           EventData e = event;
-          return e.start.isSameDate(other: DateTime.now().toUtc(), daily: true);
+          return e.start.toLocal().isSameDate(other: DateTime.now(), daily: true);
         })
         .toList()
         .cast();
 
     // Set up the daily list of month events
     for (EventData event in monthlyHive.values) {
-      if (DateTime.now().toUtc().isBetweenDates(event.start, event.end)) {
+      if (DateTime.now().isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
         dailyMonthlyEvents.add(event);
       }
     }
 
     // Set up the maps
     for (EventData event in thisMonthEvents) {
-      DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
-      DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
+      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -138,17 +141,18 @@ class HiveRepository {
     event.end = event.end.subtract(localTimeDiff);
     daily ? dailyHive.add(event) : monthlyHive.add(event);
     // Only update daily lists and maps if the event falls on the selected daily date
-    if (daily && event.start.isSameDate(other: currentDailyDate ?? event.start, daily: daily)) {
+    if (daily && event.start.toLocal().isSameDate(other: currentDailyDate ?? event.start.toLocal(), daily: daily)) {
       dailyTableEvents.add(event);
       dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
       inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
       dailyTableEventsMap[event.key] = event;
-    } else if (!daily && event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth!)) {
-      DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
-      DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+    } else if (!daily &&
+        event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth!)) {
+      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -184,23 +188,23 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
-      if (oldEvent!.start.inCalendarWindow(end: oldEvent.end, currentMonth: currentMonth!)) {
-        DateTime start = oldEvent.start.dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = oldEvent.end.dateInCalendarWindow(currentMonth: currentMonth);
+      if (oldEvent!.start.toLocal().inCalendarWindow(end: oldEvent.end.toLocal(), currentMonth: currentMonth!)) {
+        DateTime start = oldEvent.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = oldEvent.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
           // Remove the event from each day list that it existed in
-          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(oldEvent.key);
+          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(oldEvent.key);
           start = start.add(const Duration(days: 1));
         }
       }
-      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
-        DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+      if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth)) {
+        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
           // Add the new event back into the day lists
-          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
           start = start.add(const Duration(days: 1));
         }
       }
@@ -227,12 +231,12 @@ class HiveRepository {
         dailyTableEventsMap.remove(event.key);
       }
     } else {
-      if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth!)) {
-        DateTime start = event.start.dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = event.end.dateInCalendarWindow(currentMonth: currentMonth);
+      if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth!)) {
+        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
         while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-          thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
+          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
           start = start.add(const Duration(days: 1));
         }
       }
@@ -268,7 +272,7 @@ class HiveRepository {
     dailyTableEvents = dailyHive.values
         .where((event) {
           EventData e = event;
-          return e.start.isSameDate(other: date, daily: true);
+          return e.start.toLocal().isSameDate(other: date, daily: true);
         })
         .toList()
         .cast();
@@ -287,7 +291,7 @@ class HiveRepository {
     // Get the monthly events that fall on the day
     dailyMonthlyEvents.clear();
     for (EventData event in monthlyHive.values) {
-      if (date.isBetweenDates(event.start, event.end)) {
+      if (date.isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
         dailyMonthlyEvents.add(event);
       }
     }
@@ -305,19 +309,19 @@ class HiveRepository {
     // If either the start or end of the event fall within the calendar windoww, add it
     // The calendar window consists of the 6 weeks surrounding the current month
     for (EventData event in monthlyHive.values) {
-      if (event.start.inCalendarWindow(end: event.end, currentMonth: date)) {
+      if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: date)) {
         thisMonthEvents.add(event);
       }
     }
 
     for (EventData event in thisMonthEvents) {
       // If the start or end fall outside of the calendar window, just set it the the start/end of the calendar window
-      DateTime start = event.start.dateInCalendarWindow(currentMonth: date);
-      DateTime end = event.end.dateInCalendarWindow(currentMonth: date);
+      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: date);
+      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: date);
 
       // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
-        thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: date)][event.key] = event;
+        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: date)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }

@@ -92,6 +92,10 @@ class ScheduleBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget containerBlock(bool feedBack) {
+      int heightInMinutes = (feedBack ? actualEvent ?? event : event)
+          .end
+          .difference((feedBack ? actualEvent ?? event : event).start)
+          .inMinutes;
       return Material(
         color: Colors.transparent,
         child: Container(
@@ -105,16 +109,19 @@ class ScheduleBlock extends StatelessWidget {
                     )
                   : Border.all(width: 0)),
           width: Centre.safeBlockHorizontal * 35,
-          height: Centre.scheduleBlock *
-              ((feedBack ? actualEvent ?? event : event)
-                      .end
-                      .difference((feedBack ? actualEvent ?? event : event).start)
-                      .inMinutes /
-                  60),
+          padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+          height: Centre.scheduleBlock * (heightInMinutes / 60),
           child: firstBlockLarger
               ? Center(
                   child: Text(
-                    event.text,
+                    event.text.replaceAll(' ', '\u00A0'),
+                    maxLines: heightInMinutes > 45
+                        ? 3
+                        : heightInMinutes >= 30
+                            ? 2
+                            : 1,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                     style: Centre.todoText.copyWith(
                         color: event.finished ? Centre.textColor : Colors.black,
                         decoration: event.finished ? TextDecoration.lineThrough : null),
