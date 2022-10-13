@@ -1,26 +1,53 @@
+import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/utils/hive_repository.dart';
-import 'package:todo/utils/lifecycle_handler.dart';
 import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
 
-class DailyPage extends StatelessWidget {
+class DailyPage extends StatefulWidget {
   const DailyPage({super.key, required this.pc});
   final PanelController pc;
 
   @override
-  Widget build(BuildContext context) {
-    Centre().init(context);
-    WidgetsBinding.instance.addObserver(LifecycleEventHandler(resumeCallBack: () async {
+  State<DailyPage> createState() => DailyPageState();
+}
+
+class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
+  final ValueNotifier<String?> filePath = ValueNotifier<String?>(null);
+  @override
+  initState() {
+    filePath.addListener(() {
+      if (Theme.of(context).platform == TargetPlatform.iOS) {
+        context.read<ImportExportBloc>().add(ImportClicked(false, filePath.value));
+      } else if (Theme.of(context).platform == TargetPlatform.android) {
+        context.read<ImportExportBloc>().add(ImportClicked(true, filePath.value));
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
-          date: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day)));
+          date: DateTime.utc(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day -
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
       context.read<HiveRepository>().cacheInitialData();
-    }));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Centre().init(context);
 
     showDailyDialog() {
       showDialog(
@@ -75,11 +102,27 @@ class DailyPage extends StatelessWidget {
           }
         },
         child: GestureDetector(
-          onTap: () {
+          onTap: () async {
             if (Theme.of(context).platform == TargetPlatform.iOS) {
-              context.read<ImportExportBloc>().add(const ImportClicked(false));
+              // Get the user to pick a  zip file
+              filePath.value = await FilesystemPicker.open(
+                title: 'Choose zip file',
+                context: context,
+                rootDirectory: (await getApplicationDocumentsDirectory()),
+                fsType: FilesystemType.file,
+                allowedExtensions: ['.zip'],
+                fileTileSelectMode: FileTileSelectMode.wholeTile,
+              );
             } else if (Theme.of(context).platform == TargetPlatform.android) {
-              context.read<ImportExportBloc>().add(const ImportClicked(true));
+              // Get the user to pick a  zip file
+              filePath.value = await FilesystemPicker.open(
+                title: 'Choose zip file',
+                context: context,
+                rootDirectory: (await getExternalStorageDirectory())!,
+                fsType: FilesystemType.file,
+                allowedExtensions: ['.zip'],
+                fileTileSelectMode: FileTileSelectMode.wholeTile,
+              );
             }
           },
           child: svgButton(
@@ -94,9 +137,9 @@ class DailyPage extends StatelessWidget {
       GestureDetector(
         onTap: () {
           if (Theme.of(context).platform == TargetPlatform.iOS) {
-            context.read<ImportExportBloc>().add(const ExportClicked(false));
+            context.read<ImportExportBloc>().add(const ExportClicked(false, null));
           } else if (Theme.of(context).platform == TargetPlatform.android) {
-            context.read<ImportExportBloc>().add(const ExportClicked(true));
+            context.read<ImportExportBloc>().add(const ExportClicked(true, null));
           }
         },
         child: svgButton(
@@ -321,7 +364,7 @@ class DailyPage extends StatelessWidget {
           backdropEnabled: true,
           minHeight: 0,
           maxHeight: Centre.safeBlockVertical * 54,
-          controller: pc,
+          controller: widget.pc,
           panel: DailyPanel(),
           body: Padding(
             padding: EdgeInsets.all(Centre.safeBlockVertical),

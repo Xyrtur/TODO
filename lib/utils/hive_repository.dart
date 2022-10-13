@@ -3,7 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive_io.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:todo/models/future_todo.dart';
 import 'datetime_ext.dart';
@@ -60,6 +60,12 @@ class HiveRepository {
     }
 
     // Set up the month events list
+
+    // Clear the events from the monthly data structures
+    thisMonthEvents.clear();
+    for (int i = 0; i < 42; i++) {
+      thisMonthEventsMaps[i].clear();
+    }
     DateTime currentMonth = DateTime.utc(DateTime.now().year, DateTime.now().month);
     for (EventData event in monthlyHive.values) {
       if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth)) {
@@ -115,7 +121,7 @@ class HiveRepository {
   updateFutureTodo({FutureTodo? todo, List<FutureTodo>? todoList}) {
     if (todo == null) {
       for (FutureTodo i in todoList!) {
-        i.save();
+        futureTodosHive.put(i.key, i);
       }
       futureList = todoList;
     } else {
@@ -171,9 +177,9 @@ class HiveRepository {
     Duration localTimeDiff = DateTime.now().timeZoneOffset;
     event.start = event.start.subtract(localTimeDiff);
     event.end = event.end.subtract(localTimeDiff);
-    event.save();
 
     if (daily) {
+      dailyHive.put(event.key, event);
       // Find the event in the in order list and remove it
       // Add the event back in and insert in the right spot
       for (int i = 0; i < inOrderDailyTableEvents.length; i++) {
@@ -188,6 +194,7 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
+      monthlyHive.put(event.key, event);
       if (oldEvent!.start.toLocal().inCalendarWindow(end: oldEvent.end.toLocal(), currentMonth: currentMonth!)) {
         DateTime start = oldEvent.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
         DateTime end = oldEvent.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
@@ -264,7 +271,7 @@ class HiveRepository {
     dailyTableEventsMap[event.key] = event;
 
     // Save in the hive
-    event.save();
+    dailyHive.put(event.key, event);
   }
 
   // For a new day
@@ -328,7 +335,7 @@ class HiveRepository {
   }
 
   // Create a backup of current data and import data from the selected zip file
-  Future<bool> importFile(bool isAndroid) async {
+  Future<bool> importFile(bool isAndroid, String? selectedFilePath) async {
     // Get the paths to each of the box files
     String firstBoxPath = monthlyHive.path!;
     String secondBoxPath = dailyHive.path!;
@@ -346,7 +353,7 @@ class HiveRepository {
 
       // Create a zip file
       var encoder = ZipFileEncoder();
-      encoder.create("$selectedDirectory/todo_data.zip");
+      encoder.create("$selectedDirectory/back_up_todo_data.zip");
 
       // Close the hives first
       await monthlyHive.close();
@@ -354,52 +361,47 @@ class HiveRepository {
       await futureTodosHive.close();
 
       // Add the box files to the zip
-      encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/daily.hive")));
-      encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/monthly.hive")));
-      encoder.addFile(await (File(thirdBoxPath).copy("$selectedDirectory/future.hive")));
+      encoder.addFile((File(firstBoxPath)));
+      encoder.addFile((File(secondBoxPath)));
+      encoder.addFile((File(thirdBoxPath)));
       encoder.close();
 
       // Re-open the boxes
-      await Hive.openBox<EventData>('monthEventBox');
-      await Hive.openBox<EventData>('dailyEventBox');
-      await Hive.openBox<EventData>('futureTodosBox');
-      monthlyHive = Hive.box<EventData>('monthEventBox');
-      dailyHive = Hive.box<EventData>('dailyEventBox');
-      futureTodosHive = Hive.box<EventData>('futureTodosBox');
+      monthlyHive = await Hive.openBox<EventData>('monthEventBox');
+      dailyHive = await Hive.openBox<EventData>('dailyEventBox');
+      futureTodosHive = await Hive.openBox<FutureTodo>('futureTodosBox');
     }
 
-    // Get the user to pick a  zip file
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
-
-    if (result != null) {
+    if (selectedFilePath != null) {
       await monthlyHive.close();
       await dailyHive.close();
       await futureTodosHive.close();
-
-      final inputStream = InputFileStream(result.files.single.path!);
+//
+      final inputStream = InputFileStream(selectedFilePath);
       final archive = ZipDecoder().decodeBuffer(inputStream);
 
       // For all of the entries in the archive
       final firstStream = OutputFileStream(firstBoxPath);
-      archive.files[0].writeContent(firstStream);
-      firstStream.close();
-
       final secondStream = OutputFileStream(secondBoxPath);
-      archive.files[1].writeContent(secondStream);
-      secondStream.close();
-
       final thirdStream = OutputFileStream(thirdBoxPath);
-      archive.files[2].writeContent(thirdStream);
-      thirdStream.close();
 
-      await Hive.openBox<EventData>('monthEventBox');
-      await Hive.openBox<EventData>('dailyEventBox');
-      await Hive.openBox<EventData>('futureTodosBox');
+      for (int i = 0; i < 3; i++) {
+        if (archive.files[i].name.contains('month')) {
+          archive.files[i].writeContent(firstStream);
+          firstStream.close();
+        } else if (archive.files[i].name.contains('daily')) {
+          archive.files[i].writeContent(secondStream);
+          secondStream.close();
+        } else {
+          archive.files[i].writeContent(thirdStream);
+          thirdStream.close();
+        }
+      }
 
-      monthlyHive = Hive.box<EventData>('monthEventBox');
-      dailyHive = Hive.box<EventData>('dailyEventBox');
-      futureTodosHive = Hive.box<EventData>('futureTodosBox');
+      monthlyHive = await Hive.openBox<EventData>('monthEventBox');
+      dailyHive = await Hive.openBox<EventData>('dailyEventBox');
+      futureTodosHive = await Hive.openBox<FutureTodo>('futureTodosBox');
+
       return true;
     }
     return false;
@@ -422,16 +424,14 @@ class HiveRepository {
           await dailyHive.close();
           await futureTodosHive.close();
 
-          encoder.addFile(await (File(firstBoxPath).copy("$selectedDirectory/daily.hive")));
-          encoder.addFile(await (File(secondBoxPath).copy("$selectedDirectory/monthly.hive")));
-          encoder.addFile(await (File(thirdBoxPath).copy("$selectedDirectory/future.hive")));
+          await encoder.addFile((File(firstBoxPath)));
+          await encoder.addFile((File(secondBoxPath)));
+          await encoder.addFile((File(thirdBoxPath)));
           encoder.close();
-          await Hive.openBox<EventData>('monthEventBox');
-          await Hive.openBox<EventData>('dailyEventBox');
-          await Hive.openBox<EventData>('futureTodosBox');
-          monthlyHive = Hive.box<EventData>('monthEventBox');
-          dailyHive = Hive.box<EventData>('dailyEventBox');
-          futureTodosHive = Hive.box<EventData>('futureTodosBox');
+
+          monthlyHive = await Hive.openBox<EventData>('monthEventBox');
+          dailyHive = await Hive.openBox<EventData>('dailyEventBox');
+          futureTodosHive = await Hive.openBox<FutureTodo>('futureTodosBox');
 
           return selectedDirectory;
         }
