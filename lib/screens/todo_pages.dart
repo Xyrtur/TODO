@@ -128,7 +128,7 @@ class _TodoPagesState extends State<TodoPages> {
                         });
                       },
                       opacity: _visible,
-                      duration: const Duration(milliseconds: 1500),
+                      duration: const Duration(milliseconds: 1000),
                       child: Container(
                         color: Centre.bgColor,
                         height: MediaQuery.of(context).size.height,
