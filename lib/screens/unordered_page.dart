@@ -207,13 +207,21 @@ class _UnorderedPageState extends State<UnorderedPage> {
                     width: Centre.safeBlockHorizontal * 2,
                   ),
                   !todo.todoTextEditing
-                      ? Text(
-                          todo.text,
-                          maxLines: 1,
-                          style: Centre.dialogText.copyWith(
-                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                  ? Colors.transparent
-                                  : Centre.textColor),
+                      ? Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
+                            },
+                            child: Text(
+                              todo.text,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Centre.dialogText.copyWith(
+                                  color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                      ? Colors.transparent
+                                      : Centre.textColor),
+                            ),
+                          ),
                         )
                       : Expanded(
                           child: Padding(
@@ -237,20 +245,6 @@ class _UnorderedPageState extends State<UnorderedPage> {
                             ),
                           ),
                         ),
-                  !todo.todoTextEditing
-                      ? Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
-                            },
-                            child: Container(
-                              color: Colors.transparent,
-                            ),
-                          ),
-                        )
-                      : const SizedBox(
-                          width: 0,
-                        )
                 ],
               ),
             );
