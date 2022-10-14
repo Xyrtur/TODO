@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive_io.dart';
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:todo/models/future_todo.dart';
 import 'datetime_ext.dart';
@@ -298,7 +298,7 @@ class HiveRepository {
     // Get the monthly events that fall on the day
     dailyMonthlyEvents.clear();
     for (EventData event in monthlyHive.values) {
-      if (date.isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
+      if (DateTime(date.year, date.month, date.day).isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
         dailyMonthlyEvents.add(event);
       }
     }

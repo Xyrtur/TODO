@@ -85,7 +85,7 @@ class MonthlyTodoBloc extends Bloc<MonthlyTodoEvent, MonthlyTodoState> {
       emit(MonthlyTodoRefreshed(hive.thisMonthEventsMaps, containsDay));
     });
     on<MonthlyTodoDelete>((event, emit) {
-      bool containsDay = event.selectedDailyDay.isBetweenDates(event.event.start, event.event.end);
+      bool containsDay = event.selectedDailyDay.isBetweenDates(event.event.start.toLocal(), event.event.end.toLocal());
       hive.deleteEvent(
           daily: false, event: event.event, containsSelectedDay: containsDay, currentMonth: event.currentMonth);
       emit(MonthlyTodoRefreshed(hive.thisMonthEventsMaps, containsDay));

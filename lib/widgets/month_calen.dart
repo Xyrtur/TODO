@@ -150,10 +150,23 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
   List<Widget> list = [
     // Start the list with the day number in the top left always
     Padding(
-      padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 1),
-      child: Text(
-        dayNum.day.toString(),
-        style: Centre.todoText.copyWith(color: faded ? Colors.grey : Centre.textColor),
+      padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 0.5),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+            Centre.safeBlockVertical * 0.3, 0, Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          color: dayNum.isSameDate(other: DateTime.now(), daily: false) ? Centre.secondaryColor : Colors.transparent,
+        ),
+        child: Text(
+          dayNum.day.toString(),
+          style: Centre.todoText.copyWith(
+              color: faded
+                  ? Colors.grey
+                  : dayNum.isSameDate(other: DateTime.now(), daily: false)
+                      ? Centre.bgColor
+                      : Centre.textColor),
+        ),
       ),
     ),
   ];

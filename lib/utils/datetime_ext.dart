@@ -55,8 +55,15 @@ extension DatePrecisionCompare on DateTime {
   }
 
   bool isBetweenDates(DateTime start, DateTime end) {
-    DateTime dayStart = DateTime(start.year, start.month, start.day);
-    DateTime dayEnd = DateTime(end.year, end.month, end.day);
+    DateTime dayStart;
+    DateTime dayEnd;
+    if (isUtc) {
+      dayStart = DateTime.utc(start.year, start.month, start.day);
+      dayEnd = DateTime.utc(end.year, end.month, end.day);
+    } else {
+      dayStart = DateTime(start.year, start.month, start.day);
+      dayEnd = DateTime(end.year, end.month, end.day);
+    }
 
     return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
   }

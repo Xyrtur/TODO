@@ -205,7 +205,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     Widget dailyDateRow = BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
       return Row(
         children: [
-          (state.isSameDate(other: DateTime.now().toUtc(), daily: false))
+          (state.isSameDate(other: DateTime.now(), daily: false))
               ? SizedBox(
                   width: Centre.safeBlockHorizontal * 11.5,
                 )
@@ -225,7 +225,10 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
             ],
           ),
-          (state.isSameDate(other: DateTime.now().toUtc().add(const Duration(days: 5)), daily: false))
+          (state.isSameDate(
+                  other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                      .add(const Duration(days: 4)),
+                  daily: false))
               ? const SizedBox()
               : IconButton(
                   onPressed: () {

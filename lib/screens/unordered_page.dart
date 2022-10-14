@@ -349,42 +349,47 @@ class _UnorderedPageState extends State<UnorderedPage> {
     return SafeArea(
         child: Scaffold(
       backgroundColor: Centre.bgColor,
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
+      body: BlocListener<MonthlyTodoBloc, MonthlyTodoState>(
+        listener: (context, state) {
+          if (state.changedDailyList) context.read<DailyMonthlyListCubit>().update();
         },
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
-            child: Text(
-              "Todo List",
-              style: Centre.todoSemiTitle,
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
+              child: Text(
+                "Todo List",
+                style: Centre.todoSemiTitle,
+              ),
             ),
-          ),
-          Expanded(
-            child: BlocBuilder<FutureTodoBloc, FutureTodoState>(
-              builder: (tcontext, state) => SizedBox(
-                  height: Centre.safeBlockVertical * 75,
-                  child: ReorderableListView(
-                      scrollController: scrollController,
-                      children: reorderableTodos(state.futureList, context),
-                      onReorder: (int old, int news) {
-                        List<FutureTodo> oldList = state.futureList;
+            Expanded(
+              child: BlocBuilder<FutureTodoBloc, FutureTodoState>(
+                builder: (tcontext, state) => SizedBox(
+                    height: Centre.safeBlockVertical * 75,
+                    child: ReorderableListView(
+                        scrollController: scrollController,
+                        children: reorderableTodos(state.futureList, context),
+                        onReorder: (int old, int news) {
+                          List<FutureTodo> oldList = state.futureList;
 
-                        if (old < news) news -= 1;
+                          if (old < news) news -= 1;
 
-                        final FutureTodo item = oldList.removeAt(old);
-                        oldList.insert(news, item);
-                        for (int i = 0; i < oldList.length; i++) {
-                          oldList[i].changeIndex(i);
-                        }
-                        context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
-                      })),
+                          final FutureTodo item = oldList.removeAt(old);
+                          oldList.insert(news, item);
+                          for (int i = 0; i < oldList.length; i++) {
+                            oldList[i].changeIndex(i);
+                          }
+                          context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
+                        })),
+              ),
             ),
-          ),
-          floatingForm,
-        ]),
+            floatingForm,
+          ]),
+        ),
       ),
     ));
   }
