@@ -115,12 +115,26 @@ class AddEventDialog extends StatelessWidget {
             : GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  height: Centre.safeBlockVertical * 3.5,
-                  width: Centre.safeBlockVertical * 3.5,
-                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-                  child: Icon(Icons.cancel_outlined, color: Centre.red, size: 35),
-                ),
-              ),
+                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 2),
+                  padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(40),
+                    color: Centre.editButtonColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Centre.darkerDialogBgColor,
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: Centre.red,
+                    size: Centre.safeBlockHorizontal * 6,
+                  ),
+                )),
       ],
     );
 
@@ -192,11 +206,20 @@ class AddEventDialog extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
       height: Centre.safeBlockHorizontal * 43,
       width: Centre.safeBlockVertical * 8,
-      decoration: const BoxDecoration(
-          color: Color.fromARGB(255, 77, 77, 77), borderRadius: BorderRadius.all(Radius.circular(10))),
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: Centre.darkerDialogBgColor,
+          spreadRadius: 5,
+          blurRadius: 7,
+          offset: const Offset(0, 2),
+        ),
+      ], color: Color.fromARGB(255, 77, 77, 77), borderRadius: BorderRadius.all(Radius.circular(10))),
       child: BlocBuilder<CalendarTypeCubit, CalendarType>(
         builder: (context, state) => Column(
           children: [
+            SizedBox(
+              height: Centre.safeBlockVertical * 0.25,
+            ),
             calendarTypeBtn(state, CalendarType.single, "single_date"),
             calendarTypeBtn(state, CalendarType.ranged, "range_date"),
             calendarTypeBtn(state, CalendarType.multi, "multi_date"),
@@ -572,17 +595,27 @@ class AddEventDialog extends StatelessWidget {
            * - time range OR the full day box should be checked
            * - list of dates
            */
+          Map<String, bool> missingNameDatesTime = {
+            "name": !_formKey.currentState!.validate(),
+            "date": (context.read<DialogDatesCubit>().state ?? []).isEmpty,
+            "time": context.read<TimeRangeCubit>().state.endResult == null &&
+                !context.read<CheckboxCubit>().state &&
+                context.read<CalendarTypeCubit>().state != CalendarType.ranged
+          };
 
-          if (!_formKey.currentState!.validate() ||
-              (context.read<DialogDatesCubit>().state ?? []).isEmpty ||
-              context.read<TimeRangeCubit>().state.endResult == null &&
-                  !context.read<CheckboxCubit>().state &&
-                  context.read<CalendarTypeCubit>().state != CalendarType.ranged) {
+          if (missingNameDatesTime.values.contains(true)) {
+            String snackBarString = 'Missing required info:';
+            missingNameDatesTime.forEach((key, missing) {
+              if (missing) snackBarString += " $key,";
+            });
+
+            // Remove the last comma
+            snackBarString = snackBarString.substring(0, snackBarString.length - 1);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
               content: Text(
-                'Missing required info',
+                snackBarString,
                 style: Centre.dialogText,
               ),
               duration: const Duration(seconds: 2),
@@ -598,14 +631,24 @@ class AddEventDialog extends StatelessWidget {
            *    (provided already if creating an event via the Daily Page as opposed to the Unordered Page)
            */
 
-          if (!_formKey.currentState!.validate() ||
-              context.read<TimeRangeCubit>().state.endResult == null ||
-              (addingFutureTodo && (context.read<DialogDatesCubit>().state ?? []).isEmpty)) {
+          Map<String, bool> missingNameTime = {
+            "name": !_formKey.currentState!.validate(),
+            "time": context.read<TimeRangeCubit>().state.endResult == null
+          };
+
+          if (missingNameTime.values.contains(true)) {
+            String snackBarString = 'Missing required info:';
+            missingNameTime.forEach((key, missing) {
+              if (missing) snackBarString += " $key,";
+            });
+
+            // Remove the last comma
+            snackBarString = snackBarString.substring(0, snackBarString.length - 1);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
               content: Text(
-                'Missing required info',
+                snackBarString,
                 style: Centre.dialogText,
               ),
               duration: const Duration(seconds: 2),
@@ -754,10 +797,25 @@ class AddEventDialog extends StatelessWidget {
         width: Centre.safeBlockHorizontal * width,
         child: Align(
             alignment: Alignment.bottomRight,
-            child: Icon(
-              Icons.edit,
-              color: Centre.primaryColor,
-              size: 35,
+            child: Container(
+              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                color: Centre.editButtonColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Centre.darkerDialogBgColor,
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.check,
+                color: Centre.primaryColor,
+                size: Centre.safeBlockHorizontal * 8,
+              ),
             )),
       ),
     );
