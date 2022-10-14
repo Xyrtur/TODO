@@ -133,6 +133,9 @@ class HiveRepository {
 
   deleteFutureTodo({required FutureTodo todo}) {
     futureList.removeAt(todo.index);
+    for (int i = 0; i < futureList.length; i++) {
+      futureTodosHive.put(futureList[i].key, futureList[i].changeIndex(i));
+    }
     todo.delete();
   }
 

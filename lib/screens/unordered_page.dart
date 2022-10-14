@@ -100,7 +100,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
     return [
       for (FutureTodo todo in list)
         Slidable(
-          key: ValueKey(todo.key),
+          key: ValueKey(todo),
           startActionPane: ActionPane(
             extentRatio: 0.5,
             motion: const BehindMotion(),
