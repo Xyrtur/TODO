@@ -219,14 +219,6 @@ class AddEventDialog extends StatelessWidget {
                     weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
                     controlsTextStyle: Centre.dialogText,
                     gapBetweenCalendarAndButtons: 0,
-                    lastMonthIcon: const SizedBox(
-                      width: 0,
-                      height: 0,
-                    ),
-                    nextMonthIcon: const SizedBox(
-                      width: 0,
-                      height: 0,
-                    ),
                     shouldCloseDialogAfterCancelTapped: true,
                     cancelButtonTextStyle: Centre.dialogText,
                     okButton: Container(
@@ -260,9 +252,9 @@ class AddEventDialog extends StatelessWidget {
                             .add(const Duration(days: 4))
                         : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
                     currentDate: addingFutureTodo ? DateTime.now().toUtc() : monthOrDayDate,
-                    selectedDayHighlightColor: Centre.red,
+                    selectedDayHighlightColor: Centre.secondaryColor,
                   ),
-                  dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 48),
+                  dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
                   initialValue: context.read<DialogDatesCubit>().state ?? [],
                 );
 

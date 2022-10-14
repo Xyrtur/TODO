@@ -238,18 +238,21 @@ class _HourMinuteControl extends StatelessWidget {
     final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
     final Color textColor = timePickerTheme.hourMinuteTextColor ??
         MaterialStateColor.resolveWith((Set<MaterialState> states) {
-          return states.contains(MaterialState.selected) ? Centre.yellow : Centre.textColor;
+          return states.contains(MaterialState.selected) ? Centre.bgColor : Centre.textColor;
         });
-    final Color backgroundColor = Centre.bgColor;
+    final Color backgroundColor = MaterialStateColor.resolveWith((Set<MaterialState> states) {
+      return states.contains(MaterialState.selected) ? Centre.primaryColor : Centre.dialogBgColor;
+    });
     final TextStyle style = timePickerTheme.hourMinuteTextStyle ?? themeData.textTheme.displayMedium!;
     final ShapeBorder shape = RoundedRectangleBorder(
-        side: BorderSide(color: badNotGood ? Centre.red : Centre.darkerBgColor, width: Centre.safeBlockHorizontal),
+        side: BorderSide(color: badNotGood ? Centre.red : Colors.transparent, width: Centre.safeBlockHorizontal),
         borderRadius: const BorderRadius.all(Radius.circular(4)));
 
     final Set<MaterialState> states = isSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
     return SizedBox(
       height: _kTimePickerHeaderControlHeight,
       child: Material(
+        elevation: 15,
         color: MaterialStateProperty.resolveAs(backgroundColor, states),
         clipBehavior: Clip.antiAlias,
         shape: shape,
