@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -335,7 +336,7 @@ class HiveRepository {
   }
 
   // Create a backup of current data and import data from the selected zip file
-  Future<bool> importFile(bool isAndroid, String? selectedFilePath) async {
+  Future<bool> importFile(bool isAndroid) async {
     // Get the paths to each of the box files
     String firstBoxPath = monthlyHive.path!;
     String secondBoxPath = dailyHive.path!;
@@ -372,12 +373,17 @@ class HiveRepository {
       futureTodosHive = await Hive.openBox<FutureTodo>('futureTodosBox');
     }
 
-    if (selectedFilePath != null) {
+    // Get the user to pick a  zip file
+    FilePicker.platform.clearTemporaryFiles();
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
+
+    if (result != null) {
       await monthlyHive.close();
       await dailyHive.close();
       await futureTodosHive.close();
 //
-      final inputStream = InputFileStream(selectedFilePath);
+      final inputStream = InputFileStream(result.files.single.path!);
       final archive = ZipDecoder().decodeBuffer(inputStream);
 
       // For all of the entries in the archive

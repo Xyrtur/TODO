@@ -244,11 +244,19 @@ class AddEventDialog extends StatelessWidget {
                             : CalendarDatePicker2Type.multi,
                     firstDate: addingFutureTodo
                         ? DateTime.utc(
-                            DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day)
+                            DateTime.now().year,
+                            DateTime.now().month,
+                            DateTime.now().day -
+                                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                    ? 1
+                                    : 0))
                         : DateTime.utc(monthOrDayDate.year),
                     lastDate: addingFutureTodo
                         ? DateTime.utc(
-                                DateTime.now().toUtc().year, DateTime.now().toUtc().month, DateTime.now().toUtc().day)
+                                DateTime.now().year,
+                                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                    ? 1
+                                    : 0))
                             .add(const Duration(days: 4))
                         : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
                     currentDate: addingFutureTodo ? DateTime.now().toUtc() : monthOrDayDate,

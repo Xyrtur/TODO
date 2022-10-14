@@ -4,19 +4,18 @@ import 'package:equatable/equatable.dart';
 import 'package:todo/utils/hive_repository.dart';
 
 abstract class ImportExportEvent extends Equatable {
-  const ImportExportEvent(this.isAndroid, this.filePath);
+  const ImportExportEvent(this.isAndroid);
   final bool isAndroid;
-  final String? filePath;
   @override
-  List<Object?> get props => [isAndroid, filePath];
+  List<Object?> get props => [isAndroid];
 }
 
 class ImportClicked extends ImportExportEvent {
-  const ImportClicked(super.isAndroid, super.filePath);
+  const ImportClicked(super.isAndroid);
 }
 
 class ExportClicked extends ImportExportEvent {
-  const ExportClicked(super.isAndroid, super.filePath);
+  const ExportClicked(super.isAndroid);
 }
 
 abstract class ImportExportState {
@@ -46,7 +45,7 @@ class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
 
   ImportExportBloc(this.hive) : super(const ImportExportInitial()) {
     on<ImportClicked>((event, emit) async {
-      bool importSuccess = await hive.importFile(event.isAndroid, event.filePath);
+      bool importSuccess = await hive.importFile(event.isAndroid);
       if (importSuccess) {
         hive.cacheInitialData();
         emit(const ImportExportInitial());

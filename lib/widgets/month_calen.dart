@@ -15,10 +15,10 @@ class MonthCalendar extends StatelessWidget {
 
     var currentMonthStuff = context.read<MonthDateCubit>().state;
     DateTime dayNum = currentMonthStuff.startingMonthCalenNum();
-    bool inMonth = false;
+    bool inMonth = dayNum.day == 1;
     int fakeDayNum = dayNum.day;
     for (int i = 0; i < 42; i++) {
-      if (fakeDayNum > currentMonthStuff.totalDaysInPrevMonth()) {
+      if (fakeDayNum > currentMonthStuff.totalDaysInPrevMonth() && !inMonth) {
         inMonth = true;
         fakeDayNum = 1;
         fadedList[i] = false;

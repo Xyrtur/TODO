@@ -1,7 +1,5 @@
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
@@ -18,21 +16,9 @@ class DailyPage extends StatefulWidget {
 }
 
 class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
-  final ValueNotifier<String?> filePath = ValueNotifier<String?>(null);
-  @override
-  initState() {
-    filePath.addListener(() {
-      if (Theme.of(context).platform == TargetPlatform.iOS) {
-        context.read<ImportExportBloc>().add(ImportClicked(false, filePath.value));
-      } else if (Theme.of(context).platform == TargetPlatform.android) {
-        context.read<ImportExportBloc>().add(ImportClicked(true, filePath.value));
-      }
-    });
-    super.initState();
-  }
-
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    print("resuming???");
     if (state == AppLifecycleState.resumed) {
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
@@ -104,25 +90,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         child: GestureDetector(
           onTap: () async {
             if (Theme.of(context).platform == TargetPlatform.iOS) {
-              // Get the user to pick a  zip file
-              filePath.value = await FilesystemPicker.open(
-                title: 'Choose zip file',
-                context: context,
-                rootDirectory: (await getApplicationDocumentsDirectory()),
-                fsType: FilesystemType.file,
-                allowedExtensions: ['.zip'],
-                fileTileSelectMode: FileTileSelectMode.wholeTile,
-              );
+              context.read<ImportExportBloc>().add(const ImportClicked(false));
             } else if (Theme.of(context).platform == TargetPlatform.android) {
-              // Get the user to pick a  zip file
-              filePath.value = await FilesystemPicker.open(
-                title: 'Choose zip file',
-                context: context,
-                rootDirectory: (await getExternalStorageDirectory())!,
-                fsType: FilesystemType.file,
-                allowedExtensions: ['.zip'],
-                fileTileSelectMode: FileTileSelectMode.wholeTile,
-              );
+              context.read<ImportExportBloc>().add(const ImportClicked(true));
             }
           },
           child: svgButton(
@@ -137,9 +107,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       GestureDetector(
         onTap: () {
           if (Theme.of(context).platform == TargetPlatform.iOS) {
-            context.read<ImportExportBloc>().add(const ExportClicked(false, null));
+            context.read<ImportExportBloc>().add(const ExportClicked(false));
           } else if (Theme.of(context).platform == TargetPlatform.android) {
-            context.read<ImportExportBloc>().add(const ExportClicked(true, null));
+            context.read<ImportExportBloc>().add(const ExportClicked(true));
           }
         },
         child: svgButton(
@@ -205,7 +175,15 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     Widget dailyDateRow = BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
       return Row(
         children: [
-          (state.isSameDate(other: DateTime.now(), daily: false))
+          (state.isSameDate(
+                  other: DateTime.utc(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day -
+                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                              ? 1
+                              : 0)),
+                  daily: false))
               ? SizedBox(
                   width: Centre.safeBlockHorizontal * 11.5,
                 )
@@ -226,7 +204,13 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             ],
           ),
           (state.isSameDate(
-                  other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+                  other: DateTime.utc(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day -
+                              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                  ? 1
+                                  : 0))
                       .add(const Duration(days: 4)),
                   daily: false))
               ? const SizedBox()
