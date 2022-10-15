@@ -269,12 +269,14 @@ class AddEventDialog extends StatelessWidget {
                     lastDate: addingFutureTodo
                         ? DateTime.utc(
                                 DateTime.now().year,
-                                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                                    ? 1
-                                    : 0))
-                            .add(const Duration(days: 4))
+                                DateTime.now().month,
+                                DateTime.now().day -
+                                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                        ? 1
+                                        : 0))
+                            .add(const Duration(days: 5))
                         : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
-                    currentDate: addingFutureTodo ? DateTime.now().toUtc() : monthOrDayDate,
+                    currentDate: DateTime.now(),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
                   dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
