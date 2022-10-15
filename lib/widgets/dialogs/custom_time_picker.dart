@@ -245,7 +245,9 @@ class _HourMinuteControl extends StatelessWidget {
     });
     final TextStyle style = timePickerTheme.hourMinuteTextStyle ?? themeData.textTheme.displayMedium!;
     final ShapeBorder shape = RoundedRectangleBorder(
-        side: BorderSide(color: badNotGood ? Centre.red : Colors.transparent, width: Centre.safeBlockHorizontal),
+        side: BorderSide(
+            color: badNotGood ? Color.fromARGB(255, 202, 107, 102) : Colors.transparent,
+            width: Centre.safeBlockHorizontal),
         borderRadius: const BorderRadius.all(Radius.circular(4)));
 
     final Set<MaterialState> states = isSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};

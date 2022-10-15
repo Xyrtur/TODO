@@ -40,9 +40,18 @@ class HiveRepository {
     Iterable<EventData> finished = dailyHive.values.where((event) {
       EventData e = event;
       return e.finished &&
-              e.start.toLocal().isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 7)) ||
-          e.end.isBefore(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 7)
-              .toUtc()
+              e.start.toLocal().isBefore(DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                  7)) ||
+          e.end.isBefore(DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                  7)
               .subtract(const Duration(days: 7)));
     }).cast();
     for (EventData event in finished) {
@@ -51,7 +60,7 @@ class HiveRepository {
 
     // Purge if event is older than 3 years
     DateTime cutOffDate =
-        DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month).subtract(const Duration(days: 365 * 3));
+        DateTime.utc(DateTime.now().year, DateTime.now().month).subtract(const Duration(days: 365 * 3));
     Iterable<EventData> tooOld = monthlyHive.values.where((event) {
       EventData e = event;
       return e.end.isBefore(cutOffDate);
@@ -77,12 +86,24 @@ class HiveRepository {
     // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {
       EventData e = event;
-      return !e.finished && e.end.isBeforeDate(other: DateTime.now());
+      return !e.finished &&
+          e.end.isBeforeDate(
+              other: DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
     }).cast();
     dailyTableEvents = dailyHive.values
         .where((event) {
           EventData e = event;
-          return e.start.toLocal().isSameDate(other: DateTime.now(), daily: true);
+          return e.start.toLocal().isSameDate(
+              other: DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)),
+              daily: true);
         })
         .toList()
         .cast();

@@ -156,14 +156,32 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
             Centre.safeBlockVertical * 0.3, 0, Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
-          color: dayNum.isSameDate(other: DateTime.now(), daily: false) ? Centre.secondaryColor : Colors.transparent,
+          color: dayNum.isSameDate(
+                  other: DateTime.utc(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day -
+                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                              ? 1
+                              : 0)),
+                  daily: false)
+              ? Centre.secondaryColor
+              : Colors.transparent,
         ),
         child: Text(
           dayNum.day.toString(),
           style: Centre.todoText.copyWith(
               color: faded
                   ? Colors.grey
-                  : dayNum.isSameDate(other: DateTime.now(), daily: false)
+                  : dayNum.isSameDate(
+                          other: DateTime.utc(
+                              DateTime.now().year,
+                              DateTime.now().month,
+                              DateTime.now().day -
+                                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                      ? 1
+                                      : 0)),
+                          daily: false)
                       ? Centre.bgColor
                       : Centre.textColor),
         ),

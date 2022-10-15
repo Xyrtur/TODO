@@ -864,6 +864,7 @@ class AddEventDialog extends StatelessWidget {
           });
       if (startResult != null) {
         // Pick the end time
+        prevChosenStart = startResult;
 
         endResult = await showDialog(
             context: context,
