@@ -40,16 +40,6 @@ extension DatePrecisionCompare on DateTime {
     }
   }
 
-  bool isBeforeDate({required DateTime other}) {
-    // Datetime other is local
-    // First determine if it is considered next day or not, daily-wise (before 1am?)
-    if (other.hour == 0 || other.hour == 1 && other.minute <= 59) {
-      // Still considered the previous day
-      return isBefore(DateTime(other.year, other.month, other.day - 1, 7).toUtc());
-    }
-    return isBefore(DateTime(other.year, other.month, other.day, 7).toUtc());
-  }
-
   bool isSameMonthYear(DateTime other) {
     return year == other.year && month == other.month;
   }

@@ -86,13 +86,15 @@ class HiveRepository {
     // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {
       EventData e = event;
+
       return !e.finished &&
-          e.end.isBeforeDate(
-              other: DateTime.utc(
+          e.end.isBefore(DateTime(
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                  7)
+              .toUtc());
     }).cast();
     dailyTableEvents = dailyHive.values
         .where((event) {
