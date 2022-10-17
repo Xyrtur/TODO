@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fading_edge_scrollview/fading_edge_scrollview.dart';
+// import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/utils/centre.dart';
@@ -10,12 +11,22 @@ import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
 class DailyPanel extends StatelessWidget {
   DailyPanel({
     super.key,
+    //  required this.thisPc
   });
+  // final PanelController thisPc;
   final unFinishedController = ScrollController();
   final monthlyController = ScrollController();
+  // final ValueNotifier<bool?> addedUnfinished = ValueNotifier<bool?>(false);
 
   @override
   Widget build(BuildContext context) {
+    // Include if you want the panel closed when an event is added
+    // addedUnfinished.addListener(() {
+    //   if (addedUnfinished.value ?? false) {
+    //     thisPc.close();
+    //   }
+    // });
+
     Widget scrollingList(bool unfinishedList, List<EventData> list) {
       return FadingEdgeScrollView.fromScrollView(
           child: ListView.builder(
@@ -52,9 +63,9 @@ class DailyPanel extends StatelessWidget {
               GestureDetector(
                 onTap: () async {
                   if (!unfinishedList) {
-                    await showDialog<EventData>(
+                    await showDialog(
                         context: context,
-                        builder: (BuildContext tcontext) {
+                        builder: (BuildContext unUsedContext) {
                           return Scaffold(
                             backgroundColor: Colors.transparent,
                             body: MultiBlocProvider(
@@ -75,17 +86,22 @@ class DailyPanel extends StatelessWidget {
                           );
                         });
                   } else {
-                    await showDialog<EventData>(
+                    // addedUnfinished.value =
+                    await showDialog<bool?>(
                         context: context,
-                        builder: (BuildContext tcontext) {
+                        builder: (BuildContext unUsedContext) {
                           return Scaffold(
                             backgroundColor: Colors.transparent,
                             body: MultiBlocProvider(
                                 providers: [
                                   BlocProvider<TimeRangeCubit>(
                                     create: (_) => TimeRangeCubit(TimeRangeState(
-                                        TimeOfDay(hour: list[index].start.hour, minute: list[index].start.minute),
-                                        TimeOfDay(hour: list[index].end.hour, minute: list[index].end.minute))),
+                                        TimeOfDay(
+                                            hour: list[index].start.toLocal().hour,
+                                            minute: list[index].start.toLocal().minute),
+                                        TimeOfDay(
+                                            hour: list[index].end.toLocal().hour,
+                                            minute: list[index].end.toLocal().minute))),
                                   ),
                                   BlocProvider<ColorCubit>(
                                     create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),

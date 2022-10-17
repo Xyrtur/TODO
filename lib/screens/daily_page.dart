@@ -363,7 +363,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           minHeight: 0,
           maxHeight: Centre.safeBlockVertical * 54,
           controller: widget.pc,
-          panel: DailyPanel(),
+          panel: DailyPanel(
+              // thisPc: widget.pc
+              ),
           body: Padding(
             padding: EdgeInsets.all(Centre.safeBlockVertical),
             child: Column(

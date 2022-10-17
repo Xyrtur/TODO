@@ -228,7 +228,7 @@ class HiveRepository {
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Remove the event from each day list that it existed in
-          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(oldEvent.key);
+          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
           start = start.add(const Duration(days: 1));
         }
       }
@@ -243,7 +243,7 @@ class HiveRepository {
         }
       }
 
-      dailyMonthlyEventsMap.remove(oldEvent.key);
+      dailyMonthlyEventsMap.remove(event.key);
     }
 
     bool inDay = containsSelectedDay ?? false;

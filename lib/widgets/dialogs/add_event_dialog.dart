@@ -502,13 +502,13 @@ class AddEventDialog extends StatelessWidget {
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 7.5),
-                  child: editButton(height: 5, width: 15, context: context, oldEvent: event),
+                  child: editButton(height: 5, width: 15, context: context),
                 )
               ],
             )
           : Padding(
               padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 33),
-              child: editButton(height: 5, width: 15, context: context, oldEvent: event),
+              child: editButton(height: 5, width: 15, context: context),
             );
     });
 
@@ -573,7 +573,7 @@ class AddEventDialog extends StatelessWidget {
                                 width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
                               ),
                               timePickerRow,
-                              Expanded(child: editButton(height: 7, width: 15, context: context, oldEvent: event))
+                              Expanded(child: editButton(height: 7, width: 15, context: context))
                             ],
                     ),
                   ),
@@ -586,8 +586,16 @@ class AddEventDialog extends StatelessWidget {
     );
   }
 
-  Widget editButton(
-      {required int height, required int width, required BuildContext context, required EventData? oldEvent}) {
+  Widget editButton({required int height, required int width, required BuildContext context}) {
+    EventData? oldEvent = event == null
+        ? null
+        : EventData(
+            fullDay: event!.fullDay,
+            start: event!.start,
+            end: event!.end,
+            color: event!.color,
+            text: event!.text,
+            finished: event!.finished);
     return GestureDetector(
       onTap: () {
         if (!daily) {
@@ -781,7 +789,7 @@ class AddEventDialog extends StatelessWidget {
                 text: controller.text,
                 finished: false);
 
-            if (oldEvent.start.isSameDate(other: context.read<DateCubit>().state, daily: true)) {
+            if (oldEvent.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true)) {
               context.read<TodoBloc>().add(TodoUpdate(event: newEvent));
             } else {
               // Add the unfinished event to the daily page and remove it from the unfinished list
