@@ -122,7 +122,7 @@ class HiveRepository {
       DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
       DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
-      while (start.isBefore(end) || start.isSameDate(other: end, daily: false)) {
+      while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
         thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
