@@ -106,12 +106,28 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               context.read<ImportExportBloc>().add(const ImportClicked(true));
             }
           },
-          child: svgButton(
-            name: "import",
-            color: Centre.yellow,
-            height: 5,
-            width: 5,
+          child: Container(
+            margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
             padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: Centre.lighterBgColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Centre.darkerBgColor,
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: svgButton(
+              name: "import",
+              color: Centre.yellow,
+              height: 4,
+              width: 4,
+              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+            ),
           ),
         ),
       ),
@@ -123,12 +139,28 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             context.read<ImportExportBloc>().add(const ExportClicked(true));
           }
         },
-        child: svgButton(
-          name: "export",
-          color: Centre.colors[4],
-          height: 5,
-          width: 5,
+        child: Container(
+          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
           padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(40),
+            color: Centre.lighterBgColor,
+            boxShadow: [
+              BoxShadow(
+                color: Centre.darkerBgColor,
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: svgButton(
+            name: "export",
+            color: Centre.colors[4],
+            height: 4,
+            width: 4,
+            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+          ),
         ),
       ),
       IconButton(
@@ -147,37 +179,66 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         return Container(
           margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 2),
           height: Centre.safeBlockVertical * 4,
-          child: ToggleButtons(
-            onPressed: (int index) {
-              context.read<ToggleChecklistEditingCubit>().toggle();
-            },
-            isSelected: [!state, state], // editing, !editing
-            selectedColor: Centre.bgColor,
-            color: Centre.primaryColor,
-            fillColor: Centre.primaryColor,
-            borderRadius: const BorderRadius.all(Radius.circular(40)),
-            children: <Widget>[
-              Icon(
-                Icons.checklist_rounded,
-                size: Centre.safeBlockVertical * 3,
-              ),
-              Icon(
-                Icons.edit,
-                color: state ? Centre.bgColor : Centre.primaryColor,
-                size: 25,
-              ),
-            ],
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: Centre.lighterBgColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Centre.darkerBgColor,
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ToggleButtons(
+              onPressed: (int index) {
+                context.read<ToggleChecklistEditingCubit>().toggle();
+              },
+              isSelected: [!state, state], // editing, !editing
+              selectedColor: Centre.lighterBgColor,
+              color: Centre.primaryColor,
+              fillColor: Centre.primaryColor,
+              borderRadius: const BorderRadius.all(Radius.circular(40)),
+              borderWidth: Centre.safeBlockHorizontal,
+              borderColor: Centre.lighterBgColor,
+              selectedBorderColor: Centre.lighterBgColor,
+              children: <Widget>[
+                Icon(
+                  Icons.checklist_rounded,
+                  size: Centre.safeBlockVertical * 3,
+                ),
+                Icon(
+                  Icons.edit,
+                  size: Centre.safeBlockVertical * 3,
+                ),
+              ],
+            ),
           ),
         );
       }),
       GestureDetector(
         onTap: () => showDailyDialog(),
-        child: Padding(
-          padding: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+        child: Container(
+          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(40),
+            color: Centre.lighterBgColor,
+            boxShadow: [
+              BoxShadow(
+                color: Centre.darkerBgColor,
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Icon(
-            Icons.add_circle_rounded,
+            Icons.add,
             color: Centre.primaryColor,
-            size: 45,
+            size: Centre.safeBlockHorizontal * 8,
           ),
         ),
       ),

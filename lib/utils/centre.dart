@@ -11,6 +11,7 @@ class Centre {
   static Color yellow = const Color.fromARGB(255, 255, 205, 148);
   static Color pink = const Color.fromARGB(255, 255, 205, 200);
   static Color bgColor = const Color.fromARGB(255, 27, 27, 27);
+  static Color lighterBgColor = const Color.fromARGB(255, 37, 37, 37);
   static Color darkerBgColor = const Color.fromARGB(255, 20, 20, 20);
   static Color textColor = const Color.fromARGB(255, 250, 250, 253);
   static Color darkerDialogBgColor = const Color.fromARGB(255, 54, 54, 54);

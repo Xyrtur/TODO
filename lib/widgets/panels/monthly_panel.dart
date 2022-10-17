@@ -59,14 +59,15 @@ class MonthlyPanel extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: Centre.lighterDialogColor, borderRadius: const BorderRadius.all(Radius.circular(4))),
                       height: Centre.safeBlockHorizontal * 5,
-                      width: event.fullDay && !event.start.isSameDate(other: event.end, daily: false)
-                          ? Centre.safeBlockHorizontal * 10
-                          : Centre.safeBlockHorizontal * 5,
+                      width:
+                          event.fullDay && !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false)
+                              ? Centre.safeBlockHorizontal * 10
+                              : Centre.safeBlockHorizontal * 5,
                       child: Center(
                         child: Text(
-                          event.fullDay && !event.start.isSameDate(other: event.end, daily: false)
-                              ? "${event.start.day}-${event.end.day}"
-                              : event.start.day.toString(),
+                          event.fullDay && !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false)
+                              ? "${event.start.toLocal().day}-${event.end.toLocal().day}"
+                              : event.start.toLocal().day.toString(),
                           style: Centre.todoText
                               .copyWith(fontSize: Centre.safeBlockHorizontal * 3, color: Centre.textColor),
                         ),

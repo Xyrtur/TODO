@@ -284,7 +284,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
           Icons.add_circle_rounded,
           weight: 700,
           color: Centre.primaryColor,
-          size: 35,
+          size: Centre.safeBlockVertical * 5,
         ),
       ),
     );
