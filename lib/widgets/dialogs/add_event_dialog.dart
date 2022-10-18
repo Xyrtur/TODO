@@ -869,11 +869,9 @@ class AddEventDialog extends StatelessWidget {
               dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
 
               // If editing event already on the table, send in that event, but if not, treat it like adding a new event i.e. editingEvent = null
-              editingEvent:
-                  !(editingEvent?.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ??
-                          false)
-                      ? null
-                      : editingEvent,
+              editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key)
+                  ? null
+                  : editingEvent,
               dailyDate: dailyDate,
             );
           });
@@ -894,11 +892,9 @@ class AddEventDialog extends StatelessWidget {
                 orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
                 dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
                 startTime: startResult,
-                editingEvent:
-                    !(editingEvent?.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ??
-                            false)
-                        ? null
-                        : editingEvent,
+                editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key)
+                    ? null
+                    : editingEvent,
                 dailyDate: dailyDate,
               );
             });
