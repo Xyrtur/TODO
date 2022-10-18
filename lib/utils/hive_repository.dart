@@ -169,7 +169,9 @@ class HiveRepository {
       bool? containsSelectedDay,
       DateTime? currentMonth,
       DateTime? currentDailyDate}) {
-    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    Duration localTimeDiff =
+        DateTime(event.start.year, event.start.month, event.start.day, event.start.hour, event.start.minute)
+            .timeZoneOffset;
     event.start = event.start.subtract(localTimeDiff);
     event.end = event.end.subtract(localTimeDiff);
     daily ? dailyHive.add(event) : monthlyHive.add(event);

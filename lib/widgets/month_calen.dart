@@ -157,14 +157,7 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           color: dayNum.isSameDate(
-                  other: DateTime.utc(
-                      DateTime.now().year,
-                      DateTime.now().month,
-                      DateTime.now().day -
-                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                              ? 1
-                              : 0)),
-                  daily: false)
+                  other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day), daily: false)
               ? Centre.secondaryColor
               : Colors.transparent,
         ),
@@ -174,13 +167,7 @@ List<Widget> dayEvents(Iterable<EventData> dayEventsList, bool faded, DateTime d
               color: faded
                   ? Colors.grey
                   : dayNum.isSameDate(
-                          other: DateTime.utc(
-                              DateTime.now().year,
-                              DateTime.now().month,
-                              DateTime.now().day -
-                                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                                      ? 1
-                                      : 0)),
+                          other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
                           daily: false)
                       ? Centre.bgColor
                       : Centre.textColor),
