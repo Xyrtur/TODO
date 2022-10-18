@@ -22,7 +22,7 @@ extension DatePrecisionCompare on DateTime {
   int monthlyMapDayIndex({required DateTime currentMonth}) {
     return isBefore(currentMonth)
         ? day - currentMonth.startingMonthCalenNum().day
-        : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1)))
+        : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
             ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + day - 1
             : day - 1 + (currentMonth.weekday - 1);
   }
