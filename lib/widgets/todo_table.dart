@@ -245,6 +245,7 @@ class ScheduleBlock extends StatelessWidget {
 
           // Update the event with the new times, which rebuilds the table
           context.read<TodoBloc>().add(TodoUpdate(
+              fromDailyMonthlyList: false,
               event: (actualEvent ?? event).edit(
                   fullDay: (actualEvent ?? event).fullDay,
                   start: start,
@@ -267,7 +268,9 @@ class ScheduleBlock extends StatelessWidget {
             } else {
               (actualEvent ?? event).start = (actualEvent ?? event).start.add(DateTime.now().timeZoneOffset);
               (actualEvent ?? event).end = (actualEvent ?? event).end.add(DateTime.now().timeZoneOffset);
-              context.read<TodoBloc>().add(TodoUpdate(event: (actualEvent ?? event).toggleFinished()));
+              context
+                  .read<TodoBloc>()
+                  .add(TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));
             }
           },
           child: !(dragging ?? false)

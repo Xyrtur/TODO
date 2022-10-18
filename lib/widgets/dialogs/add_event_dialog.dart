@@ -28,6 +28,7 @@ class AddEventDialog extends StatelessWidget {
 
   // The name of the future todo
   final String? futureTodoText;
+  final bool? fromDailyMonthlyList;
 
   // Value notifiers to send events to their respective blocs when needed since shouldn't call context in async gaps
   final ValueNotifier<List<DateTime?>?> dateResults = ValueNotifier<List<DateTime?>?>(null);
@@ -37,14 +38,21 @@ class AddEventDialog extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
 
-  AddEventDialog.daily({super.key, this.daily = true, this.event, required this.addingFutureTodo, this.futureTodoText});
+  AddEventDialog.daily(
+      {super.key,
+      this.daily = true,
+      this.event,
+      required this.addingFutureTodo,
+      this.futureTodoText,
+      this.fromDailyMonthlyList});
   AddEventDialog.monthly(
       {super.key,
       this.daily = false,
       this.event,
       required this.monthOrDayDate,
       this.addingFutureTodo = false, // Can set this to false because the dialog does not change in any way
-      this.futureTodoText});
+      this.futureTodoText,
+      this.fromDailyMonthlyList});
 
   @override
   Widget build(BuildContext context) {
@@ -790,7 +798,9 @@ class AddEventDialog extends StatelessWidget {
                 finished: false);
 
             if (oldEvent.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true)) {
-              context.read<TodoBloc>().add(TodoUpdate(event: newEvent));
+              context
+                  .read<TodoBloc>()
+                  .add(TodoUpdate(event: newEvent, fromDailyMonthlyList: fromDailyMonthlyList ?? false));
             } else {
               // Add the unfinished event to the daily page and remove it from the unfinished list
 

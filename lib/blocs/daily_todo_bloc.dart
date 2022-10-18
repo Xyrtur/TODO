@@ -23,7 +23,8 @@ class TodoAddUnfinished extends TodoEvent {
 
 class TodoUpdate extends TodoEvent {
   final EventData event;
-  const TodoUpdate({required this.event});
+  final bool fromDailyMonthlyList;
+  const TodoUpdate({required this.event, required this.fromDailyMonthlyList});
 }
 
 class TodoDelete extends TodoEvent {
@@ -77,20 +78,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     });
     on<TodoUpdate>((event, emit) {
       // if on the dailymonthly list, create a new event for the daily hive since an object cant be stored in two boxes at a time
-      for (EventData listEvent in hive.dailyMonthlyEvents) {
-        if (listEvent.key == event.event.key) {
-          hive.createEvent(
-              daily: true,
-              event: EventData(
-                  fullDay: event.event.fullDay,
-                  start: event.event.start,
-                  end: event.event.end,
-                  color: event.event.color,
-                  text: event.event.text,
-                  finished: event.event.finished));
-          emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
-          return;
-        }
+      if (event.fromDailyMonthlyList) {
+        hive.createEvent(
+            daily: true,
+            event: EventData(
+                fullDay: event.event.fullDay,
+                start: event.event.start,
+                end: event.event.end,
+                color: event.event.color,
+                text: event.event.text,
+                finished: event.event.finished));
+        emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
+        return;
       }
       hive.updateEvent(daily: true, event: event.event);
       emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
