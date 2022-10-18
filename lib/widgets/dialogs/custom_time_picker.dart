@@ -2181,8 +2181,11 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             } else if (nextEventIndex == widget.orderedDailyKeyList!.length
                 ? false
                 : start
-                    .subtract(localTimeDiff)
-                    .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+                        .subtract(localTimeDiff)
+                        .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start) ||
+                    start
+                        .subtract(localTimeDiff)
+                        .isAtSameMomentAs(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
               badHour = true;
               badMinute = true;
               setState(() {
@@ -2268,6 +2271,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
       children: [
         Text(
           widget.errorInvalidText ?? "",
+          textAlign: TextAlign.center,
           style: Centre.todoText.copyWith(color: Centre.red),
         ),
         Row(

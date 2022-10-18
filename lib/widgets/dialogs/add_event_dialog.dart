@@ -847,6 +847,7 @@ class AddEventDialog extends StatelessWidget {
     double time = 0;
     do {
       // Pick the start time first
+      // If adding an unfinished event, treat like adding a new event to the table rather than editing one in the table
 
       time = 0;
       startResult = await showDialog(
@@ -866,7 +867,13 @@ class AddEventDialog extends StatelessWidget {
               daily: daily,
               orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
               dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
-              editingEvent: editingEvent,
+
+              // If editing event already on the table, send in that event, but if not, treat it like adding a new event i.e. editingEvent = null
+              editingEvent:
+                  !(editingEvent?.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ??
+                          false)
+                      ? null
+                      : editingEvent,
               dailyDate: dailyDate,
             );
           });
@@ -887,7 +894,11 @@ class AddEventDialog extends StatelessWidget {
                 orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
                 dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
                 startTime: startResult,
-                editingEvent: editingEvent,
+                editingEvent:
+                    !(editingEvent?.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ??
+                            false)
+                        ? null
+                        : editingEvent,
                 dailyDate: dailyDate,
               );
             });
