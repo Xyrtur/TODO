@@ -48,25 +48,23 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
 
     showDailyDialog() {
       showDialog(
-          context: context,
-          builder: (BuildContext notUsedContext) => Scaffold(
-                backgroundColor: Colors.transparent,
-                body: MultiBlocProvider(
-                    providers: [
-                      BlocProvider<TimeRangeCubit>(
-                        create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                      ),
-                      BlocProvider<ColorCubit>(
-                        create: (_) => ColorCubit(null),
-                      ),
-                      BlocProvider.value(value: context.read<DateCubit>()),
-                      BlocProvider.value(value: context.read<TodoBloc>()),
-                      BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-                    ],
-                    child: AddEventDialog.daily(
-                      addingFutureTodo: false,
-                    )),
-              ));
+        context: context,
+        builder: (BuildContext notUsedContext) => MultiBlocProvider(
+            providers: [
+              BlocProvider<TimeRangeCubit>(
+                create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+              ),
+              BlocProvider<ColorCubit>(
+                create: (_) => ColorCubit(null),
+              ),
+              BlocProvider.value(value: context.read<DateCubit>()),
+              BlocProvider.value(value: context.read<TodoBloc>()),
+              BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+            ],
+            child: AddEventDialog.daily(
+              addingFutureTodo: false,
+            )),
+      );
     }
 
     Widget importExportRow = Row(children: [

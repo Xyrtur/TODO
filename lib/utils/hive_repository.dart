@@ -145,7 +145,7 @@ class HiveRepository {
   updateFutureTodo({FutureTodo? todo, List<FutureTodo>? todoList}) {
     if (todo == null) {
       for (FutureTodo i in todoList!) {
-        futureTodosHive.put(i.key, i);
+        i.save();
       }
       futureList = todoList;
     } else {
@@ -210,7 +210,7 @@ class HiveRepository {
     event.end = event.end.subtract(localTimeDiff);
 
     if (daily) {
-      dailyHive.put(event.key, event);
+      event.save();
       // Find the event in the in order list and remove it
       // Add the event back in and insert in the right spot
       for (int i = 0; i < inOrderDailyTableEvents.length; i++) {
@@ -225,7 +225,7 @@ class HiveRepository {
       }
       dailyTableEventsMap[event.key] = event;
     } else {
-      monthlyHive.put(event.key, event);
+      event.save();
       if (oldEvent!.start.toLocal().inCalendarWindow(end: oldEvent.end.toLocal(), currentMonth: currentMonth!)) {
         DateTime start = oldEvent.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
         DateTime end = oldEvent.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
@@ -304,7 +304,7 @@ class HiveRepository {
     dailyTableEventsMap[event.key] = event;
 
     // Save in the hive
-    dailyHive.put(event.key, event);
+    event.save();
   }
 
   // For a new day

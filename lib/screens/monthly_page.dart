@@ -17,25 +17,23 @@ class MonthlyPage extends StatelessWidget {
       padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 3, right: Centre.safeBlockHorizontal),
       child: FloatingActionButton(
         onPressed: () => showDialog(
-            context: context,
-            builder: (BuildContext notUsedContext) => Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: MultiBlocProvider(providers: [
-                    BlocProvider<TimeRangeCubit>(
-                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                    ),
-                    BlocProvider<ColorCubit>(
-                      create: (_) => ColorCubit(null),
-                    ),
-                    BlocProvider<CalendarTypeCubit>(
-                      create: (_) => CalendarTypeCubit(null),
-                    ),
-                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                    BlocProvider(create: (_) => CheckboxCubit(false)),
-                    BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                    BlocProvider.value(value: context.read<DateCubit>()),
-                  ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
-                )),
+          context: context,
+          builder: (BuildContext notUsedContext) => MultiBlocProvider(providers: [
+            BlocProvider<TimeRangeCubit>(
+              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+            ),
+            BlocProvider<ColorCubit>(
+              create: (_) => ColorCubit(null),
+            ),
+            BlocProvider<CalendarTypeCubit>(
+              create: (_) => CalendarTypeCubit(null),
+            ),
+            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+            BlocProvider(create: (_) => CheckboxCubit(false)),
+            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+            BlocProvider.value(value: context.read<DateCubit>()),
+          ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
+        ),
         backgroundColor: Centre.primaryColor,
         child: Icon(
           Icons.add_rounded,

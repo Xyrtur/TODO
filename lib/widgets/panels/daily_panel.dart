@@ -66,24 +66,22 @@ class DailyPanel extends StatelessWidget {
                     await showDialog(
                         context: context,
                         builder: (BuildContext unUsedContext) {
-                          return Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: MultiBlocProvider(
-                                providers: [
-                                  BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                                  ),
-                                  BlocProvider<ColorCubit>(
-                                    create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
-                                  ),
-                                  BlocProvider.value(value: context.read<DateCubit>()),
-                                  BlocProvider.value(value: context.read<TodoBloc>()),
-                                ],
-                                child: AddEventDialog.daily(
-                                  addingFutureTodo: false,
-                                  event: list[index],
-                                  fromDailyMonthlyList: true,
-                                )),
+                          return MultiBlocProvider(
+                            providers: [
+                              BlocProvider<TimeRangeCubit>(
+                                create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                              ),
+                              BlocProvider<ColorCubit>(
+                                create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                              ),
+                              BlocProvider.value(value: context.read<DateCubit>()),
+                              BlocProvider.value(value: context.read<TodoBloc>()),
+                            ],
+                            child: AddEventDialog.daily(
+                              addingFutureTodo: false,
+                              event: list[index],
+                              fromDailyMonthlyList: true,
+                            ),
                           );
                         });
                   } else {
@@ -91,30 +89,28 @@ class DailyPanel extends StatelessWidget {
                     await showDialog<bool?>(
                         context: context,
                         builder: (BuildContext unUsedContext) {
-                          return Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: MultiBlocProvider(
-                                providers: [
-                                  BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(TimeRangeState(
-                                        TimeOfDay(
-                                            hour: list[index].start.toLocal().hour,
-                                            minute: list[index].start.toLocal().minute),
-                                        TimeOfDay(
-                                            hour: list[index].end.toLocal().hour,
-                                            minute: list[index].end.toLocal().minute))),
-                                  ),
-                                  BlocProvider<ColorCubit>(
-                                    create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
-                                  ),
-                                  BlocProvider.value(value: context.read<DateCubit>()),
-                                  BlocProvider.value(value: context.read<TodoBloc>()),
-                                  BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-                                ],
-                                child: AddEventDialog.daily(
-                                  addingFutureTodo: false,
-                                  event: list[index],
-                                )),
+                          return MultiBlocProvider(
+                            providers: [
+                              BlocProvider<TimeRangeCubit>(
+                                create: (_) => TimeRangeCubit(TimeRangeState(
+                                    TimeOfDay(
+                                        hour: list[index].start.toLocal().hour,
+                                        minute: list[index].start.toLocal().minute),
+                                    TimeOfDay(
+                                        hour: list[index].end.toLocal().hour,
+                                        minute: list[index].end.toLocal().minute))),
+                              ),
+                              BlocProvider<ColorCubit>(
+                                create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                              ),
+                              BlocProvider.value(value: context.read<DateCubit>()),
+                              BlocProvider.value(value: context.read<TodoBloc>()),
+                              BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                            ],
+                            child: AddEventDialog.daily(
+                              addingFutureTodo: false,
+                              event: list[index],
+                            ),
                           );
                         });
                   }

@@ -17,30 +17,28 @@ class DayDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget addButton = GestureDetector(
       onTap: () => showDialog(
-          context: context,
-          builder: (BuildContext tcontext) => Scaffold(
-                backgroundColor: Colors.transparent,
-                body: MultiBlocProvider(
-                  providers: [
-                    BlocProvider<TimeRangeCubit>(
-                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                    ),
-                    BlocProvider<ColorCubit>(
-                      create: (_) => ColorCubit(null),
-                    ),
-                    BlocProvider<CalendarTypeCubit>(
-                      create: (_) => CalendarTypeCubit(null),
-                    ),
-                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit([date])),
-                    BlocProvider(create: (_) => CheckboxCubit(false)),
-                    BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                    BlocProvider.value(value: context.read<DateCubit>()),
-                  ],
-                  child: AddEventDialog.monthly(
-                    monthOrDayDate: context.read<MonthDateCubit>().state,
-                  ),
-                ),
-              )),
+        context: context,
+        builder: (BuildContext tcontext) => MultiBlocProvider(
+          providers: [
+            BlocProvider<TimeRangeCubit>(
+              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+            ),
+            BlocProvider<ColorCubit>(
+              create: (_) => ColorCubit(null),
+            ),
+            BlocProvider<CalendarTypeCubit>(
+              create: (_) => CalendarTypeCubit(null),
+            ),
+            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit([date])),
+            BlocProvider(create: (_) => CheckboxCubit(false)),
+            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+            BlocProvider.value(value: context.read<DateCubit>()),
+          ],
+          child: AddEventDialog.monthly(
+            monthOrDayDate: context.read<MonthDateCubit>().state,
+          ),
+        ),
+      ),
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
         padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
@@ -152,47 +150,45 @@ class DayDialog extends StatelessWidget {
                             .toList()
                             .map((event) => GestureDetector(
                                 onTap: () => showDialog(
-                                    context: context,
-                                    builder: (BuildContext tcontext) => Scaffold(
-                                          backgroundColor: Colors.transparent,
-                                          body: MultiBlocProvider(
-                                              providers: [
-                                                BlocProvider<TimeRangeCubit>(
-                                                  create: (_) => TimeRangeCubit((event.fullDay)
-                                                      ? TimeRangeState(null, null)
-                                                      : TimeRangeState(
-                                                          TimeOfDay(
-                                                              hour: event.start.toLocal().hour,
-                                                              minute: event.start.toLocal().minute),
-                                                          TimeOfDay(
-                                                              hour: event.end.toLocal().hour,
-                                                              minute: event.end.toLocal().minute))),
-                                                ),
-                                                BlocProvider<ColorCubit>(
-                                                  create: (_) => ColorCubit(!Centre.colors.contains(Color(event.color))
-                                                      ? null
-                                                      : Centre.colors.indexOf(Color(event.color))),
-                                                ),
-                                                BlocProvider<CalendarTypeCubit>(
-                                                  create: (_) => CalendarTypeCubit(event.fullDay &&
-                                                          !event.start.isSameDate(other: event.end, daily: false)
-                                                      ? CalendarType.ranged
-                                                      : CalendarType.single),
-                                                ),
-                                                BlocProvider<DialogDatesCubit>(
-                                                    create: (_) => DialogDatesCubit(event.fullDay &&
-                                                            !event.start.isSameDate(other: event.end, daily: false)
-                                                        ? [event.start.toLocal(), event.end.toLocal()]
-                                                        : [event.start.toLocal()])),
-                                                BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
-                                                BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                                                BlocProvider.value(value: context.read<DateCubit>()),
-                                              ],
-                                              child: AddEventDialog.monthly(
-                                                monthOrDayDate: context.read<MonthDateCubit>().state,
-                                                event: event,
-                                              )),
-                                        )),
+                                      context: context,
+                                      builder: (BuildContext tcontext) => MultiBlocProvider(
+                                          providers: [
+                                            BlocProvider<TimeRangeCubit>(
+                                              create: (_) => TimeRangeCubit((event.fullDay)
+                                                  ? TimeRangeState(null, null)
+                                                  : TimeRangeState(
+                                                      TimeOfDay(
+                                                          hour: event.start.toLocal().hour,
+                                                          minute: event.start.toLocal().minute),
+                                                      TimeOfDay(
+                                                          hour: event.end.toLocal().hour,
+                                                          minute: event.end.toLocal().minute))),
+                                            ),
+                                            BlocProvider<ColorCubit>(
+                                              create: (_) => ColorCubit(!Centre.colors.contains(Color(event.color))
+                                                  ? null
+                                                  : Centre.colors.indexOf(Color(event.color))),
+                                            ),
+                                            BlocProvider<CalendarTypeCubit>(
+                                              create: (_) => CalendarTypeCubit(event.fullDay &&
+                                                      !event.start.isSameDate(other: event.end, daily: false)
+                                                  ? CalendarType.ranged
+                                                  : CalendarType.single),
+                                            ),
+                                            BlocProvider<DialogDatesCubit>(
+                                                create: (_) => DialogDatesCubit(event.fullDay &&
+                                                        !event.start.isSameDate(other: event.end, daily: false)
+                                                    ? [event.start.toLocal(), event.end.toLocal()]
+                                                    : [event.start.toLocal()])),
+                                            BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
+                                            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                            BlocProvider.value(value: context.read<DateCubit>()),
+                                          ],
+                                          child: AddEventDialog.monthly(
+                                            monthOrDayDate: context.read<MonthDateCubit>().state,
+                                            event: event,
+                                          )),
+                                    ),
                                 child: eventTile(event)))
                             .toList(),
                       ),

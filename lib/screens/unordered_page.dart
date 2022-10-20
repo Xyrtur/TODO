@@ -46,54 +46,50 @@ class _UnorderedPageState extends State<UnorderedPage> {
 
   Future<bool?> showMonthlyDialog(BuildContext context, String text) async {
     return await showDialog(
-        context: context,
-        builder: (BuildContext notUsedContext) => Scaffold(
-              backgroundColor: Colors.transparent,
-              body: MultiBlocProvider(
-                  providers: [
-                    BlocProvider<TimeRangeCubit>(
-                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                    ),
-                    BlocProvider<ColorCubit>(
-                      create: (_) => ColorCubit(null),
-                    ),
-                    BlocProvider<CalendarTypeCubit>(
-                      create: (_) => CalendarTypeCubit(null),
-                    ),
-                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                    BlocProvider(create: (_) => CheckboxCubit(false)),
-                    BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                    BlocProvider.value(value: context.read<DateCubit>()),
-                  ],
-                  child: AddEventDialog.monthly(
-                    monthOrDayDate: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month),
-                    futureTodoText: text,
-                  )),
-            ));
+      context: context,
+      builder: (BuildContext notUsedContext) => MultiBlocProvider(
+          providers: [
+            BlocProvider<TimeRangeCubit>(
+              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+            ),
+            BlocProvider<ColorCubit>(
+              create: (_) => ColorCubit(null),
+            ),
+            BlocProvider<CalendarTypeCubit>(
+              create: (_) => CalendarTypeCubit(null),
+            ),
+            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+            BlocProvider(create: (_) => CheckboxCubit(false)),
+            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+            BlocProvider.value(value: context.read<DateCubit>()),
+          ],
+          child: AddEventDialog.monthly(
+            monthOrDayDate: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month),
+            futureTodoText: text,
+          )),
+    );
   }
 
   Future<bool?> showDailyDialog(BuildContext context, String text) async {
     return await showDialog<bool>(
-        context: context,
-        builder: (BuildContext notUsedContext) => Scaffold(
-              backgroundColor: Colors.transparent,
-              body: MultiBlocProvider(
-                  providers: [
-                    BlocProvider<TimeRangeCubit>(
-                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                    ),
-                    BlocProvider<ColorCubit>(
-                      create: (_) => ColorCubit(null),
-                    ),
-                    BlocProvider.value(value: context.read<TodoBloc>()),
-                    BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                    BlocProvider.value(value: context.read<DateCubit>()),
-                  ],
-                  child: AddEventDialog.daily(
-                    addingFutureTodo: true,
-                    futureTodoText: text,
-                  )),
-            ));
+      context: context,
+      builder: (BuildContext notUsedContext) => MultiBlocProvider(
+          providers: [
+            BlocProvider<TimeRangeCubit>(
+              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+            ),
+            BlocProvider<ColorCubit>(
+              create: (_) => ColorCubit(null),
+            ),
+            BlocProvider.value(value: context.read<TodoBloc>()),
+            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+            BlocProvider.value(value: context.read<DateCubit>()),
+          ],
+          child: AddEventDialog.daily(
+            addingFutureTodo: true,
+            futureTodoText: text,
+          )),
+    );
   }
 
   List<Widget> reorderableTodos(List<FutureTodo> list, BuildContext context) {
