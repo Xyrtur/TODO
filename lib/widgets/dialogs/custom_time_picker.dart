@@ -2118,7 +2118,9 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
       }
     }
     if (widget.daily) {
-      Duration localTimeDiff = DateTime.now().timeZoneOffset;
+      Duration localTimeDiff = DateTime(widget.dailyDate!.year, widget.dailyDate!.month, widget.dailyDate!.day,
+              widget.dailyDate!.hour, widget.dailyDate!.minute)
+          .timeZoneOffset;
       if (!badHour && !badMinute) {
         if (widget.editingEvent == null) {
           DateTime start, end;
@@ -2144,7 +2146,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
                   .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
               start = widget.dailyDate!.add(Duration(
                   hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 1
-                      ? widget.startTime!.hour + 12
+                      ? widget.startTime!.hour + 24
                       : widget.startTime!.hour,
                   minutes: widget.startTime!.minute));
               if (end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||

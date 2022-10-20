@@ -294,7 +294,9 @@ class AddEventDialog extends StatelessWidget {
                 if (results != null) {
                   for (int i = 0; i < results.length; i++) {
                     // Convert the local date to UTC but we will still want times at 00 00 00
-                    results[i] = results[i]!.toUtc().add(DateTime.now().timeZoneOffset);
+                    results[i] = results[i]!.toUtc().add(DateTime(
+                            results[i]!.year, results[i]!.month, results[i]!.day, results[i]!.hour, results[i]!.minute)
+                        .timeZoneOffset);
                   }
                   dateResults.value = results;
                 }
@@ -377,7 +379,7 @@ class AddEventDialog extends StatelessWidget {
                               )),
                         ]);
             })
-          : SizedBox(),
+          : const SizedBox(),
     ];
 
     // Button to select the times and the text widgets to show the chosen times
@@ -423,7 +425,7 @@ class AddEventDialog extends StatelessWidget {
                     },
                     child: svgButton(
                       name: "range_time",
-                      color: Centre.yellow,
+                      color: !checkBoxState ? Centre.yellow : Centre.lighterDialogColor,
                       height: 7,
                       width: 7,
                       margin: daily
@@ -787,23 +789,46 @@ class AddEventDialog extends StatelessWidget {
           } else {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
-            EventData newEvent = event!.edit(
-                fullDay: false,
-                start: context.read<DateCubit>().state.add(Duration(
-                    hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
-                end: context.read<DateCubit>().state.add(
-                    Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                color: Centre.colors[context.read<ColorCubit>().state].value,
-                text: controller.text,
-                finished: false);
 
-            if (oldEvent.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true)) {
-              context
-                  .read<TodoBloc>()
-                  .add(TodoUpdate(event: newEvent, fromDailyMonthlyList: fromDailyMonthlyList ?? false));
+            if (oldEvent.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ||
+                (fromDailyMonthlyList ?? false)) {
+              context.read<TodoBloc>().add(TodoUpdate(
+                  event: fromDailyMonthlyList ?? false
+                      ? EventData(
+                          fullDay: false,
+                          start: context.read<DateCubit>().state.add(Duration(
+                              hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                              minutes: start.minute)),
+                          end: context.read<DateCubit>().state.add(Duration(
+                              hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                          color: Centre.colors[context.read<ColorCubit>().state].value,
+                          text: controller.text,
+                          finished: false)
+                      // Somehow Editing the event here will reflect the changes in the monthly hive even though I never call put or save
+                      // Maybe put or save is only needed when closing the app, otherwise changes are reflected immediately?
+                      // This ternary prevents adding the dailyMonthly from editing the original in the monthly hive
+                      : event!.edit(
+                          fullDay: false,
+                          start: context.read<DateCubit>().state.add(Duration(
+                              hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                              minutes: start.minute)),
+                          end: context.read<DateCubit>().state.add(Duration(
+                              hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                          color: Centre.colors[context.read<ColorCubit>().state].value,
+                          text: controller.text,
+                          finished: false),
+                  fromDailyMonthlyList: fromDailyMonthlyList ?? false));
             } else {
               // Add the unfinished event to the daily page and remove it from the unfinished list
-
+              EventData newEvent = event!.edit(
+                  fullDay: false,
+                  start: context.read<DateCubit>().state.add(Duration(
+                      hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
+                  end: context.read<DateCubit>().state.add(
+                      Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                  color: Centre.colors[context.read<ColorCubit>().state].value,
+                  text: controller.text,
+                  finished: false);
               context.read<TodoBloc>().add(TodoAddUnfinished(event: newEvent));
               context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
             }
@@ -879,7 +904,8 @@ class AddEventDialog extends StatelessWidget {
               dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
 
               // If editing event already on the table, send in that event, but if not, treat it like adding a new event i.e. editingEvent = null
-              editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key)
+              editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
+                      (fromDailyMonthlyList ?? false)
                   ? null
                   : editingEvent,
               dailyDate: dailyDate,
@@ -896,15 +922,17 @@ class AddEventDialog extends StatelessWidget {
                 // Start the initial time 15 minutes time after the chosen start time
                 initialTime: startResult!.replacing(
                     minute: (startResult.minute + 15) % 60,
-                    hour: startResult.minute + 15 >= 60 ? startResult.hour + 1 : startResult.hour),
+                    hour: startResult.minute + 15 >= 60 ? startResult.hour + 1 % 24 : startResult.hour),
                 helpText: "Choose End time",
                 daily: daily,
                 orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
                 dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
                 startTime: startResult,
-                editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key)
-                    ? null
-                    : editingEvent,
+                editingEvent:
+                    daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
+                            (fromDailyMonthlyList ?? false)
+                        ? null
+                        : editingEvent,
                 dailyDate: dailyDate,
               );
             });

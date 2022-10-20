@@ -12,10 +12,12 @@ class TodoTable extends StatelessWidget {
     return BlocBuilder<TodoBloc, TodoState>(buildWhen: (previousState, state) {
       return true;
     }, builder: (context, state) {
-      Duration localTimeDiff = DateTime.now().timeZoneOffset;
-
       DateTime currentDate = context.read<DateCubit>().state;
       List<Widget> schedBlockList = [];
+
+      Duration localTimeDiff =
+          DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+              .timeZoneOffset;
 
       // Marks whether or not going through the events has passed 1600 yet or not
       // We only want to make the checks once
@@ -194,7 +196,9 @@ class ScheduleBlock extends StatelessWidget {
           }
         },
         onDragEnd: (drag) {
-          Duration localTimeDiff = DateTime.now().timeZoneOffset;
+          Duration localTimeDiff =
+              DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+                  .timeZoneOffset;
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
 
@@ -266,8 +270,12 @@ class ScheduleBlock extends StatelessWidget {
             if (context.read<ToggleChecklistEditingCubit>().state) {
               showDailyDialog();
             } else {
-              (actualEvent ?? event).start = (actualEvent ?? event).start.add(DateTime.now().timeZoneOffset);
-              (actualEvent ?? event).end = (actualEvent ?? event).end.add(DateTime.now().timeZoneOffset);
+              (actualEvent ?? event).start = (actualEvent ?? event).start.add(
+                  DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+                      .timeZoneOffset);
+              (actualEvent ?? event).end = (actualEvent ?? event).end.add(
+                  DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+                      .timeZoneOffset);
               context
                   .read<TodoBloc>()
                   .add(TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));

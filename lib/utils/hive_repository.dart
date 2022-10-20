@@ -203,7 +203,9 @@ class HiveRepository {
       bool? containsSelectedDay,
       EventData? oldEvent,
       DateTime? currentMonth}) {
-    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    Duration localTimeDiff =
+        DateTime(event.start.year, event.start.month, event.start.day, event.start.hour, event.start.minute)
+            .timeZoneOffset;
     event.start = event.start.subtract(localTimeDiff);
     event.end = event.end.subtract(localTimeDiff);
 
@@ -286,7 +288,9 @@ class HiveRepository {
 
   // For adding from the unfinished list to the day
   addUnfinishedEvent({required EventData event}) {
-    Duration localTimeDiff = DateTime.now().timeZoneOffset;
+    Duration localTimeDiff =
+        DateTime(event.start.year, event.start.month, event.start.day, event.start.hour, event.start.minute)
+            .timeZoneOffset;
     event.start = event.start.subtract(localTimeDiff);
     event.end = event.end.subtract(localTimeDiff);
 

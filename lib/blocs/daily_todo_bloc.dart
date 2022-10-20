@@ -79,15 +79,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<TodoUpdate>((event, emit) {
       // if on the dailymonthly list, create a new event for the daily hive since an object cant be stored in two boxes at a time
       if (event.fromDailyMonthlyList) {
-        hive.createEvent(
-            daily: true,
-            event: EventData(
-                fullDay: event.event.fullDay,
-                start: event.event.start,
-                end: event.event.end,
-                color: event.event.color,
-                text: event.event.text,
-                finished: event.event.finished));
+        hive.createEvent(daily: true, event: event.event);
         emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
         return;
       }
