@@ -32,13 +32,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       context.read<DateCubit>().setToCurrentDayOnResume();
-      context.read<TodoBloc>().add(TodoDateChange(
-          date: DateTime.utc(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
-      context.read<HiveRepository>().cacheInitialData();
+      context.read<CachingCubit>().update(false);
+      bool updated = context.read<HiveRepository>().cacheInitialData();
+      context.read<CachingCubit>().update(updated);
     }
   }
 
@@ -49,21 +45,27 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     showDailyDialog() {
       showDialog(
         context: context,
-        builder: (BuildContext notUsedContext) => MultiBlocProvider(
-            providers: [
-              BlocProvider<TimeRangeCubit>(
-                create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-              ),
-              BlocProvider<ColorCubit>(
-                create: (_) => ColorCubit(null),
-              ),
-              BlocProvider.value(value: context.read<DateCubit>()),
-              BlocProvider.value(value: context.read<TodoBloc>()),
-              BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-            ],
-            child: AddEventDialog.daily(
-              addingFutureTodo: false,
-            )),
+        builder: (BuildContext dialogContext) {
+          return GestureDetector(
+              onTap: () => Navigator.pop(dialogContext),
+              child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: MultiBlocProvider(
+                      providers: [
+                        BlocProvider<TimeRangeCubit>(
+                          create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                        ),
+                        BlocProvider<ColorCubit>(
+                          create: (_) => ColorCubit(null),
+                        ),
+                        BlocProvider.value(value: context.read<DateCubit>()),
+                        BlocProvider.value(value: context.read<TodoBloc>()),
+                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                      ],
+                      child: AddEventDialog.daily(
+                        addingFutureTodo: false,
+                      ))));
+        },
       );
     }
 

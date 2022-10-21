@@ -139,30 +139,36 @@ class ScheduleBlock extends StatelessWidget {
 
     showDailyDialog() {
       showDialog(
-        context: context,
-        builder: (BuildContext tcontext) => MultiBlocProvider(
-            providers: [
-              BlocProvider<TimeRangeCubit>(
-                create: (_) => TimeRangeCubit(TimeRangeState(
-                    TimeOfDay(
-                        hour: (actualEvent ?? event).start.toLocal().hour,
-                        minute: (actualEvent ?? event).start.toLocal().minute),
-                    TimeOfDay(
-                        hour: (actualEvent ?? event).end.toLocal().hour,
-                        minute: (actualEvent ?? event).end.toLocal().minute))),
-              ),
-              BlocProvider<ColorCubit>(
-                create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
-              ),
-              BlocProvider.value(value: context.read<DateCubit>()),
-              BlocProvider.value(value: context.read<TodoBloc>()),
-              BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-            ],
-            child: AddEventDialog.daily(
-              addingFutureTodo: false,
-              event: actualEvent ?? event,
-            )),
-      );
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return GestureDetector(
+                onTap: () => Navigator.pop(dialogContext),
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: MultiBlocProvider(
+                      providers: [
+                        BlocProvider<TimeRangeCubit>(
+                          create: (_) => TimeRangeCubit(TimeRangeState(
+                              TimeOfDay(
+                                  hour: (actualEvent ?? event).start.toLocal().hour,
+                                  minute: (actualEvent ?? event).start.toLocal().minute),
+                              TimeOfDay(
+                                  hour: (actualEvent ?? event).end.toLocal().hour,
+                                  minute: (actualEvent ?? event).end.toLocal().minute))),
+                        ),
+                        BlocProvider<ColorCubit>(
+                          create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
+                        ),
+                        BlocProvider.value(value: context.read<DateCubit>()),
+                        BlocProvider.value(value: context.read<TodoBloc>()),
+                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                      ],
+                      child: AddEventDialog.daily(
+                        addingFutureTodo: false,
+                        event: actualEvent ?? event,
+                      )),
+                ));
+          });
     }
 
     // Get the initial position of the block on the table

@@ -18,21 +18,27 @@ class MonthlyPage extends StatelessWidget {
       child: FloatingActionButton(
         onPressed: () => showDialog(
           context: context,
-          builder: (BuildContext notUsedContext) => MultiBlocProvider(providers: [
-            BlocProvider<TimeRangeCubit>(
-              create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-            ),
-            BlocProvider<ColorCubit>(
-              create: (_) => ColorCubit(null),
-            ),
-            BlocProvider<CalendarTypeCubit>(
-              create: (_) => CalendarTypeCubit(null),
-            ),
-            BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-            BlocProvider(create: (_) => CheckboxCubit(false)),
-            BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-            BlocProvider.value(value: context.read<DateCubit>()),
-          ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state)),
+          builder: (BuildContext dialogContext) {
+            return GestureDetector(
+                onTap: () => Navigator.pop(dialogContext),
+                child: Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: MultiBlocProvider(providers: [
+                      BlocProvider<TimeRangeCubit>(
+                        create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                      ),
+                      BlocProvider<ColorCubit>(
+                        create: (_) => ColorCubit(null),
+                      ),
+                      BlocProvider<CalendarTypeCubit>(
+                        create: (_) => CalendarTypeCubit(null),
+                      ),
+                      BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
+                      BlocProvider(create: (_) => CheckboxCubit(false)),
+                      BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                      BlocProvider.value(value: context.read<DateCubit>()),
+                    ], child: AddEventDialog.monthly(monthOrDayDate: context.read<MonthDateCubit>().state))));
+          },
         ),
         backgroundColor: Centre.primaryColor,
         child: Icon(
@@ -89,6 +95,9 @@ class MonthlyPage extends StatelessWidget {
       backgroundColor: Centre.darkerBgColor,
       body: MultiBlocListener(
         listeners: [
+          BlocListener<MonthDateCubit, DateTime>(listener: ((context, state) {
+            context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(date: state));
+          })),
           BlocListener<MonthlyTodoBloc, MonthlyTodoState>(listener: (context, state) {
             if (state.changedDailyList) context.read<DailyMonthlyListCubit>().update();
           }),

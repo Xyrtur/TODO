@@ -92,6 +92,7 @@ class _TodoPagesState extends State<TodoPages> {
                             create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
                         BlocProvider(
                             create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
+                        BlocProvider(create: (_) => CachingCubit(true)),
                       ],
                       child: DailyPage(pc: widget.dailyPc),
                     ),

@@ -55,7 +55,6 @@ class MonthCalendar extends StatelessWidget {
               // Listen for when the month date is changed and update the calendar
               currentMonthStuff = state;
               dayNum = currentMonthStuff.startingMonthCalenNum();
-              context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(date: state));
 
               // Make a list that tracks if the day is considered faded or not
               fadedList = List.filled(42, true);

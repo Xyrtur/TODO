@@ -11,7 +11,7 @@ class MonthlyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DateTime currentMonth = context.read<MonthDateCubit>().state;
+    DateTime currentMonth = context.read<MonthDateCubit>().state;
     // First Sunday of the month
     int firstEnd = 8 - currentMonth.weekday;
     // Number of week tiles to create
@@ -117,6 +117,12 @@ class MonthlyPanel extends StatelessWidget {
 
     return SingleChildScrollView(
       child: BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(builder: (context, state) {
+        currentMonth = context.read<MonthDateCubit>().state;
+        firstEnd = 8 - currentMonth.weekday;
+
+        numWeeks = 1 +
+            ((currentMonth.totalDaysInMonth() - firstEnd) / 7).floor() +
+            (((currentMonth.totalDaysInMonth() - firstEnd) % 7) == 0 ? 0 : 1);
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: getWeekTileList(state.monthlyMaps),

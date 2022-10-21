@@ -134,3 +134,9 @@ class DialogDatesCubit extends Cubit<List<DateTime?>?> {
   DialogDatesCubit(this.dateResults) : super(dateResults);
   void update(List<DateTime?>? dateResults) => emit(dateResults);
 }
+
+class CachingCubit extends Cubit<bool> {
+  final bool finishedCaching;
+  CachingCubit(this.finishedCaching) : super(finishedCaching);
+  void update(bool finishedCaching) => emit(finishedCaching);
+}
