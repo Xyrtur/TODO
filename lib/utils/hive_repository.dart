@@ -136,6 +136,7 @@ class HiveRepository {
     for (EventData v in dailyTableEvents) {
       inOrderDailyTableEvents.add(v.key);
     }
+    return true;
   }
 
   createFutureTodo({required FutureTodo todo}) {

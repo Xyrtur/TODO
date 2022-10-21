@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:todo/utils/centre.dart';
@@ -182,7 +183,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
               setState(() {});
             });
             return SizedBox(
-              height: Centre.safeBlockVertical * 6,
+              height: !todo.todoTextEditing ? Centre.safeBlockVertical * 6 : Centre.safeBlockVertical * 10,
               child: Row(
                 children: [
                   SizedBox(
@@ -191,6 +192,7 @@ class _UnorderedPageState extends State<UnorderedPage> {
                   GestureDetector(
                     onTap: () {
                       context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleFinished()));
+                      FocusScope.of(context).unfocus();
                     },
                     child: Container(
                       width: Centre.safeBlockHorizontal * 7,
@@ -219,15 +221,19 @@ class _UnorderedPageState extends State<UnorderedPage> {
                           child: GestureDetector(
                             onTap: () {
                               context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
+                              FocusScope.of(context).unfocus();
                             },
-                            child: Text(
-                              todo.text,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Centre.dialogText.copyWith(
-                                  color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                      ? Colors.transparent
-                                      : Centre.textColor),
+                            child: Padding(
+                              padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
+                              child: Text(
+                                todo.text,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Centre.dialogText.copyWith(
+                                    color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
+                                        ? Colors.transparent
+                                        : Centre.textColor),
+                              ),
                             ),
                           ),
                         )
@@ -244,7 +250,8 @@ class _UnorderedPageState extends State<UnorderedPage> {
                                 ),
                               ),
                               controller: textListController,
-                              maxLines: 1,
+                              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                              maxLength: 50,
                               focusNode: focusNode,
                               style: Centre.dialogText.copyWith(
                                   color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
@@ -302,12 +309,12 @@ class _UnorderedPageState extends State<UnorderedPage> {
       child: Form(
         key: formKey,
         child: TextFormField(
+          maxLength: 50,
+          maxLengthEnforcement: MaxLengthEnforcement.enforced,
           controller: controller,
           validator: (text) {
             if (text == null || text.isEmpty) {
               return 'Can\'t be empty';
-            } else if (text.length > 100) {
-              return 'Too long';
             }
             return null;
           },
