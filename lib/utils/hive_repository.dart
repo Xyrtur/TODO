@@ -32,6 +32,8 @@ class HiveRepository {
     dailyHive = Hive.box<EventData>('dailyEventBox');
     futureTodosHive = Hive.box<FutureTodo>('futureTodosBox');
 
+    inOrderDailyTableEvents.clear();
+
     // Sort based on the order the user has them in using a saved index
     futureList = futureTodosHive.values.cast<FutureTodo>().toList();
     futureList.sort((a, b) => a.index.compareTo(b.index));
