@@ -114,7 +114,11 @@ class HiveRepository {
 
     // Set up the daily list of month events
     for (EventData event in monthlyHive.values) {
-      if (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+      if (DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day -
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))
           .isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
         dailyMonthlyEvents.add(event);
       }
