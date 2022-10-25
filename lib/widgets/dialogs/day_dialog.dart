@@ -85,46 +85,52 @@ class DayDialog extends StatelessWidget {
     );
 
     Widget eventTile(EventData event) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
-        child: Container(
-          color: Colors.transparent,
-          width: Centre.safeBlockHorizontal * 70,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: EdgeInsets.only(left: Centre.safeBlockHorizontal * 6, right: Centre.safeBlockHorizontal * 3),
-                height: Centre.safeBlockVertical * 3.5,
-                width: Centre.safeBlockVertical * 3.5,
-                child: SvgPicture.asset(
-                  "assets/icons/squiggle.svg",
-                  color: Color(event.color),
-                ),
+      return Container(
+        margin: EdgeInsets.only(
+          bottom: Centre.safeBlockVertical * 1.5,
+        ),
+        color: Colors.transparent,
+        width: Centre.safeBlockHorizontal * 70,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(left: Centre.safeBlockHorizontal * 4, right: Centre.safeBlockHorizontal * 3),
+              height: Centre.safeBlockVertical * 3.5,
+              width: Centre.safeBlockVertical * 3.5,
+              child: SvgPicture.asset(
+                "assets/icons/squiggle.svg",
+                color: Color(event.color),
               ),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(
-                  event.text,
+            ),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(
+                width: Centre.safeBlockHorizontal * 50,
+                child: Text(
+                  event.text.replaceAll(' ', '\u00A0'),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  softWrap: true,
                   style: Centre.dialogText,
                 ),
-                Container(
-                  margin: EdgeInsets.only(top: Centre.safeBlockVertical * 0.5),
-                  padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                  decoration: BoxDecoration(
-                      color: Centre.lighterDialogColor, borderRadius: const BorderRadius.all(Radius.circular(4))),
-                  height: Centre.safeBlockHorizontal * 6,
-                  child: Center(
-                    child: Text(
-                      !event.fullDay
-                          ? "${DateFormat("HHmm").format(event.start.toLocal())}-${DateFormat("HHmm").format(event.end.toLocal())}"
-                          : "All day",
-                      style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 3),
-                    ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: Centre.safeBlockVertical * 0.5),
+                padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                decoration: BoxDecoration(
+                    color: Centre.lighterDialogColor, borderRadius: const BorderRadius.all(Radius.circular(4))),
+                height: Centre.safeBlockHorizontal * 6,
+                child: Center(
+                  child: Text(
+                    !event.fullDay
+                        ? "${DateFormat("HHmm").format(event.start.toLocal())}-${DateFormat("HHmm").format(event.end.toLocal())}"
+                        : "All day",
+                    style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 3),
                   ),
-                )
-              ])
-            ],
-          ),
+                ),
+              )
+            ])
+          ],
         ),
       );
     }

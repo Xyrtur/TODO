@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fading_edge_scrollview/fading_edge_scrollview.dart';
-import 'package:loading_indicator/loading_indicator.dart';
 // import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
@@ -129,28 +128,30 @@ class DailyPanel extends StatelessWidget {
                   }
                 },
                 child: unfinishedList
-                    ? BlocBuilder<CachingCubit, bool>(
-                        builder: (context, state) => state
-                            ? Container(
-                                width: Centre.safeBlockHorizontal * 28,
-                                padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 1),
-                                margin: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
-                                child: Text(
-                                  list[index].text,
-                                  maxLines: 2,
-                                  style: Centre.smallerDialogText,
-                                ),
-                              )
-                            : const LoadingIndicator(
-                                indicatorType: Indicator.ballPulseSync,
-
-                                /// Required, The loading type of the widget
-                                colors: [Colors.white],
-
-                                /// Optional, The color collections
-                                /// Optional, the stroke backgroundColor
-                              ),
+                    ?
+                    // BlocBuilder<CachingCubit, bool>(
+                    //     builder: (context, state) => state
+                    //         ?
+                    Container(
+                        width: Centre.safeBlockHorizontal * 28,
+                        padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 1),
+                        margin: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
+                        child: Text(
+                          list[index].text,
+                          maxLines: 2,
+                          style: Centre.smallerDialogText,
+                        ),
                       )
+                    // : const LoadingIndicator(
+                    //     indicatorType: Indicator.ballPulseSync,
+
+                    //     /// Required, The loading type of the widget
+                    //     colors: [Colors.white],
+
+                    //     /// Optional, The color collections
+                    //     /// Optional, the stroke backgroundColor
+                    //   ),
+                    // )
                     : Row(
                         children: [
                           Container(

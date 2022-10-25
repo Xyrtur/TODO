@@ -92,7 +92,7 @@ class AddEventDialog extends StatelessWidget {
           ),
         ),
         // Show a trash can or a cancel button depending on whether or not user is editing an event
-        event != null
+        event != null && !(fromDailyMonthlyList ?? false)
             ? GestureDetector(
                 onTap: () async {
                   deleting.value = await showDialog<bool>(

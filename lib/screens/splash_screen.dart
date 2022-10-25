@@ -57,6 +57,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
                 BlocProvider(create: (_) => ToggleChecklistEditingCubit()),
                 BlocProvider(create: (_) => MonthDateCubit()),
+                BlocProvider<MonthlyTodoBloc>(
+                  create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
+                ),
+                BlocProvider<TodoBloc>(create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
+                BlocProvider<UnfinishedListBloc>(
+                    create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
               ], child: TodoPages()),
             );
           }),

@@ -5,9 +5,41 @@ import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/widgets/barrels/monthly_widgets_barrel.dart';
 import 'package:todo/utils/centre.dart';
 
-class MonthlyPage extends StatelessWidget {
+class MonthlyPage extends StatefulWidget {
   const MonthlyPage({super.key, required this.pc});
   final PanelController pc;
+
+  @override
+  State<MonthlyPage> createState() => MonthlyPageState();
+}
+
+class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      context.read<DateCubit>().setToCurrentDayOnResume();
+      context.read<TodoBloc>().add(TodoDateChange(
+          date: DateTime.utc(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day -
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
+      context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+      context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +156,7 @@ class MonthlyPage extends StatelessWidget {
           backdropOpacity: 0.3,
           backdropEnabled: true,
           minHeight: 0,
-          controller: pc,
+          controller: widget.pc,
           maxHeight: Centre.safeBlockVertical * 54,
           panel: const MonthlyPanel(),
           body: Scaffold(

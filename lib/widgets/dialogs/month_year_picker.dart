@@ -6,11 +6,12 @@ import 'package:todo/blocs/cubits.dart';
 import 'package:todo/utils/centre.dart';
 
 class MonthYearPicker extends StatelessWidget {
-  MonthYearPicker({super.key});
-  final PageController pc = PageController(initialPage: 2); //Only let events from 2020 onwards
+  const MonthYearPicker({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final PageController pc =
+        PageController(initialPage: context.read<YearTrackingCubit>().state - 2020); //Only let events from 2020 onwards
     Widget arrowButton(int direction) {
       return GestureDetector(
         onTap: () {
@@ -31,7 +32,7 @@ class MonthYearPicker extends StatelessWidget {
       );
     }
 
-    Widget monthBtn(int monthNum, int selectedMonth) {
+    Widget monthBtn(int monthNum, DateTime selectedMonth, int pageIndex) {
       return GestureDetector(
           onTap: () {
             context.read<MonthDateCubit>().update(DateTime.utc(context.read<YearTrackingCubit>().state, monthNum));
@@ -42,7 +43,11 @@ class MonthYearPicker extends StatelessWidget {
             padding: EdgeInsets.symmetric(
                 vertical: Centre.safeBlockVertical * 0.8, horizontal: Centre.safeBlockHorizontal * 5),
             decoration: BoxDecoration(
-                color: selectedMonth == monthNum ? Centre.secondaryColor : Centre.lighterDialogColor,
+                color: selectedMonth.month == monthNum &&
+                        (pc.position.haveDimensions ? (pageIndex + 2020) : context.read<YearTrackingCubit>().state) ==
+                            selectedMonth.year
+                    ? Centre.secondaryColor
+                    : Centre.lighterDialogColor,
                 borderRadius: const BorderRadius.all(Radius.circular(40))),
             child: Text(
               DateFormat.MMM().format(DateTime(context.read<YearTrackingCubit>().state, monthNum)),
@@ -95,8 +100,8 @@ class MonthYearPicker extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
-                                  monthBtn(2 * i + 1, state.month),
-                                  monthBtn(2 * i + 2, state.month),
+                                  monthBtn(2 * i + 1, state, index),
+                                  monthBtn(2 * i + 2, state, index),
                                 ],
                               ),
                           ],

@@ -33,6 +33,7 @@ class HiveRepository {
     futureTodosHive = Hive.box<FutureTodo>('futureTodosBox');
 
     inOrderDailyTableEvents.clear();
+    dailyMonthlyEvents.clear();
 
     // Sort based on the order the user has them in using a saved index
     futureList = futureTodosHive.values.cast<FutureTodo>().toList();
@@ -313,6 +314,24 @@ class HiveRepository {
 
     // Save in the hive
     event.save();
+  }
+
+  updateUnfinishedListOnResume() {
+    // Set up the unfinished list
+    unfinishedEvents = dailyHive.values.where((event) {
+      EventData e = event;
+
+      return !e.finished &&
+          e.end.isBefore(DateTime(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                  7)
+              .toUtc());
+    }).cast();
+
+    unfinishedEventsMap = {for (EventData v in unfinishedEvents) v.key: v};
   }
 
   // For a new day

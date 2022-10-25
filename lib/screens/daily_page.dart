@@ -31,10 +31,18 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
+      // context.read<CachingCubit>().update(false);
       context.read<DateCubit>().setToCurrentDayOnResume();
-      context.read<CachingCubit>().update(false);
-      bool updated = context.read<HiveRepository>().cacheInitialData();
-      context.read<CachingCubit>().update(updated);
+      context.read<TodoBloc>().add(TodoDateChange(
+          date: DateTime.utc(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day -
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
+      context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+      context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+
+      // context.read<CachingCubit>().update(true);
     }
   }
 

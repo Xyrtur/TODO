@@ -86,34 +86,13 @@ class _TodoPagesState extends State<TodoPages> {
                 child: PageView(
                   controller: controller,
                   children: [
-                    MultiBlocProvider(
-                      providers: [
-                        BlocProvider<TodoBloc>(
-                            create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
-                        BlocProvider(
-                            create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
-                        BlocProvider(create: (_) => CachingCubit(true)),
-                      ],
-                      child: DailyPage(pc: widget.dailyPc),
-                    ),
-                    MultiBlocProvider(
-                      providers: [
-                        BlocProvider<MonthlyTodoBloc>(
-                          create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
-                        )
-                      ],
-                      child: MonthlyPage(pc: widget.monthlyPc),
-                    ),
+                    DailyPage(pc: widget.dailyPc),
+                    MonthlyPage(pc: widget.monthlyPc),
                     MultiBlocProvider(
                         providers: [
                           BlocProvider<FutureTodoBloc>(
                             create: (BuildContext context) => FutureTodoBloc(context.read<HiveRepository>()),
                           ),
-                          BlocProvider<MonthlyTodoBloc>(
-                            create: (BuildContext context) => MonthlyTodoBloc(context.read<HiveRepository>()),
-                          ),
-                          BlocProvider<TodoBloc>(
-                              create: (BuildContext context) => TodoBloc(context.read<HiveRepository>())),
                         ],
                         child: UnorderedPage(
                           pageController: controller,

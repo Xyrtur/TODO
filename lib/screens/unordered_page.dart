@@ -17,7 +17,7 @@ class UnorderedPage extends StatefulWidget {
   State<UnorderedPage> createState() => _UnorderedPageState();
 }
 
-class _UnorderedPageState extends State<UnorderedPage> {
+class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   final TextEditingController textListController = TextEditingController();
   final ScrollController scrollController = ScrollController();
@@ -42,7 +42,33 @@ class _UnorderedPageState extends State<UnorderedPage> {
       }
     });
 
+    WidgetsBinding.instance.addObserver(this);
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      // context.read<CachingCubit>().update(false);
+      context.read<DateCubit>().setToCurrentDayOnResume();
+      context.read<TodoBloc>().add(TodoDateChange(
+          date: DateTime.utc(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day -
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
+      context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+      context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+
+      // context.read<CachingCubit>().update(true);
+    }
   }
 
   Future<bool?> showMonthlyDialog(BuildContext context, String text) async {

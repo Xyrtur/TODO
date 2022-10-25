@@ -14,6 +14,10 @@ class UnfinishedListUpdate extends UnfinishedListEvent {
   const UnfinishedListUpdate();
 }
 
+class UnfinishedListResume extends UnfinishedListEvent {
+  const UnfinishedListResume();
+}
+
 class UnfinishedListRemove extends UnfinishedListEvent {
   final EventData event;
   const UnfinishedListRemove({required this.event});
@@ -47,6 +51,10 @@ class UnfinishedListBloc extends Bloc<UnfinishedListEvent, UnfinishedListState> 
     });
     on<UnfinishedListRemove>((event, emit) async {
       hive.deleteEvent(daily: true, event: event.event);
+      emit(UnfinishedListUpdated(hive.unfinishedEventsMap.values.toList()));
+    });
+    on<UnfinishedListResume>((event, emit) async {
+      hive.updateUnfinishedListOnResume();
       emit(UnfinishedListUpdated(hive.unfinishedEventsMap.values.toList()));
     });
   }
