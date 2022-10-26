@@ -38,9 +38,12 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
       context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+      context
+          .read<MonthlyTodoBloc>()
+          .add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
 
       // context.read<CachingCubit>().update(true);
     }
@@ -260,9 +263,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                       DateTime.now().year,
                       DateTime.now().month,
                       DateTime.now().day -
-                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                              ? 1
-                              : 0)),
+                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)),
                   daily: false))
               ? SizedBox(
                   width: Centre.safeBlockHorizontal * 11.5,
@@ -288,7 +289,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                           DateTime.now().year,
                           DateTime.now().month,
                           DateTime.now().day -
-                              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
                                   ? 1
                                   : 0))
                       .add(const Duration(days: 4)),

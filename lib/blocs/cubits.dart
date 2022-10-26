@@ -34,7 +34,7 @@ class DateCubit extends Cubit<DateTime> {
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
 
   //Keep track of date chosen
   void nextDay() => emit(state.add(const Duration(days: 1)));
@@ -43,7 +43,7 @@ class DateCubit extends Cubit<DateTime> {
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day -
-          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)));
+          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
 }
 
 /*

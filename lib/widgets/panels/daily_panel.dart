@@ -73,7 +73,15 @@ class DailyPanel extends StatelessWidget {
                               body: MultiBlocProvider(
                                 providers: [
                                   BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                                    create: (_) => TimeRangeCubit(list[index].fullDay
+                                        ? TimeRangeState(null, null)
+                                        : TimeRangeState(
+                                            TimeOfDay(
+                                                hour: list[index].start.toLocal().hour,
+                                                minute: list[index].start.toLocal().minute),
+                                            TimeOfDay(
+                                                hour: list[index].end.toLocal().hour,
+                                                minute: list[index].end.toLocal().minute))),
                                   ),
                                   BlocProvider<ColorCubit>(
                                     create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),

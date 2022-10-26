@@ -37,6 +37,7 @@ class AddEventDialog extends StatelessWidget {
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
+  bool editedTimes = false;
 
   AddEventDialog.daily(
       {super.key,
@@ -284,11 +285,12 @@ class AddEventDialog extends StatelessWidget {
                                         : 0))
                             .add(const Duration(days: 5))
                         : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
-                    currentDate: DateTime.now(),
+                    currentDate: DateTime(monthOrDayDate.year, monthOrDayDate.month, DateTime.now().day),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
                   dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
-                  initialValue: context.read<DialogDatesCubit>().state ?? [],
+                  initialValue: context.read<DialogDatesCubit>().state ??
+                      [DateTime(monthOrDayDate.year, monthOrDayDate.month, DateTime.now().day)],
                 );
 
                 if (results != null) {
@@ -419,6 +421,7 @@ class AddEventDialog extends StatelessWidget {
                             editingEvent: event,
                             prevChosenStart: timeRangeState.startResult);
                         if (value.startResult != null && value.endResult != null) {
+                          editedTimes = true;
                           timeRangeChosen.value = value;
                         }
                       }
@@ -448,7 +451,9 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? Centre.dialogText
+                              ? (fromDailyMonthlyList ?? false) && !editedTimes
+                                  ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
+                                  : Centre.dialogText
                               : Centre.dialogText
                                   .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
                         ),
@@ -457,7 +462,9 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? Centre.dialogText
+                              ? (fromDailyMonthlyList ?? false) && !editedTimes
+                                  ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
+                                  : Centre.dialogText
                               : Centre.dialogText
                                   .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
                         ),
@@ -522,75 +529,78 @@ class AddEventDialog extends StatelessWidget {
             );
     });
 
-    return AlertDialog(
-      scrollable: true,
-      contentPadding:
-          EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 5, vertical: Centre.safeBlockVertical * 3),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(40))),
-      backgroundColor: Centre.dialogBgColor,
-      elevation: 5,
-      content: SizedBox(
-        height: daily ? Centre.safeBlockVertical * 35 : Centre.safeBlockVertical * 48,
-        width: Centre.safeBlockHorizontal * 85,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            dialogHeader,
-            Padding(
-              padding: EdgeInsets.only(
-                  top: Centre.safeBlockVertical * 1,
-                  left: Centre.safeBlockHorizontal * 2,
-                  right: Centre.safeBlockHorizontal * 2),
-              child: const Divider(
-                color: Colors.grey,
+    return GestureDetector(
+      onTap: () {},
+      child: AlertDialog(
+        scrollable: true,
+        contentPadding:
+            EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 5, vertical: Centre.safeBlockVertical * 3),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(40))),
+        backgroundColor: Centre.dialogBgColor,
+        elevation: 5,
+        content: SizedBox(
+          height: daily ? Centre.safeBlockVertical * 35 : Centre.safeBlockVertical * 48,
+          width: Centre.safeBlockHorizontal * 85,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              dialogHeader,
+              Padding(
+                padding: EdgeInsets.only(
+                    top: Centre.safeBlockVertical * 1,
+                    left: Centre.safeBlockHorizontal * 2,
+                    right: Centre.safeBlockHorizontal * 2),
+                child: const Divider(
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            firstColorRow,
-            secondColourRow,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  EventNameTextField(controller: controller, formKey: _formKey),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: !daily
-                          ? [
-                              calendarTypeToggleBtns,
-                              SizedBox(
-                                height: Centre.safeBlockVertical * 43,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [calendarPickerRow[0], calendarPickerRow[1]],
-                                    ),
-                                    SizedBox(
-                                      height: Centre.safeBlockVertical * 1,
-                                    ),
-                                    timePickerRow,
-                                    fullDayCheckbox,
-                                  ],
+              firstColorRow,
+              secondColourRow,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EventNameTextField(controller: controller, formKey: _formKey),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: !daily
+                            ? [
+                                calendarTypeToggleBtns,
+                                SizedBox(
+                                  height: Centre.safeBlockVertical * 43,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [calendarPickerRow[0], calendarPickerRow[1]],
+                                      ),
+                                      SizedBox(
+                                        height: Centre.safeBlockVertical * 1,
+                                      ),
+                                      timePickerRow,
+                                      fullDayCheckbox,
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ]
-                          : [
-                              calendarPickerRow[0],
-                              calendarPickerRow[1],
-                              SizedBox(
-                                width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
-                              ),
-                              timePickerRow,
-                              Expanded(child: editButton(height: 7, width: 15, context: context))
-                            ],
+                              ]
+                            : [
+                                calendarPickerRow[0],
+                                calendarPickerRow[1],
+                                SizedBox(
+                                  width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
+                                ),
+                                timePickerRow,
+                                Expanded(child: editButton(height: 7, width: 15, context: context))
+                              ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -653,7 +663,7 @@ class AddEventDialog extends StatelessWidget {
 
           Map<String, bool> missingNameTime = {
             "name": !_formKey.currentState!.validate(),
-            "time": context.read<TimeRangeCubit>().state.endResult == null
+            "time": context.read<TimeRangeCubit>().state.endResult == null || !editedTimes
           };
 
           if (missingNameTime.values.contains(true)) {

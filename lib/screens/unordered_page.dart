@@ -63,7 +63,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))));
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
       context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
 

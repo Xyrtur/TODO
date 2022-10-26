@@ -47,13 +47,13 @@ class HiveRepository {
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
                   7)) ||
           e.end.isBefore(DateTime.utc(
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
                   7)
               .subtract(const Duration(days: 7)));
     }).cast();
@@ -95,7 +95,7 @@ class HiveRepository {
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
                   7)
               .toUtc());
     }).cast();
@@ -107,7 +107,7 @@ class HiveRepository {
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0)),
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)),
               daily: true);
         })
         .toList()
@@ -119,7 +119,7 @@ class HiveRepository {
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0))
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))
           .isBetweenDates(event.start.toLocal(), event.end.toLocal())) {
         dailyMonthlyEvents.add(event);
       }
@@ -326,7 +326,7 @@ class HiveRepository {
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59 ? 1 : 0),
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
                   7)
               .toUtc());
     }).cast();
