@@ -59,10 +59,13 @@ class AddEventDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     // Only if adding to monthly or from unordered page does the user set dates for the event
     if (!daily || addingFutureTodo) {
+      if (addingFutureTodo && daily) {
+        monthOrDayDate = context.read<DateCubit>().state;
+      }
       dateResults.addListener(() {
         context.read<DialogDatesCubit>().update(dateResults.value);
         if (addingFutureTodo && daily && dateResults.value?[0] != null) {
-          // Set the date chosen so that the user can pick a time range next associated with this date
+          // Set the date chosen so that the user can pick a time range next associated with this date or just set to current daily date
           monthOrDayDate = dateResults.value![0]!;
         }
       });
