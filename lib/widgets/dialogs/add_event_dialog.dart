@@ -57,6 +57,9 @@ class AddEventDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.read<TimeRangeCubit>().state.endResult != null && !(fromDailyMonthlyList ?? false)) {
+      editedTimes = true;
+    }
     // Only if adding to monthly or from unordered page does the user set dates for the event
     if (!daily || addingFutureTodo) {
       if (addingFutureTodo && daily) {
