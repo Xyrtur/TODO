@@ -298,7 +298,7 @@ class AddEventDialog extends StatelessWidget {
                   dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
                   initialValue: context.read<DialogDatesCubit>().state ?? (monthOrDayDate.year == DateTime.now().year && monthOrDayDate.month == DateTime.now().month ? [DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)] : [monthOrDayDate]),
                 );
-                if (context.read<CalendarTypeCubit>().state == CalendarType.ranged ? results != null && results.length == 2 : results != null) {
+                if (!addingFutureTodo && context.read<CalendarTypeCubit>().state == CalendarType.ranged ? (results != null && results.length == 2) : results != null) {
                   for (int i = 0; i < results.length; i++) {
                     // Convert the local date to UTC but we will still want times at 00 00 00
                     if(!results[i]!.isUtc){
