@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
-import 'package:todo/utils/hive_repository.dart';
 import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
 
 class DailyPage extends StatefulWidget {

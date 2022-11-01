@@ -46,6 +46,8 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
               DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
           .isAfter(context.read<DateCubit>().state.add(const Duration(days: 1)))) {
         context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+        context.read<DailyMonthlyListCubit>().update();
+
       }
     }
   }

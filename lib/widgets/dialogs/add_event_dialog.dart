@@ -16,6 +16,7 @@ class AddEventDialog extends StatelessWidget {
   // Whether adding an event to the daily page or the monthly page
   final bool daily;
 
+
   // If adding to daily page, this date represents the date currently shown
   // If adding to monthly page, this date represents the currently chosen first day of month
   late DateTime monthOrDayDate;
@@ -291,20 +292,22 @@ class AddEventDialog extends StatelessWidget {
                                         : 0))
                             .add(const Duration(days: 5))
                         : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
-                    currentDate: DateTime(monthOrDayDate.year, monthOrDayDate.month, DateTime.now().day),
+                    currentDate: DateTime.now(),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
                   dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
-                  initialValue: context.read<DialogDatesCubit>().state ??
-                      [DateTime(monthOrDayDate.year, monthOrDayDate.month, DateTime.now().day)],
+                  initialValue: context.read<DialogDatesCubit>().state ?? (monthOrDayDate.year == DateTime.now().year && monthOrDayDate.month == DateTime.now().month ? [DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)] : [monthOrDayDate]),
                 );
-
-                if (results != null) {
+                if (context.read<CalendarTypeCubit>().state == CalendarType.ranged ? results != null && results.length == 2 : results != null) {
                   for (int i = 0; i < results.length; i++) {
                     // Convert the local date to UTC but we will still want times at 00 00 00
-                    results[i] = results[i]!.toUtc().add(DateTime(
+                    if(!results[i]!.isUtc){
+                      results[i] = results[i]!.toUtc().add(DateTime(
                             results[i]!.year, results[i]!.month, results[i]!.day, results[i]!.hour, results[i]!.minute)
                         .timeZoneOffset);
+
+                    }
+                    
                   }
                   dateResults.value = results;
                 }
