@@ -192,8 +192,8 @@ class HiveRepository {
       dailyTableEventsMap[event.key] = event;
     } else if (!daily &&
         event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth!)) {
-      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
-      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
+      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
         thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
@@ -236,8 +236,8 @@ class HiveRepository {
     } else {
       event.save();
       if (oldEvent!.start.toLocal().inCalendarWindow(end: oldEvent.end.toLocal(), currentMonth: currentMonth!)) {
-        DateTime start = oldEvent.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = oldEvent.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime start = oldEvent.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
+        DateTime end = oldEvent.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Remove the event from each day list that it existed in
@@ -246,8 +246,8 @@ class HiveRepository {
         }
       }
       if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth)) {
-        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
+        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Add the new event back into the day lists
@@ -279,8 +279,8 @@ class HiveRepository {
       }
     } else {
       if (event.start.toLocal().inCalendarWindow(end: event.end.toLocal(), currentMonth: currentMonth!)) {
-        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
-        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
+        DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
+        DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
@@ -383,11 +383,13 @@ class HiveRepository {
 
     for (EventData event in thisMonthEvents) {
       // If the start or end fall outside of the calendar window, just set it the the start/end of the calendar window
-      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: date);
-      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: date);
+      DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: date).toUtc();
+      DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: date).toUtc();
+
 
       // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
+
         thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: date)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
