@@ -12,7 +12,7 @@ extension DatePrecisionCompare on DateTime {
     return isBetweenDates(
             currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
         ? this
-        : currentMonth.startingMonthCalenNum();
+        : isBefore(currentMonth.startingMonthCalenNum()) ? currentMonth.startingMonthCalenNum() : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
   }
 
   /* 
@@ -20,6 +20,7 @@ extension DatePrecisionCompare on DateTime {
    * This means that the first day of the month is not necessarily the first index of the list
    */
   int monthlyMapDayIndex({required DateTime currentMonth}) {
+    
     return isBefore(currentMonth)
         ? day - currentMonth.startingMonthCalenNum().day
         : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
@@ -50,10 +51,10 @@ extension DatePrecisionCompare on DateTime {
     DateTime dayEnd;
     if (isUtc) {
       dayStart = DateTime.utc(start.year, start.month, start.day);
-      dayEnd = DateTime.utc(end.year, end.month, end.day);
+      dayEnd = DateTime.utc(end.year, end.month, end.day, 23, 59);
     } else {
       dayStart = DateTime(start.year, start.month, start.day);
-      dayEnd = DateTime(end.year, end.month, end.day);
+      dayEnd = DateTime(end.year, end.month, end.day, 23, 59);
     }
 
     return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));

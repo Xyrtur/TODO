@@ -131,7 +131,7 @@ class HiveRepository {
       DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth).toUtc();
 
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
-        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+        thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -196,7 +196,7 @@ class HiveRepository {
       DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
-        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+        thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
@@ -241,7 +241,7 @@ class HiveRepository {
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Remove the event from each day list that it existed in
-          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
+          thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
           start = start.add(const Duration(days: 1));
         }
       }
@@ -251,7 +251,7 @@ class HiveRepository {
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Add the new event back into the day lists
-          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
+          thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
           start = start.add(const Duration(days: 1));
         }
       }
@@ -283,7 +283,7 @@ class HiveRepository {
         DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: currentMonth);
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
-          thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
+          thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
           start = start.add(const Duration(days: 1));
         }
       }
@@ -388,7 +388,7 @@ class HiveRepository {
 
       // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
-        thisMonthEventsMaps[start.toLocal().monthlyMapDayIndex(currentMonth: date)][event.key] = event;
+        thisMonthEventsMaps[start.add(start.toLocal().timeZoneOffset).monthlyMapDayIndex(currentMonth: date)][event.key] = event;
         start = start.add(const Duration(days: 1));
       }
     }
