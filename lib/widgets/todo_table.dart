@@ -16,7 +16,7 @@ class TodoTable extends StatelessWidget {
       List<Widget> schedBlockList = [];
 
       Duration localTimeDiff =
-          DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+          DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0)
               .timeZoneOffset;
 
       // Marks whether or not going through the events has passed 1600 yet or not

@@ -43,6 +43,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                 DateTime.now().day -
                     (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
+        context.read<DailyMonthlyListCubit>().update();
       }
       if (DateTime.utc(
               DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
