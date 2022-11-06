@@ -201,7 +201,7 @@ class ScheduleBlock extends StatelessWidget {
         },
         onDragEnd: (drag) {
           Duration localTimeDiff =
-              DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+              DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
                   .timeZoneOffset;
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
@@ -275,10 +275,10 @@ class ScheduleBlock extends StatelessWidget {
               showDailyDialog();
             } else {
               (actualEvent ?? event).start = (actualEvent ?? event).start.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+                  DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
                       .timeZoneOffset);
               (actualEvent ?? event).end = (actualEvent ?? event).end.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute)
+                  DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
                       .timeZoneOffset);
               context
                   .read<TodoBloc>()

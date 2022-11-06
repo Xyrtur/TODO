@@ -2119,7 +2119,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
     }
     if (widget.daily) {
       Duration localTimeDiff = DateTime(widget.dailyDate!.year, widget.dailyDate!.month, widget.dailyDate!.day,
-              widget.dailyDate!.hour, widget.dailyDate!.minute)
+              7,0)
           .timeZoneOffset;
       if (!badHour && !badMinute) {
         if (widget.editingEvent == null) {

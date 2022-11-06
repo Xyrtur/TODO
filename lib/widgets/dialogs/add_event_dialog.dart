@@ -303,7 +303,7 @@ class AddEventDialog extends StatelessWidget {
                     // Convert the local date to UTC but we will still want times at 00 00 00
                     if(!results[i]!.isUtc){
                       results[i] = results[i]!.toUtc().add(DateTime(
-                            results[i]!.year, results[i]!.month, results[i]!.day, results[i]!.hour, results[i]!.minute)
+                            results[i]!.year, results[i]!.month, results[i]!.day, 7, 0)
                         .timeZoneOffset);
 
                     }
