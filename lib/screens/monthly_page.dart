@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
-import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/widgets/barrels/monthly_widgets_barrel.dart';
 import 'package:todo/utils/centre.dart';
 
@@ -29,7 +28,9 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    print("Im gonna fucking cry");
     if (state == AppLifecycleState.resumed) {
+      print("Resuming");
       if (DateTime.utc(
               DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
           .isAfter(context.read<DateCubit>().state.add(const Duration(hours: 25)))) {
@@ -43,9 +44,11 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
         context.read<DailyMonthlyListCubit>().update();
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
       }
-      if (DateTime.utc(
-              DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
-          .isAfter(context.read<DateCubit>().state.add(const Duration(days: 1)))) {
+
+      
+      if (!DateTime.utc(
+              DateTime.now().year, DateTime.now().month)
+          .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
         context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
 
       }
@@ -54,6 +57,7 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    print("building! ${context.read<MonthDateCubit>().state}");
     Centre().init(context);
 
     Widget fab = Padding(
@@ -108,7 +112,7 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
                   ),
                   BlocProvider.value(value: context.read<MonthDateCubit>())
                 ],
-                child: MonthYearPicker(),
+                child: const MonthYearPicker(),
               );
             });
       },

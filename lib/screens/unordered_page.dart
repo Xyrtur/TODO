@@ -56,6 +56,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
+      print("are u fucking kidding me");
       // context.read<CachingCubit>().update(false);
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
@@ -66,6 +67,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                   (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
       context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+      context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
+
 
       // context.read<CachingCubit>().update(true);
     }
