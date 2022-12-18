@@ -239,7 +239,7 @@ class ScheduleBlock extends StatelessWidget {
           DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
 
           // If it adds such that the end goes past 1 am, ignore the drag
-          if (end.isAfter(currentDate.add(const Duration(hours: 18)).subtract(localTimeDiff))) return;
+          if (end.isAfter(currentDate.add(const Duration(hours: 18)).add(localTimeDiff))) return;
 
           // Check if the event clashes/overlaps with any other events on the table
           for (EventData v in context.read<TodoBloc>().state.dailyTableMap.values) {
