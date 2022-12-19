@@ -16,9 +16,14 @@ class TodoCreate extends TodoEvent {
   const TodoCreate({required this.event, this.date});
 }
 
-class TodoAddUnfinished extends TodoEvent {
+class TodoFromUnfinished extends TodoEvent {
   final EventData event;
-  const TodoAddUnfinished({required this.event});
+  const TodoFromUnfinished({required this.event});
+}
+
+class TodoToUnfinished extends TodoEvent {
+  final EventData event;
+  const TodoToUnfinished({required this.event});
 }
 
 class TodoUpdate extends TodoEvent {
@@ -72,8 +77,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       hive.createEvent(daily: true, event: event.event, currentDailyDate: event.date);
       emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
-    on<TodoAddUnfinished>((event, emit) {
+    on<TodoFromUnfinished>((event, emit) {
       hive.addUnfinishedEvent(event: event.event);
+      emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
+    });
+    on<TodoToUnfinished>((event, emit) {
+      hive.addDailyToUnfinished(event: event.event);
       emit(TodoRefreshed(hive.inOrderDailyTableEvents, hive.dailyTableEventsMap, false));
     });
     on<TodoUpdate>((event, emit) {

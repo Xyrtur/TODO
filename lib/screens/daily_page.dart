@@ -112,7 +112,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: Centre.dialogBgColor,
                 content: Text(
-                  "Export Success! Saved to ${state.path}",
+                  "Saved to ${state.path}. Please move the file out",
                   style: Centre.dialogText,
                 ),
                 duration: const Duration(seconds: 5),

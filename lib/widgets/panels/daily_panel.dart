@@ -128,6 +128,7 @@ class DailyPanel extends StatelessWidget {
                                 child: AddEventDialog.daily(
                                   addingFutureTodo: false,
                                   event: list[index],
+                                  fromUnfinishedList: true,
                                 ),
                               ),
                             ),

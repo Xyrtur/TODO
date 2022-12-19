@@ -316,6 +316,24 @@ class HiveRepository {
     event.save();
   }
 
+  addDailyToUnfinished({required EventData event}){
+    Duration localTimeDiff =
+    DateTime(event.start.year, event.start.month, event.start.day, event.start.hour, event.start.minute)
+            .timeZoneOffset;
+    event.start = event.start.subtract(localTimeDiff);
+    event.end = event.end.subtract(localTimeDiff);
+
+    // Add to unfinished and remove from daily
+    unfinishedEventsMap[event.key] = event;
+    dailyTableEvents.remove(event);
+    inOrderDailyTableEvents.remove(event.key);
+
+    dailyTableEventsMap.remove(event.key);
+
+    event.save();
+
+  }
+
   updateUnfinishedListOnResume() {
     // Set up the unfinished list
     unfinishedEvents = dailyHive.values.where((event) {

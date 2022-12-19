@@ -29,7 +29,8 @@ class AddEventDialog extends StatelessWidget {
 
   // The name of the future todo
   final String? futureTodoText;
-  final bool? fromDailyMonthlyList;
+  final bool fromDailyMonthlyList;
+  final bool fromUnfinishedList;
 
   // Value notifiers to send events to their respective blocs when needed since shouldn't call context in async gaps
   final ValueNotifier<List<DateTime?>?> dateResults = ValueNotifier<List<DateTime?>?>(null);
@@ -46,19 +47,21 @@ class AddEventDialog extends StatelessWidget {
       this.event,
       required this.addingFutureTodo,
       this.futureTodoText,
-      this.fromDailyMonthlyList});
+      this.fromUnfinishedList = false,
+      this.fromDailyMonthlyList = false});
   AddEventDialog.monthly(
       {super.key,
       this.daily = false,
       this.event,
+      this.fromUnfinishedList = false,
       required this.monthOrDayDate,
       this.addingFutureTodo = false, // Can set this to false because the dialog does not change in any way
       this.futureTodoText,
-      this.fromDailyMonthlyList});
+      this.fromDailyMonthlyList = false});
 
   @override
   Widget build(BuildContext context) {
-    if (context.read<TimeRangeCubit>().state.endResult != null && !(fromDailyMonthlyList ?? false)) {
+    if (context.read<TimeRangeCubit>().state.endResult != null && !fromDailyMonthlyList) {
       editedTimes = true;
     }
     // Only if adding to monthly or from unordered page does the user set dates for the event
@@ -100,7 +103,7 @@ class AddEventDialog extends StatelessWidget {
           ),
         ),
         // Show a trash can or a cancel button depending on whether or not user is editing an event
-        event != null && !(fromDailyMonthlyList ?? false)
+        event != null && !fromDailyMonthlyList
             ? GestureDetector(
                 onTap: () async {
                   deleting.value = await showDialog<bool>(
@@ -460,7 +463,7 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? (fromDailyMonthlyList ?? false) && !editedTimes
+                              ? fromDailyMonthlyList && !editedTimes
                                   ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
                                   : Centre.dialogText
                               : Centre.dialogText
@@ -471,7 +474,7 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? (fromDailyMonthlyList ?? false) && !editedTimes
+                              ? fromDailyMonthlyList && !editedTimes
                                   ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
                                   : Centre.dialogText
                               : Centre.dialogText
@@ -601,7 +604,14 @@ class AddEventDialog extends StatelessWidget {
                                   width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
                                 ),
                                 timePickerRow,
-                                Expanded(child: editButton(height: 7, width: 15, context: context))
+                                Expanded(child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // Only show the addToUnfinished button if adding from the todo table, not the unfinished list or the daily monthly list
+                                  event !=null && !fromUnfinishedList && !fromDailyMonthlyList ? addToUnfinishedBtn(context: context) : const SizedBox(),
+                                    editButton(height: 7, width: 15, context: context),
+                                  ],
+                                ))
                               ],
                       ),
                     ),
@@ -613,6 +623,71 @@ class AddEventDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget addToUnfinishedBtn({required BuildContext context}){
+    // Only called from daily page
+    return GestureDetector(
+      onTap: (){
+        if(!_formKey.currentState!.validate()){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Centre.dialogBgColor,
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                'Missing required info: name',
+                style: Centre.dialogText,
+              ),
+              duration: const Duration(seconds: 2),
+            ));
+            return;
+
+        }
+        TimeOfDay start = context.read<TimeRangeCubit>().state.startResult!;
+        TimeOfDay end = context.read<TimeRangeCubit>().state.endResult!;
+        EventData newEvent = event!.edit(
+                  fullDay: false,
+                  start: context.read<DateCubit>().state.add(Duration(
+                      hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
+                  end: context.read<DateCubit>().state.add(
+                      Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                  color: Centre.colors[context.read<ColorCubit>().state].value,
+                  text: controller.text,
+                  finished: false);
+              context.read<TodoBloc>().add(TodoToUnfinished(event: newEvent));
+              context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+        Navigator.pop(context);
+
+
+      },
+      child: SizedBox(
+        height: Centre.safeBlockVertical * 7,
+        width: Centre.safeBlockHorizontal * 15,
+        child: Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                color: Centre.editButtonColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Centre.darkerDialogBgColor,
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.playlist_add_check_sharp,
+                color: Centre.primaryColor,
+                size: Centre.safeBlockHorizontal * 8,
+              ),
+            )),
+      ),
+    );
+    
+
   }
 
   Widget editButton({required int height, required int width, required BuildContext context}) {
@@ -809,10 +884,10 @@ class AddEventDialog extends StatelessWidget {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
 
-            if (oldEvent.start.toLocal().isSameDate(other: context.read<DateCubit>().state, daily: true) ||
-                (fromDailyMonthlyList ?? false)) {
+            if (!fromUnfinishedList ||
+                fromDailyMonthlyList) {
               context.read<TodoBloc>().add(TodoUpdate(
-                  event: fromDailyMonthlyList ?? false
+                  event: fromDailyMonthlyList
                       ? EventData(
                           fullDay: false,
                           start: context.read<DateCubit>().state.add(Duration(
@@ -836,7 +911,7 @@ class AddEventDialog extends StatelessWidget {
                           color: Centre.colors[context.read<ColorCubit>().state].value,
                           text: controller.text,
                           finished: false),
-                  fromDailyMonthlyList: fromDailyMonthlyList ?? false));
+                  fromDailyMonthlyList: fromDailyMonthlyList));
             } else {
               // Add the unfinished event to the daily page and remove it from the unfinished list
               EventData newEvent = event!.edit(
@@ -848,7 +923,7 @@ class AddEventDialog extends StatelessWidget {
                   color: Centre.colors[context.read<ColorCubit>().state].value,
                   text: controller.text,
                   finished: false);
-              context.read<TodoBloc>().add(TodoAddUnfinished(event: newEvent));
+              context.read<TodoBloc>().add(TodoFromUnfinished(event: newEvent));
               context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
             }
           }
@@ -924,7 +999,7 @@ class AddEventDialog extends StatelessWidget {
 
               // If editing event already on the table, send in that event, but if not, treat it like adding a new event i.e. editingEvent = null
               editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
-                      (fromDailyMonthlyList ?? false)
+                      fromDailyMonthlyList
                   ? null
                   : editingEvent,
               dailyDate: dailyDate,
@@ -949,7 +1024,7 @@ class AddEventDialog extends StatelessWidget {
                 startTime: startResult,
                 editingEvent:
                     daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
-                            (fromDailyMonthlyList ?? false)
+                            fromDailyMonthlyList
                         ? null
                         : editingEvent,
                 dailyDate: dailyDate,
