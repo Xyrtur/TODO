@@ -28,6 +28,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+
+
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
@@ -45,9 +47,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
         context.read<DailyMonthlyListCubit>().update();
       }
-      if (DateTime.utc(
-              DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
-          .isAfter(context.read<DateCubit>().state.add(const Duration(days: 1)))) {
+      if (!DateTime.utc(
+              DateTime.now().year, DateTime.now().month)
+          .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
         context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
         context
             .read<MonthlyTodoBloc>()

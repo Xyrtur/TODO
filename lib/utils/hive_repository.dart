@@ -386,7 +386,6 @@ class HiveRepository {
       DateTime start = event.start.toLocal().dateInCalendarWindow(currentMonth: date).toUtc();
       DateTime end = event.end.toLocal().dateInCalendarWindow(currentMonth: date).toUtc();
 
-
       // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
 

@@ -28,9 +28,7 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    print("Im gonna fucking cry");
     if (state == AppLifecycleState.resumed) {
-      print("Resuming");
       if (DateTime.utc(
               DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
           .isAfter(context.read<DateCubit>().state.add(const Duration(hours: 25)))) {

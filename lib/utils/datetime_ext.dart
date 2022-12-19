@@ -9,10 +9,12 @@ extension DatePrecisionCompare on DateTime {
 
   // Return either the events date or a date just inside the calendar window
   DateTime dateInCalendarWindow({required DateTime currentMonth}) {
+    // Return a date in UTC time which is what *this* should be
     return isBetweenDates(
             currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-        ? this
-        : isBefore(currentMonth.startingMonthCalenNum()) ? currentMonth.startingMonthCalenNum() : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+        ? toUtc()
+        // a time at 00:00 should be at 7am UTC to preserve 00:00 local
+        : isBefore(currentMonth.startingMonthCalenNum()) ? currentMonth.startingMonthCalenNum().subtract(timeZoneOffset) : currentMonth.startingMonthCalenNum().add(const Duration(days: 41)).subtract(timeZoneOffset) ;
   }
 
   /* 
