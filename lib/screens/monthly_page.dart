@@ -55,7 +55,6 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    print("building! ${context.read<MonthDateCubit>().state}");
     Centre().init(context);
 
     Widget fab = Padding(

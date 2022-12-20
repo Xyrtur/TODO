@@ -5,7 +5,6 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/utils/centre.dart';
-import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/widgets/event_text_field.dart';
 import 'package:todo/widgets/svg_button.dart';
 import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -203,16 +202,13 @@ class AddEventDialog extends StatelessWidget {
     Widget calendarTypeBtn(CalendarType state, CalendarType type, String name) {
       return GestureDetector(
         onTap: () {
-          if (event == null) {
             context.read<CalendarTypeCubit>().pressed(type);
             context.read<DialogDatesCubit>().update(null);
-          }
+          
         },
         child: svgButton(
             name: name,
-            color: event == null
-                ? (state == type ? Centre.yellow : Centre.colors[4])
-                : (state == type ? Centre.yellow : Centre.lighterDialogColor),
+            color:(state == type ? Centre.yellow : Centre.colors[4]),
             height: 7,
             width: 7,
             padding: EdgeInsets.all(Centre.safeBlockHorizontal),
@@ -851,7 +847,32 @@ class AddEventDialog extends StatelessWidget {
         } else {
           // Editing an event
           if (!daily) {
-            if (context.read<CalendarTypeCubit>().state != CalendarType.ranged &&
+
+            CalendarType calendarState = context.read<CalendarTypeCubit>().state;
+            bool fullDay = context.read<CheckboxCubit>().state;
+
+            if (calendarState == CalendarType.multi) {
+              context.read<MonthlyTodoBloc>().add(MonthlyTodoDelete(
+                                  event: event!,
+                                  selectedDailyDay: context.read<DateCubit>().state,
+                                  currentMonth: monthOrDayDate));
+              
+              for (DateTime? date in context.read<DialogDatesCubit>().state!) {
+                // Add the event to the repository
+                context.read<MonthlyTodoBloc>().add(MonthlyTodoCreate(
+                    currentMonth: monthOrDayDate,
+                    selectedDailyDay: context.read<DateCubit>().state,
+                    event: EventData(
+                        fullDay: fullDay,
+                        start: date!.add(Duration(hours: start.hour, minutes: start.minute)),
+                        end: date.add(Duration(hours: end.hour, minutes: end.minute)),
+                        color: Centre.colors[context.read<ColorCubit>().state].value,
+                        text: controller.text,
+                        finished: false)));
+              }
+            }else{
+
+              if (context.read<CalendarTypeCubit>().state != CalendarType.ranged &&
                 !context.read<CheckboxCubit>().state) {
               // If the event is not ranged and a time range was provided
               // Set the start and end times
@@ -859,7 +880,6 @@ class AddEventDialog extends StatelessWidget {
               start = context.read<TimeRangeCubit>().state.startResult!;
               end = context.read<TimeRangeCubit>().state.endResult!;
             }
-            bool fullDay = context.read<CheckboxCubit>().state;
 
             DateTime? dateWithoutTime;
             if (context.read<CalendarTypeCubit>().state == CalendarType.single) {
@@ -880,6 +900,12 @@ class AddEventDialog extends StatelessWidget {
                     color: Centre.colors[context.read<ColorCubit>().state].value,
                     text: controller.text,
                     finished: false)));
+
+
+            }
+            
+
+            
           } else {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
