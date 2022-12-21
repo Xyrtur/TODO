@@ -5,6 +5,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/utils/centre.dart';
+import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/widgets/event_text_field.dart';
 import 'package:todo/widgets/svg_button.dart';
 import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -782,7 +783,7 @@ class AddEventDialog extends StatelessWidget {
               // Set the start and end times
 
               start = context.read<TimeRangeCubit>().state.startResult!;
-              end = context.read<TimeRangeCubit>().state.endResult!;
+              end = context.read<TimeRangeCubit>().state.endResult!;              
             }
             bool fullDay = context.read<CheckboxCubit>().state;
             if (calendarState == CalendarType.multi) {
@@ -794,7 +795,7 @@ class AddEventDialog extends StatelessWidget {
                     event: EventData(
                         fullDay: fullDay,
                         start: date!.add(Duration(hours: start.hour, minutes: start.minute)),
-                        end: date.add(Duration(hours: end.hour, minutes: end.minute)),
+                        end: date.add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
                         color: Centre.colors[context.read<ColorCubit>().state].value,
                         text: controller.text,
                         finished: false)));
@@ -813,7 +814,7 @@ class AddEventDialog extends StatelessWidget {
                       end: context
                           .read<DialogDatesCubit>()
                           .state![calendarState == CalendarType.single ? 0 : 1]!
-                          .add(Duration(hours: end.hour, minutes: end.minute)),
+                          .add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
                       color: Centre.colors[context.read<ColorCubit>().state].value,
                       text: controller.text,
                       finished: false)));
@@ -865,7 +866,7 @@ class AddEventDialog extends StatelessWidget {
                     event: EventData(
                         fullDay: fullDay,
                         start: date!.add(Duration(hours: start.hour, minutes: start.minute)),
-                        end: date.add(Duration(hours: end.hour, minutes: end.minute)),
+                        end: date.add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
                         color: Centre.colors[context.read<ColorCubit>().state].value,
                         text: controller.text,
                         finished: false)));
@@ -877,9 +878,9 @@ class AddEventDialog extends StatelessWidget {
               // If the event is not ranged and a time range was provided
               // Set the start and end times
 
-              start = context.read<TimeRangeCubit>().state.startResult!;
-              end = context.read<TimeRangeCubit>().state.endResult!;
-            }
+                start = context.read<TimeRangeCubit>().state.startResult!;
+                end = context.read<TimeRangeCubit>().state.endResult!;
+              }
 
             DateTime? dateWithoutTime;
             if (context.read<CalendarTypeCubit>().state == CalendarType.single) {
@@ -896,7 +897,7 @@ class AddEventDialog extends StatelessWidget {
                     start: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![0]!)
                         .add(Duration(hours: start.hour, minutes: start.minute)),
                     end: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![1]!)
-                        .add(Duration(hours: end.hour, minutes: end.minute)),
+                        .add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
                     color: Centre.colors[context.read<ColorCubit>().state].value,
                     text: controller.text,
                     finished: false)));

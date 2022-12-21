@@ -1,3 +1,16 @@
+import 'package:flutter/material.dart';
+
+extension TimeofDayCompare on TimeOfDay {
+  bool isBefore({required TimeOfDay end}){
+    if(end.hour == hour){
+      return minute <= end.minute;
+    }else{
+      return hour < end.hour;
+    }
+
+  }
+}
+
 extension DatePrecisionCompare on DateTime {
   // Return whether or not the event occurs inside the calendar window
   bool inCalendarWindow({required DateTime end, required DateTime currentMonth}) {

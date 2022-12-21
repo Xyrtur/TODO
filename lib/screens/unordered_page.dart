@@ -146,8 +146,11 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
       for (FutureTodo todo in list)
         Slidable(
           key: ValueKey(todo),
-          startActionPane: ActionPane(
-            extentRatio: 0.5,
+        
+          
+          endActionPane: ActionPane(
+            
+            extentRatio: 0.4,
             motion: const BehindMotion(),
             children: [
               SlidableAction(
@@ -174,17 +177,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                 icon: Icons.calendar_month_sharp,
                 label: '+ Monthly',
               ),
-            ],
-          ),
-          endActionPane: ActionPane(
-            dismissible: DismissiblePane(
-              onDismissed: () {
-                context.read<FutureTodoBloc>().add(FutureTodoDelete(event: todo));
-              },
-            ),
-            extentRatio: 0.4,
-            motion: const BehindMotion(),
-            children: [
               SlidableAction(
                 onPressed: (unUsedContext) {
                   if (todoTextEditing != null) {
