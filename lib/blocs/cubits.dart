@@ -34,7 +34,10 @@ class DateCubit extends Cubit<DateTime> {
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
+                (DateTime.now().hour == 0 ||
+                        DateTime.now().hour == 1 && DateTime.now().minute == 0
+                    ? 1
+                    : 0)));
 
   //Keep track of date chosen
   void nextDay() => emit(state.add(const Duration(days: 1)));
@@ -43,7 +46,10 @@ class DateCubit extends Cubit<DateTime> {
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day -
-          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
+          (DateTime.now().hour == 0 ||
+                  DateTime.now().hour == 1 && DateTime.now().minute == 0
+              ? 1
+              : 0)));
 }
 
 /*
@@ -51,7 +57,8 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit() : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
+  MonthDateCubit()
+      : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
   void update(DateTime date) => emit(date);
 }
 
@@ -81,7 +88,8 @@ class CalendarTypeCubit extends Cubit<CalendarType> {
  */
 class DailyMonthlyListCubit extends Cubit<List<EventData>> {
   final HiveRepository hive;
-  DailyMonthlyListCubit(this.hive) : super(hive.dailyMonthlyEventsMap.values.toList());
+  DailyMonthlyListCubit(this.hive)
+      : super(hive.dailyMonthlyEventsMap.values.toList());
   void update() {
     return emit(hive.dailyMonthlyEventsMap.values.toList());
   }
@@ -114,7 +122,8 @@ class TimeRangeState {
 class TimeRangeCubit extends Cubit<TimeRangeState> {
   final TimeRangeState range;
   TimeRangeCubit(this.range) : super(range);
-  void update(TimeOfDay? start, TimeOfDay? end) => emit(TimeRangeState(start, end));
+  void update(TimeOfDay? start, TimeOfDay? end) =>
+      emit(TimeRangeState(start, end));
 }
 
 /*
@@ -139,4 +148,35 @@ class CachingCubit extends Cubit<bool> {
   final bool finishedCaching;
   CachingCubit(this.finishedCaching) : super(finishedCaching);
   void update(bool finishedCaching) => emit(finishedCaching);
+}
+
+class ToggleTodoEditingCubit extends Cubit<bool> {
+  ToggleTodoEditingCubit() : super(false);
+  void toggle() => emit(!state);
+}
+
+class TodoTextEditingCubit extends Cubit<int?> {
+  final int? indexEditing = null;
+  TodoTextEditingCubit() : super(null);
+  void update(int? indexEditing) => emit(indexEditing);
+}
+
+class Integer {
+  int? value;
+
+  Integer(this.value);
+}
+
+class TodoTileAddCubit extends Cubit<List<int>> {
+  TodoTileAddCubit() : super([]);
+  // [x,y,z]
+  // x = index, y = indents, z = removing
+  void update(List<int> tileInfo) => emit(tileInfo);
+}
+
+class TodoRecentlyAddedCubit extends Cubit<List<int>> {
+  TodoRecentlyAddedCubit() : super([]);
+  // [x,y]
+  // x = index, y = dealt with: 1 = yes, 0 = no
+  void update(List<int> recentInfo) => emit(recentInfo);
 }

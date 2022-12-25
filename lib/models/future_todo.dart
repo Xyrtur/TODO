@@ -5,14 +5,10 @@ part 'future_todo.g.dart';
 class FutureTodo extends HiveObject {
   @HiveField(0)
   String text;
-  @HiveField(1)
-  bool finished;
-  @HiveField(2)
-  bool indented;
+  @HiveField(5)
+  int indented;
   @HiveField(3)
   int index;
-  @HiveField(4)
-  bool todoTextEditing;
 
 /*
  * Indented: Whether the event is indented by the user (only one indent allowed; Need more? change this implementation)
@@ -20,30 +16,15 @@ class FutureTodo extends HiveObject {
  * Finished: Whether the user has crossed it off or not
  * Index: Where the user put it in the list
  */
-  FutureTodo(
-      {required this.indented,
-      required this.text,
-      required this.finished,
-      required this.index,
-      required this.todoTextEditing});
-
-  FutureTodo toggleFinished() {
-    finished = !finished;
-    return this;
-  }
-
-  FutureTodo toggleEditing() {
-    todoTextEditing = !todoTextEditing;
-    return this;
-  }
+  FutureTodo({required this.indented, required this.text, required this.index});
 
   FutureTodo changeName(String newText) {
     text = newText;
     return this;
   }
 
-  FutureTodo toggleIndent() {
-    indented = !indented;
+  FutureTodo changeIndent(int newIndent) {
+    indented = newIndent;
     return this;
   }
 
@@ -54,6 +35,6 @@ class FutureTodo extends HiveObject {
 
   @override
   toString() {
-    return {'text': text, 'finished': finished, 'indented': indented, 'editing': todoTextEditing}.toString();
+    return {'text': text, 'indented': indented, 'index': index}.toString();
   }
 }

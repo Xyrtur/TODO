@@ -1,13 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:todo/blocs/todo_expanded_bloc.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/models/future_todo.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
-import 'package:todo/widgets/dialogs/add_event_dialog.dart';
+import 'package:todo/widgets/future_todo_tile.dart';
 
 class UnorderedPage extends StatefulWidget {
   const UnorderedPage({super.key, required this.pageController});
@@ -17,28 +15,42 @@ class UnorderedPage extends StatefulWidget {
   State<UnorderedPage> createState() => _UnorderedPageState();
 }
 
-class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserver {
+class _UnorderedPageState extends State<UnorderedPage>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final TextEditingController controller = TextEditingController();
-  final TextEditingController textListController = TextEditingController();
+  final TextEditingController addingTodoTextController =
+      TextEditingController();
   final ScrollController scrollController = ScrollController();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final ValueNotifier<FutureTodo?> deletingTodo = ValueNotifier<FutureTodo?>(null);
-  FutureTodo? todoTextEditing;
+  List<Widget> reorderablesList = [];
+
   FocusNode focusNode = FocusNode();
+  late final AnimationController animController;
   @override
   initState() {
-    deletingTodo.addListener(() {
-      if (deletingTodo.value != null) context.read<FutureTodoBloc>().add(FutureTodoDelete(event: deletingTodo.value!));
-    });
+    animController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((AnimationStatus status) {
+        if (status == AnimationStatus.dismissed) {
+          context
+              .read<TodoTileAddCubit>()
+              .update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
+          addingTodoTextController.clear();
+        }
+      });
+    reorderableTodos(context.read<FutureTodoBloc>().state.futureList);
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
-        if (textListController.text.isNotEmpty && todoTextEditing != null) {
-          todoTextEditing!.changeName(textListController.text);
-          todoTextEditing!.toggleEditing();
-          context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todoTextEditing!));
+        int? indexEditing = context.read<TodoTextEditingCubit>().state;
+        if (controller.text.isNotEmpty && indexEditing != null) {
+          FutureTodo currTodo =
+              context.read<FutureTodoBloc>().state.futureList[indexEditing];
+          currTodo.changeName(controller.text);
+          context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: currTodo));
         }
-        todoTextEditing = null;
+        context.read<TodoTextEditingCubit>().update(null);
       }
     });
 
@@ -49,6 +61,9 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
   @override
   void dispose() {
+    animController.dispose();
+    controller.dispose();
+    addingTodoTextController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -63,370 +78,394 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
+                  (DateTime.now().hour == 0 ||
+                          DateTime.now().hour == 1 && DateTime.now().minute == 0
+                      ? 1
+                      : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
       context.read<DailyMonthlyListCubit>().update();
 
-      if (!DateTime.utc(
-              DateTime.now().year, DateTime.now().month)
+      if (!DateTime.utc(DateTime.now().year, DateTime.now().month)
           .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
-        context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
         context
-            .read<MonthlyTodoBloc>()
-            .add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
+            .read<MonthDateCubit>()
+            .update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+        context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(
+            date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
       }
-
 
       // context.read<CachingCubit>().update(true);
     }
   }
 
-  Future<bool?> showMonthlyDialog(BuildContext context, String text) async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return GestureDetector(
-            onTap: () => Navigator.pop(dialogContext),
-            child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: MultiBlocProvider(
-                    providers: [
-                      BlocProvider<TimeRangeCubit>(
-                        create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                      ),
-                      BlocProvider<ColorCubit>(
-                        create: (_) => ColorCubit(null),
-                      ),
-                      BlocProvider<CalendarTypeCubit>(
-                        create: (_) => CalendarTypeCubit(null),
-                      ),
-                      BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                      BlocProvider(create: (_) => CheckboxCubit(false)),
-                      BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                      BlocProvider.value(value: context.read<DateCubit>()),
-                    ],
-                    child: AddEventDialog.monthly(
-                      monthOrDayDate: DateTime.utc(DateTime.now().toUtc().year, DateTime.now().toUtc().month),
-                      futureTodoText: text,
-                    ))));
-      },
-    );
-  }
-
-  Future<bool?> showDailyDialog(BuildContext context, String text) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return GestureDetector(
-            onTap: () => Navigator.pop(dialogContext),
-            child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: MultiBlocProvider(
-                    providers: [
-                      BlocProvider<TimeRangeCubit>(
-                        create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                      ),
-                      BlocProvider<ColorCubit>(
-                        create: (_) => ColorCubit(null),
-                      ),
-                      BlocProvider.value(value: context.read<TodoBloc>()),
-                      BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit(null)),
-                      BlocProvider.value(value: context.read<DateCubit>()),
-                    ],
-                    child: AddEventDialog.daily(
-                      addingFutureTodo: true,
-                      futureTodoText: text,
-                    ))));
-      },
-    );
-  }
-
-  List<Widget> reorderableTodos(List<FutureTodo> list, BuildContext context) {
-    return [
+  reorderableTodos(List<FutureTodo> list) {
+    reorderablesList = [
       for (FutureTodo todo in list)
-        Slidable(
-          key: ValueKey(todo),
-        
-          
-          endActionPane: ActionPane(
-            
-            extentRatio: 0.4,
-            motion: const BehindMotion(),
-            children: [
-              SlidableAction(
-                onPressed: (unUsedContext) async {
-                  bool? todoAdded = await showDailyDialog(context, todo.text);
-                  if (todoAdded ?? false) {
-                    deletingTodo.value = todo;
-                  }
-                },
-                backgroundColor: Centre.bgColor,
-                foregroundColor: Centre.secondaryColor,
-                icon: Icons.wb_sunny_rounded,
-                label: '+ Daily',
-              ),
-              SlidableAction(
-                onPressed: (unUsedContext) async {
-                  bool? todoAdded = await showMonthlyDialog(context, todo.text);
-                  if (todoAdded ?? false) {
-                    deletingTodo.value = todo;
-                  }
-                },
-                backgroundColor: Centre.bgColor,
-                foregroundColor: Centre.secondaryColor,
-                icon: Icons.calendar_month_sharp,
-                label: '+ Monthly',
-              ),
-              SlidableAction(
-                onPressed: (unUsedContext) {
-                  if (todoTextEditing != null) {
-                    todoTextEditing!.toggleEditing();
-                    context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todoTextEditing!));
-                  }
-
-                  todo.toggleEditing();
-                  context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo));
-                  textListController.text = todo.text;
-                  todoTextEditing = todo;
-                  focusNode.requestFocus();
-                },
-                backgroundColor: Centre.bgColor,
-                foregroundColor: Centre.secondaryColor,
-                icon: Icons.edit,
-                label: 'Edit',
-              ),
-              SlidableAction(
-                onPressed: (unUsedContext) {
-                  context.read<FutureTodoBloc>().add(FutureTodoDelete(event: todo));
-                },
-                backgroundColor: Centre.bgColor,
-                foregroundColor: Centre.red,
-                icon: Icons.delete,
-                label: 'Delete',
-              ),
+        MultiBlocProvider(
+            key: ValueKey(todo),
+            providers: [
+              BlocProvider.value(value: context.read<ToggleTodoEditingCubit>()),
+              BlocProvider.value(value: context.read<TodoTileAddCubit>()),
+              BlocProvider.value(value: context.read<TodoTextEditingCubit>()),
+              BlocProvider.value(value: context.read<ExpandableBloc>()),
+              BlocProvider.value(value: context.read<FutureTodoBloc>()),
+              BlocProvider.value(value: context.read<TodoRecentlyAddedCubit>()),
             ],
-          ),
-          child: Builder(builder: (slidableContext) {
-            Slidable.of(slidableContext)!.actionPaneType.addListener(() {
-              setState(() {});
-            });
-            return SizedBox(
-              height: !todo.todoTextEditing ? Centre.safeBlockVertical * 6 : Centre.safeBlockVertical * 10,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: todo.indented ? Centre.safeBlockHorizontal * 13 : Centre.safeBlockHorizontal * 6,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleFinished()));
-                      FocusScope.of(context).unfocus();
-                    },
-                    child: Container(
-                      width: Centre.safeBlockHorizontal * 7,
-                      height: Centre.safeBlockHorizontal * 7,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                  ? Colors.transparent
-                                  : Centre.primaryColor,
-                              width: Centre.safeBlockHorizontal * 0.5),
-                          borderRadius: const BorderRadius.all(Radius.circular(40))),
-                      child: todo.finished
-                          ? Icon(Icons.check,
-                              size: Centre.safeBlockHorizontal * 5,
-                              color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                  ? Colors.transparent
-                                  : Centre.primaryColor)
-                          : null,
+            child: FutureTodoTile(
+              todo: todo,
+              focusNode: focusNode,
+              expandable: todo.index + 1 == list.length
+                  ? false
+                  : list[todo.index + 1].indented > todo.indented,
+              textController: controller,
+            ))
+    ];
+  }
+
+  Widget addingTodoTile(int index, int indents) {
+    Animation<double> animation = CurvedAnimation(
+      parent: animController,
+      curve: Curves.fastOutSlowIn,
+    );
+    return AnimatedBuilder(
+      key: ValueKey(12345),
+      animation: animation,
+      builder: (_, child) => ClipRect(
+        child: Align(
+          alignment: Alignment.center,
+          heightFactor: animation.value,
+          widthFactor: null,
+          child: child,
+        ),
+      ),
+      child: GestureDetector(
+        // onLongPress overrides the dragging from ReorderableListView
+        onLongPress: () {},
+        child: SizedBox(
+          height: Centre.safeBlockVertical * 10,
+          width: Centre.safeBlockHorizontal * 90,
+          child: Row(children: [
+            // Indents
+            SizedBox(width: Centre.safeBlockHorizontal * (3 + 7 * indents)),
+            Text(
+              ' \u2022 ',
+              style: Centre.todoSemiTitle
+                  .copyWith(fontSize: Centre.safeBlockHorizontal * 10),
+            ),
+            Expanded(
+                child: TextFormField(
+              decoration: const InputDecoration(
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.amber),
+                ),
+              ),
+              controller: addingTodoTextController,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              maxLength: 50,
+              focusNode: focusNode,
+              style: Centre.dialogText,
+            )),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    context.read<FutureTodoBloc>().add(FutureTodoCreate(
+                        event: FutureTodo(
+                            indented: indents,
+                            text: addingTodoTextController.text,
+                            index: index)));
+                    context.read<TodoRecentlyAddedCubit>().update([index, 0]);
+
+                    addingTodoTextController.clear();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: Centre.secondaryColor),
+                    ),
+                    margin: EdgeInsets.symmetric(
+                        horizontal: Centre.safeBlockHorizontal * 2),
+                    padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
+                    child: Icon(
+                      Icons.check,
+                      color: Centre.secondaryColor,
+                      size: Centre.safeBlockHorizontal * 5,
                     ),
                   ),
-                  SizedBox(
-                    width: Centre.safeBlockHorizontal * 2,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    animController.reverse();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: Centre.red),
+                    ),
+                    margin: EdgeInsets.symmetric(
+                        horizontal: Centre.safeBlockHorizontal * 2),
+                    padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
+                    child: Icon(
+                      Icons.delete,
+                      color: Centre.red,
+                      size: Centre.safeBlockHorizontal * 5,
+                    ),
                   ),
-                  !todo.todoTextEditing
-                      ? Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: todo.toggleIndent()));
-                              FocusScope.of(context).unfocus();
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
-                              child: Text(
-                                todo.text,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Centre.dialogText.copyWith(
-                                    color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                        ? Colors.transparent
-                                        : Centre.textColor),
-                              ),
-                            ),
-                          ),
-                        )
-                      : Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 10),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                          ? Colors.transparent
-                                          : Colors.amber),
-                                ),
-                              ),
-                              controller: textListController,
-                              maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                              maxLength: 50,
-                              focusNode: focusNode,
-                              style: Centre.dialogText.copyWith(
-                                  color: Slidable.of(slidableContext)!.actionPaneType.value == ActionPaneType.end
-                                      ? Colors.transparent
-                                      : Centre.textColor),
-                            ),
-                          ),
-                        ),
-                ],
-              ),
-            );
-          }),
+                ),
+              ],
+            )
+          ]),
         ),
-    ];
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     Centre().init(context);
 
-    Widget addButton = GestureDetector(
-      onTap: () {
-        if (formKey.currentState!.validate()) {
-          context.read<FutureTodoBloc>().add(FutureTodoCreate(
-              event: FutureTodo(
-                  todoTextEditing: false,
-                  indented: false,
-                  text: controller.text,
-                  finished: false,
-                  index: context.read<FutureTodoBloc>().state.futureList.length)));
-          controller.clear();
-          FocusScopeNode currentFocus = FocusScope.of(context);
-
-          if (!currentFocus.hasPrimaryFocus) {
-            currentFocus.unfocus();
-          }
-        }
-      },
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
-        padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
-        height: Centre.safeBlockVertical * 5,
-        width: Centre.safeBlockVertical * 6,
-        child: Icon(
-          Icons.add_circle_rounded,
-          weight: 700,
-          color: Centre.primaryColor,
-          size: Centre.safeBlockVertical * 5,
-        ),
-      ),
-    );
-
-    Widget textField = SizedBox(
-      width: Centre.safeBlockHorizontal * 70,
-      child: Form(
-        key: formKey,
-        child: TextFormField(
-          maxLength: 50,
-          maxLengthEnforcement: MaxLengthEnforcement.enforced,
-          controller: controller,
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return 'Can\'t be empty';
-            }
-            return null;
-          },
-          style: Centre.dialogText.copyWith(fontSize: Centre.safeBlockHorizontal * 5),
-          decoration: InputDecoration(
-            hintText: "Todo item",
-            hintStyle: Centre.dialogText.copyWith(color: Colors.grey, fontSize: Centre.safeBlockHorizontal * 5),
-            isDense: true,
-          ),
-        ),
-      ),
-    );
-
-    Widget floatingForm = Container(
-      height: Centre.safeBlockVertical * 10,
-      width: Centre.safeBlockHorizontal * 90,
-      decoration: BoxDecoration(
-          color: Centre.dialogBgColor,
-          boxShadow: [
-            BoxShadow(
-              color: Centre.darkerBgColor,
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          borderRadius: BorderRadius.circular(10)),
-      margin: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 2,
-          Centre.safeBlockHorizontal * 3, Centre.safeBlockVertical * 5),
-      child: Row(
-        children: [
-          SizedBox(
-            width: Centre.safeBlockHorizontal * 5,
-          ),
-          textField,
-          addButton
-        ],
-      ),
-    );
-
     return SafeArea(
         child: Scaffold(
       backgroundColor: Centre.bgColor,
-      body: BlocListener<MonthlyTodoBloc, MonthlyTodoState>(
-        listener: (context, state) {
-          if (state.changedDailyList) context.read<DailyMonthlyListCubit>().update();
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          context.read<TodoTextEditingCubit>().update(null);
         },
-        child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
-              child: Text(
-                "Todo List",
-                style: Centre.todoSemiTitle,
-              ),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: Centre.safeBlockHorizontal * 7,
+                vertical: Centre.safeBlockVertical * 3),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      "Todo List",
+                      style: Centre.todoSemiTitle,
+                    ),
+                    const Expanded(
+                      child: SizedBox(),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        if (!(reorderablesList.indexWhere((Widget widget) =>
+                                widget.key == ValueKey(12345)) !=
+                            -1)) {
+                          context.read<TodoTileAddCubit>().update([0, 0, 0]);
+                        }
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(
+                            left: Centre.safeBlockHorizontal,
+                            right: Centre.safeBlockHorizontal * 2),
+                        padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          color: Centre.lighterBgColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Centre.darkerBgColor,
+                              spreadRadius: 5,
+                              blurRadius: 7,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.add,
+                          color: Centre.primaryColor,
+                          size: Centre.safeBlockHorizontal * 8,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        context.read<ToggleTodoEditingCubit>().toggle();
+                        context.read<TodoTextEditingCubit>().update(null);
+                      },
+                      child: BlocBuilder<ToggleTodoEditingCubit, bool>(
+                          builder: (context, editingState) => Container(
+                                margin: EdgeInsets.only(
+                                    left: Centre.safeBlockHorizontal,
+                                    right: Centre.safeBlockHorizontal * 2),
+                                padding:
+                                    EdgeInsets.all(Centre.safeBlockHorizontal),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(40),
+                                  color: editingState
+                                      ? Centre.primaryColor
+                                      : Centre.lighterBgColor,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Centre.darkerBgColor,
+                                      spreadRadius: 5,
+                                      blurRadius: 7,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.edit,
+                                  color: editingState
+                                      ? Centre.lighterBgColor
+                                      : Centre.primaryColor,
+                                  size: Centre.safeBlockHorizontal * 8,
+                                ),
+                              )),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: Centre.safeBlockVertical,
+                ),
+                Divider(
+                  height: Centre.safeBlockVertical,
+                  color: Centre.secondaryColor,
+                )
+              ],
             ),
-            Expanded(
-              child: BlocBuilder<FutureTodoBloc, FutureTodoState>(
-                builder: (tcontext, state) => SizedBox(
-                    height: Centre.safeBlockVertical * 75,
-                    child: ReorderableListView(
-                        scrollController: scrollController,
-                        children: reorderableTodos(state.futureList, context),
-                        onReorder: (int old, int news) {
-                          List<FutureTodo> oldList = state.futureList;
+          ),
+          Expanded(
+            child: MultiBlocListener(
+                listeners: [
+                  BlocListener<TodoTileAddCubit, List<int>>(
+                      listener: ((context, state) {
+                    if (state[2] == 1) {
+                      reorderablesList.removeAt(state[0]);
+                    } else {
+                      reorderablesList.insert(
+                          state[0], addingTodoTile(state[0], state[1]));
+                      animController.value = 0.0;
+                      controller.clear();
+                    }
+                  })),
+                  BlocListener<FutureTodoBloc, FutureTodoState>(
+                      listener: ((notUsedContext, state) {
+                    reorderableTodos(state.futureList);
+                  })),
+                ],
+                child: BlocBuilder<TodoTextEditingCubit, int?>(
+                    buildWhen: (previous, current) {
+                      return reorderablesList.indexWhere((Widget widget) =>
+                                  widget.key == ValueKey(12345)) !=
+                              -1 &&
+                          current != null;
+                      // If an addingTile exists but another tile is also about to be edited, remove the adding tile
+                    },
+                    builder: (tcontext, textEditingState) => BlocBuilder<
+                            TodoTileAddCubit, List<int>>(
+                        builder: (tcontext, tileAddState) =>
+                            BlocBuilder<FutureTodoBloc, FutureTodoState>(
+                                builder: (tcontext, state) {
+                              if (reorderablesList.indexWhere((Widget widget) =>
+                                      widget.key == ValueKey(12345)) !=
+                                  -1) {
+                                // Adding tile exists
+                                if (textEditingState != null) {
+                                  animController.reverse();
+                                } else {
+                                  animController.forward();
+                                }
+                              }
 
-                          if (old < news) news -= 1;
+                              return SizedBox(
+                                  height: Centre.safeBlockVertical * 75,
+                                  child: ReorderableListView(
+                                      scrollController: scrollController,
+                                      children: reorderablesList,
+                                      onReorderStart: (index) {
+                                        context.read<ExpandableBloc>().add(
+                                            ExpandableUpdate(
+                                                context
+                                                    .read<FutureTodoBloc>()
+                                                    .state
+                                                    .futureList,
+                                                index,
+                                                false));
+                                      },
+                                      onReorder: (int old, int news) {
+                                        List<FutureTodo> oldList =
+                                            state.futureList;
+                                        List<FutureTodo> todosMoved = [
+                                          oldList[old]
+                                        ];
 
-                          final FutureTodo item = oldList.removeAt(old);
-                          oldList.insert(news, item);
-                          for (int i = 0; i < oldList.length; i++) {
-                            oldList[i].changeIndex(i);
-                          }
-                          context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
-                        })),
-              ),
-            ),
-            floatingForm,
-          ]),
-        ),
+                                        // First todo in the todosMoved list is the ROOT todo of the tree that was picked up and dragged
+
+                                        // Add the rest of the todos that are part of the root's tree
+                                        int i = old + 1;
+                                        while (i < oldList.length &&
+                                            oldList[old].indented <
+                                                oldList[i].indented) {
+                                          todosMoved.add(oldList[i]);
+
+                                          i++;
+                                        }
+
+                                        // Correct the new index
+                                        if (old < news)
+                                          news -= todosMoved.length;
+
+                                        // Remove the tree and place it where it was dragged
+                                        oldList.removeRange(
+                                            old, old + todosMoved.length);
+                                        oldList.insertAll(news, todosMoved);
+
+                                        // Update the index attribute of each FutureTodo
+                                        for (int i = 0;
+                                            i < oldList.length;
+                                            i++) {
+                                          oldList[i].changeIndex(i);
+                                        }
+
+                                        // Update the indentation
+                                        int rootIndentation =
+                                            todosMoved[0].indented;
+
+                                        if (news == 0 ||
+                                            news + todosMoved.length - 1 ==
+                                                oldList.length - 1) {
+                                          // If at the top or bottom, default to no indentation
+                                          if (rootIndentation != 0) {
+                                            for (int i = 0;
+                                                i < todosMoved.length;
+                                                i++) {
+                                              oldList[news + i].changeIndent(
+                                                  todosMoved[i].indented -
+                                                      rootIndentation);
+                                            }
+                                          }
+                                        } else {
+                                          // In every other case, matches the indentation of the next item (outside of the group if moving a group of todos)
+                                          int nextItemIndentation =
+                                              oldList[news + todosMoved.length]
+                                                  .indented;
+
+                                          if (rootIndentation !=
+                                              nextItemIndentation) {
+                                            for (int i = 0;
+                                                i < todosMoved.length;
+                                                i++) {
+                                              oldList[news + i].changeIndent(
+                                                  todosMoved[i].indented +
+                                                      (nextItemIndentation -
+                                                          rootIndentation));
+                                            }
+                                          }
+                                        }
+
+                                        context.read<FutureTodoBloc>().add(
+                                            FutureTodoListUpdate(
+                                                eventList: oldList));
+                                      }));
+                            })))),
+          ),
+        ]),
       ),
     ));
   }

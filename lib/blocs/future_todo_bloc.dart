@@ -45,6 +45,12 @@ class FutureTodoRefreshed extends FutureTodoState {
   const FutureTodoRefreshed(super.futureList);
 }
 
+class FutureTodoRefreshedFromDelete extends FutureTodoState {
+  final List<int> deletedTreeIndexes;
+  const FutureTodoRefreshedFromDelete(
+      super.futureList, this.deletedTreeIndexes);
+}
+
 class FutureTodoBloc extends Bloc<FutureTodoEvent, FutureTodoState> {
   final HiveRepository hive;
 
@@ -71,8 +77,8 @@ class FutureTodoBloc extends Bloc<FutureTodoEvent, FutureTodoState> {
       emit(FutureTodoRefreshed(hive.futureList));
     });
     on<FutureTodoDelete>((event, emit) {
-      hive.deleteFutureTodo(todo: event.event);
-      emit(FutureTodoRefreshed(hive.futureList));
+      emit(FutureTodoRefreshedFromDelete(
+          hive.futureList, hive.deleteFutureTodo(todo: event.event)));
     });
   }
 }

@@ -17,28 +17,22 @@ class FutureTodoAdapter extends TypeAdapter<FutureTodo> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return FutureTodo(
-      indented: fields[2] as bool,
+      indented: fields[5] as int,
       text: fields[0] as String,
-      finished: fields[1] as bool,
       index: fields[3] as int,
-      todoTextEditing: fields[4] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, FutureTodo obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.text)
-      ..writeByte(1)
-      ..write(obj.finished)
-      ..writeByte(2)
+      ..writeByte(5)
       ..write(obj.indented)
       ..writeByte(3)
-      ..write(obj.index)
-      ..writeByte(4)
-      ..write(obj.todoTextEditing);
+      ..write(obj.index);
   }
 
   @override

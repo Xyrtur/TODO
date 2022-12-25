@@ -3,6 +3,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:swipe/swipe.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/blocs/todo_expanded_bloc.dart';
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
 import 'package:todo/screens/unordered_page.dart';
@@ -91,7 +92,23 @@ class _TodoPagesState extends State<TodoPages> {
                     MultiBlocProvider(
                         providers: [
                           BlocProvider<FutureTodoBloc>(
-                            create: (BuildContext context) => FutureTodoBloc(context.read<HiveRepository>()),
+                            create: (BuildContext context) =>
+                                FutureTodoBloc(context.read<HiveRepository>()),
+                          ),
+                          BlocProvider<ToggleTodoEditingCubit>(
+                            create: (_) => ToggleTodoEditingCubit(),
+                          ),
+                          BlocProvider<TodoTextEditingCubit>(
+                            create: (_) => TodoTextEditingCubit(),
+                          ),
+                          BlocProvider<TodoTileAddCubit>(
+                            create: (_) => TodoTileAddCubit(),
+                          ),
+                          BlocProvider<TodoRecentlyAddedCubit>(
+                            create: (_) => TodoRecentlyAddedCubit(),
+                          ),
+                          BlocProvider<ExpandableBloc>(
+                            create: (context) => ExpandableBloc(),
                           ),
                         ],
                         child: UnorderedPage(
@@ -143,7 +160,8 @@ class _TodoPagesState extends State<TodoPages> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }
