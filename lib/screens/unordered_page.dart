@@ -71,7 +71,6 @@ class _UnorderedPageState extends State<UnorderedPage>
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      // context.read<CachingCubit>().update(false);
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
           date: DateTime.utc(
@@ -93,8 +92,6 @@ class _UnorderedPageState extends State<UnorderedPage>
         context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(
             date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
       }
-
-      // context.read<CachingCubit>().update(true);
     }
   }
 

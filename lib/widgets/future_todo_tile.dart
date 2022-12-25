@@ -111,11 +111,6 @@ class _FutureTodoTileState extends State<FutureTodoTile>
           if (state is FutureTodoRefreshedFromDelete &&
               state.deletedTreeIndexes.contains(widget.todo.index)) {
             animController.forward();
-          } else {
-            // After taking away indents, if expandable, set the arrow in the right position
-            if (widget.expandable) {
-              arrowController.forward();
-            }
           }
         })
       ],
@@ -159,14 +154,15 @@ class _FutureTodoTileState extends State<FutureTodoTile>
                 }
               },
               onDoubleTap: () {
+                List<FutureTodo> futureList =
+                    context.read<FutureTodoBloc>().state.futureList;
                 if (widget.todo.indented > 0 &&
-                    context
-                            .read<FutureTodoBloc>()
-                            .state
-                            .futureList[widget.todo.index + 1]
-                            .indented <=
-                        widget.todo.indented) {
+                    (widget.todo.index + 1 == futureList.length ||
+                        futureList[widget.todo.index + 1].indented <=
+                            widget.todo.indented)) {
                   widget.todo.changeIndent(widget.todo.indented - 1);
+                  arrowController.forward();
+
                   context
                       .read<FutureTodoBloc>()
                       .add(FutureTodoUpdate(event: widget.todo));

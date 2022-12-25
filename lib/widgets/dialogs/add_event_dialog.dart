@@ -258,7 +258,7 @@ class AddEventDialog extends StatelessWidget {
                     weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
                     controlsTextStyle: Centre.dialogText,
                     gapBetweenCalendarAndButtons: 0,
-                    shouldCloseDialogAfterCancelTapped: true,
+                    closeDialogOnCancelTapped: true,
                     cancelButtonTextStyle: Centre.dialogText,
                     okButton: Container(
                       margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 3),
