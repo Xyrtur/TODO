@@ -1,3 +1,4 @@
+import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -5,6 +6,7 @@ import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
 import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
+import 'package:todo/widgets/dialogs/settings_dialog.dart';
 
 class DailyPage extends StatefulWidget {
   const DailyPage({super.key, required this.pc});
@@ -28,36 +30,99 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-
-
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      // context.read<CachingCubit>().update(false);
-      if (DateTime.utc(
-              DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
-          .isAfter(context.read<DateCubit>().state.add(const Duration(hours: 25)))) {
+      if (DateTime.utc(DateTime.now().year, DateTime.now().month,
+              DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
+          .isAfter(
+              context.read<DateCubit>().state.add(const Duration(hours: 25)))) {
         context.read<DateCubit>().setToCurrentDayOnResume();
         context.read<TodoBloc>().add(TodoDateChange(
             date: DateTime.utc(
                 DateTime.now().year,
                 DateTime.now().month,
                 DateTime.now().day -
-                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
+                    (DateTime.now().hour == 0 ||
+                            DateTime.now().hour == 1 &&
+                                DateTime.now().minute == 0
+                        ? 1
+                        : 0))));
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
         context.read<DailyMonthlyListCubit>().update();
       }
-      if (!DateTime.utc(
-              DateTime.now().year, DateTime.now().month)
+      if (!DateTime.utc(DateTime.now().year, DateTime.now().month)
           .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
-        context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
         context
-            .read<MonthlyTodoBloc>()
-            .add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
+            .read<MonthDateCubit>()
+            .update(DateTime.utc(DateTime.now().year, DateTime.now().month));
+        context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(
+            date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
       }
-
-      // context.read<CachingCubit>().update(true);
     }
+  }
+
+  Widget changeDailyDateBtns() {
+    DateTime todayDate = DateTime.utc(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day -
+            (DateTime.now().hour == 0 ||
+                    DateTime.now().hour == 1 && DateTime.now().minute == 0
+                ? 1
+                : 0));
+    return BlocBuilder<DateCubit, DateTime>(
+        builder: (context, state) => Padding(
+              padding: EdgeInsets.only(
+                  top: Centre.safeBlockVertical,
+                  bottom: Centre.safeBlockVertical),
+              child: Row(
+                children: [
+                  for (int day = 0; day < 5; day++)
+                    GestureDetector(
+                      onTap: () {
+                        context
+                            .read<DateCubit>()
+                            .changeDay(todayDate.add(Duration(days: day)));
+                        context.read<TodoBloc>().add(TodoDateChange(
+                            date: todayDate.add(Duration(days: day))));
+                      },
+                      child: Container(
+                          height: Centre.safeBlockHorizontal * 10,
+                          width: Centre.safeBlockHorizontal * 10,
+                          margin: EdgeInsets.only(
+                              left: Centre.safeBlockHorizontal,
+                              right: Centre.safeBlockHorizontal * 2),
+                          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            border: todayDate
+                                    .add(Duration(days: day))
+                                    .isAtSameMomentAs(state)
+                                ? Border.all(color: Centre.primaryColor)
+                                : null,
+                            color: Centre.lighterBgColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Centre.darkerBgColor,
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              DateFormat('E').format(
+                                  todayDate.add(Duration(days: day)))[0],
+                              style: Centre.titleDialogText
+                                  .copyWith(color: Centre.primaryColor),
+                            ),
+                          )),
+                    )
+                ],
+              ),
+            ));
   }
 
   @override
@@ -75,14 +140,16 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                   body: MultiBlocProvider(
                       providers: [
                         BlocProvider<TimeRangeCubit>(
-                          create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                          create: (_) =>
+                              TimeRangeCubit(TimeRangeState(null, null)),
                         ),
                         BlocProvider<ColorCubit>(
                           create: (_) => ColorCubit(null),
                         ),
                         BlocProvider.value(value: context.read<DateCubit>()),
                         BlocProvider.value(value: context.read<TodoBloc>()),
-                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                        BlocProvider.value(
+                            value: context.read<UnfinishedListBloc>()),
                       ],
                       child: AddEventDialog.daily(
                         addingFutureTodo: false,
@@ -90,111 +157,6 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         },
       );
     }
-
-    Widget importExportRow = Row(children: [
-      BlocListener<ImportExportBloc, ImportExportState>(
-        listener: (context, state) {
-          if (state is ImportFinished) {
-            context.read<TodoBloc>().add(TodoDateChange(date: context.read<DateCubit>().state));
-            context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Centre.dialogBgColor,
-              content: Text(
-                'Import Success!',
-                style: Centre.dialogText,
-              ),
-              duration: const Duration(seconds: 2),
-            ));
-          } else if (state is ExportFinished) {
-            if (state.path != null) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Centre.dialogBgColor,
-                content: Text(
-                  "Saved to ${state.path}. Please move the file out",
-                  style: Centre.dialogText,
-                ),
-                duration: const Duration(seconds: 5),
-              ));
-            }
-          }
-        },
-        child: GestureDetector(
-          onTap: () async {
-            if (Theme.of(context).platform == TargetPlatform.iOS) {
-              context.read<ImportExportBloc>().add(const ImportClicked(false));
-            } else if (Theme.of(context).platform == TargetPlatform.android) {
-              context.read<ImportExportBloc>().add(const ImportClicked(true));
-            }
-          },
-          child: Container(
-            margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
-            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(40),
-              color: Centre.lighterBgColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Centre.darkerBgColor,
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: svgButton(
-              name: "import",
-              color: Centre.yellow,
-              height: 4,
-              width: 4,
-              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-            ),
-          ),
-        ),
-      ),
-      GestureDetector(
-        onTap: () {
-          if (Theme.of(context).platform == TargetPlatform.iOS) {
-            context.read<ImportExportBloc>().add(const ExportClicked(false));
-          } else if (Theme.of(context).platform == TargetPlatform.android) {
-            context.read<ImportExportBloc>().add(const ExportClicked(true));
-          }
-        },
-        child: Container(
-          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
-          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(40),
-            color: Centre.lighterBgColor,
-            boxShadow: [
-              BoxShadow(
-                color: Centre.darkerBgColor,
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: svgButton(
-            name: "export",
-            color: Centre.colors[4],
-            height: 4,
-            width: 4,
-            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-          ),
-        ),
-      ),
-      IconButton(
-          iconSize: 25,
-          onPressed: () {
-            showLicensePage(context: context, applicationName: "//TODO:");
-          },
-          icon: Icon(
-            Icons.info_outline,
-            color: Centre.primaryColor,
-          )),
-    ]);
 
     Widget addingEditingRow = Row(children: [
       BlocBuilder<ToggleChecklistEditingCubit, bool>(builder: (context, state) {
@@ -243,7 +205,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       GestureDetector(
         onTap: () => showDailyDialog(),
         child: Container(
-          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+          margin: EdgeInsets.only(
+              left: Centre.safeBlockHorizontal,
+              right: Centre.safeBlockHorizontal * 4),
           padding: EdgeInsets.all(Centre.safeBlockHorizontal),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(40),
@@ -266,70 +230,79 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       ),
     ]);
 
-    Widget dailyDateRow = BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
-      return Row(
+    Widget dailyDateColumn =
+        BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
+      return Column(
         children: [
-          (state.isSameDate(
-                  other: DateTime.utc(
-                      DateTime.now().year,
-                      DateTime.now().month,
-                      DateTime.now().day -
-                          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)),
-                  daily: false))
-              ? SizedBox(
-                  width: Centre.safeBlockHorizontal * 11.5,
-                )
-              : IconButton(
-                  onPressed: () {
-                    context.read<DateCubit>().prevDay();
-                    context.read<TodoBloc>().add(TodoDateChange(date: state.subtract(const Duration(days: 1))));
-                  },
-                  icon: Icon(
-                    Icons.chevron_left_sharp,
-                    color: Centre.primaryColor,
-                    size: 40,
-                  )),
-          Column(
-            children: [
-              Text(DateFormat('E').format(state), style: Centre.todoSemiTitle),
-              Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
-            ],
+          SizedBox(
+            child: Align(
+              alignment: Alignment.topLeft,
+
+              child: GestureDetector(
+                onTap: () {
+                  showAlignedDialog(
+                      barrierColor: Colors.white.withOpacity(0),
+                      followerAnchor: Alignment.topLeft,
+                      targetAnchor: Alignment.topLeft,
+                      offset: Offset(Centre.safeBlockHorizontal * 7.5,
+                          Centre.safeBlockVertical),
+                      avoidOverflow: true,
+                      context: context,
+                      builder: (BuildContext ycontext) {
+                        return MultiBlocProvider(
+                          providers: [
+                            BlocProvider.value(
+                                value: context.read<ImportExportBloc>()),
+                            BlocProvider.value(value: context.read<TodoBloc>()),
+                            BlocProvider.value(
+                                value: context.read<UnfinishedListBloc>())
+                          ],
+                          child: const SettingsDialog(),
+                        );
+                      });
+                },
+                child: SizedBox(
+                  height: Centre.safeBlockHorizontal * 8,
+                  width: Centre.safeBlockHorizontal * 8,
+                  child: Icon(
+                    Icons.settings_rounded,
+                    color: Centre.secondaryColor,
+                    size: Centre.safeBlockHorizontal * 6,
+                  ),
+                ),
+              ),
+              // )
+            ),
           ),
-          (state.isSameDate(
-                  other: DateTime.utc(
-                          DateTime.now().year,
-                          DateTime.now().month,
-                          DateTime.now().day -
-                              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
-                                  ? 1
-                                  : 0))
-                      .add(const Duration(days: 4)),
-                  daily: false))
-              ? const SizedBox()
-              : IconButton(
-                  onPressed: () {
-                    context.read<DateCubit>().nextDay();
-                    context.read<TodoBloc>().add(TodoDateChange(date: state.add(const Duration(days: 1))));
-                  },
-                  icon: Icon(
-                    Icons.chevron_right_sharp,
-                    color: Centre.primaryColor,
-                    size: 40,
-                  ))
+          Padding(
+            padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+            child: Text(DateFormat('E').format(state),
+                style: Centre.todoSemiTitle),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+            child: Text(DateFormat('d, MMM.').format(state),
+                style: Centre.smallerDialogText),
+          ),
         ],
       );
     });
 
-    Widget dailyPageHeader = Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      BlocListener<TodoBloc, TodoState>(
-        listener: (context, state) {
-          if (state.dateChanged) context.read<DailyMonthlyListCubit>().update();
-        },
-        child: dailyDateRow,
+    Widget dailyPageHeader = Row(children: [
+      Expanded(
+        child: BlocListener<TodoBloc, TodoState>(
+          listener: (context, state) {
+            if (state.dateChanged)
+              context.read<DailyMonthlyListCubit>().update();
+          },
+          child: dailyDateColumn,
+        ),
       ),
       Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          importExportRow,
+          changeDailyDateBtns(),
+          // importExportRow,
           addingEditingRow,
         ],
       ),
@@ -342,7 +315,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.167),
             decoration: BoxDecoration(
                 color: Colors.transparent,
-                border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
+                border: Border.symmetric(
+                    horizontal: BorderSide(color: Centre.primaryColor))),
             height: Centre.scheduleBlock * 0.167,
             width: Centre.safeBlockHorizontal * 2.5,
           ),
@@ -351,7 +325,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.333),
               decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
+                  border: Border.symmetric(
+                      horizontal: BorderSide(color: Centre.primaryColor))),
               height: Centre.scheduleBlock * 0.167,
               width: Centre.safeBlockHorizontal * 2.5,
             ),
@@ -436,7 +411,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       child: Scaffold(
         backgroundColor: Centre.bgColor,
         body: SlidingUpPanel(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(40), topRight: Radius.circular(40)),
           color: Centre.bgColor,
           backdropColor: Centre.colors[9],
           backdropOpacity: 0.3,
@@ -444,11 +420,10 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           minHeight: 0,
           maxHeight: Centre.safeBlockVertical * 54,
           controller: widget.pc,
-          panel: DailyPanel(
-              // thisPc: widget.pc
-              ),
+          panel: DailyPanel(),
           body: Padding(
-            padding: EdgeInsets.all(Centre.safeBlockVertical),
+            padding: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal, 0,
+                Centre.safeBlockHorizontal, Centre.safeBlockVertical),
             child: Column(
               children: [
                 dailyPageHeader,
@@ -459,7 +434,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                     child: Stack(
                       children: [
                         dottedBorders,
-                        BlocProvider(create: (_) => DraggingSplitBlockCubit(), child: const TodoTable()),
+                        BlocProvider(
+                            create: (_) => DraggingSplitBlockCubit(),
+                            child: const TodoTable()),
                         centerTicks
                       ],
                     ),

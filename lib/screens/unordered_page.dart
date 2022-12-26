@@ -284,6 +284,11 @@ class _UnorderedPageState extends State<UnorderedPage>
                       onTap: () {
                         context.read<ToggleTodoEditingCubit>().toggle();
                         context.read<TodoTextEditingCubit>().update(null);
+                        if (reorderablesList.indexWhere((Widget widget) =>
+                                widget.key == ValueKey(12345)) !=
+                            -1) {
+                          animController.reverse();
+                        }
                       },
                       child: BlocBuilder<ToggleTodoEditingCubit, bool>(
                           builder: (context, editingState) => Container(

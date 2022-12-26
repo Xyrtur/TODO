@@ -88,7 +88,7 @@ class _TodoPagesState extends State<TodoPages> {
                   controller: controller,
                   children: [
                     DailyPage(pc: widget.dailyPc),
-                    MonthlyPage(pc: widget.monthlyPc),
+                    const MonthlyPage(),
                     MultiBlocProvider(
                         providers: [
                           BlocProvider<FutureTodoBloc>(
