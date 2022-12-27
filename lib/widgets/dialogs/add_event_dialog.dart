@@ -16,7 +16,6 @@ class AddEventDialog extends StatelessWidget {
   // Whether adding an event to the daily page or the monthly page
   final bool daily;
 
-
   // If adding to daily page, this date represents the date currently shown
   // If adding to monthly page, this date represents the currently chosen first day of month
   late DateTime monthOrDayDate;
@@ -33,8 +32,10 @@ class AddEventDialog extends StatelessWidget {
   final bool fromUnfinishedList;
 
   // Value notifiers to send events to their respective blocs when needed since shouldn't call context in async gaps
-  final ValueNotifier<List<DateTime?>?> dateResults = ValueNotifier<List<DateTime?>?>(null);
-  final ValueNotifier<TimeRangeState> timeRangeChosen = ValueNotifier<TimeRangeState>(TimeRangeState(null, null));
+  final ValueNotifier<List<DateTime?>?> dateResults =
+      ValueNotifier<List<DateTime?>?>(null);
+  final ValueNotifier<TimeRangeState> timeRangeChosen =
+      ValueNotifier<TimeRangeState>(TimeRangeState(null, null));
   final ValueNotifier<bool?> deleting = ValueNotifier<bool?>(false);
 
   final _formKey = GlobalKey<FormState>();
@@ -55,13 +56,15 @@ class AddEventDialog extends StatelessWidget {
       this.event,
       this.fromUnfinishedList = false,
       required this.monthOrDayDate,
-      this.addingFutureTodo = false, // Can set this to false because the dialog does not change in any way
+      this.addingFutureTodo =
+          false, // Can set this to false because the dialog does not change in any way
       this.futureTodoText,
       this.fromDailyMonthlyList = false});
 
   @override
   Widget build(BuildContext context) {
-    if (context.read<TimeRangeCubit>().state.endResult != null && !fromDailyMonthlyList) {
+    if (context.read<TimeRangeCubit>().state.endResult != null &&
+        !fromDailyMonthlyList) {
       editedTimes = true;
     }
     // Only if adding to monthly or from unordered page does the user set dates for the event
@@ -82,7 +85,8 @@ class AddEventDialog extends StatelessWidget {
     }
 
     timeRangeChosen.addListener(() {
-      context.read<TimeRangeCubit>().update(timeRangeChosen.value.startResult, timeRangeChosen.value.endResult);
+      context.read<TimeRangeCubit>().update(
+          timeRangeChosen.value.startResult, timeRangeChosen.value.endResult);
     });
 
     deleting.addListener(() {
@@ -111,13 +115,20 @@ class AddEventDialog extends StatelessWidget {
                       builder: (BuildContext tcontext) {
                         return MultiBlocProvider(
                           providers: daily
-                              ? [BlocProvider.value(value: context.read<TodoBloc>())]
+                              ? [
+                                  BlocProvider.value(
+                                      value: context.read<TodoBloc>())
+                                ]
                               : [
-                                  BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                                  BlocProvider.value(value: context.read<DateCubit>())
+                                  BlocProvider.value(
+                                      value: context.read<MonthlyTodoBloc>()),
+                                  BlocProvider.value(
+                                      value: context.read<DateCubit>())
                                 ],
                           child: DeleteConfirmationDialog(
-                            type: daily ? DeletingFrom.todoTable : DeletingFrom.monthCalen,
+                            type: daily
+                                ? DeletingFrom.todoTable
+                                : DeletingFrom.monthCalen,
                             event: event!,
                             currentMonth: monthOrDayDate,
                           ),
@@ -127,14 +138,17 @@ class AddEventDialog extends StatelessWidget {
                 child: Container(
                   height: Centre.safeBlockVertical * 3.5,
                   width: Centre.safeBlockVertical * 3.5,
-                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-                  child: Icon(Icons.delete_rounded, color: Color(event!.color), size: 35),
+                  margin:
+                      EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
+                  child: Icon(Icons.delete_rounded,
+                      color: Color(event!.color), size: 35),
                 ),
               )
             : GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 2),
+                  margin:
+                      EdgeInsets.only(right: Centre.safeBlockHorizontal * 2),
                   padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
@@ -203,17 +217,18 @@ class AddEventDialog extends StatelessWidget {
     Widget calendarTypeBtn(CalendarType state, CalendarType type, String name) {
       return GestureDetector(
         onTap: () {
-            context.read<CalendarTypeCubit>().pressed(type);
-            context.read<DialogDatesCubit>().update(null);
-          
+          context.read<CalendarTypeCubit>().pressed(type);
+          context.read<DialogDatesCubit>().update(null);
         },
         child: svgButton(
             name: name,
-            color:(state == type ? Centre.yellow : Centre.colors[4]),
+            color: (state == type ? Centre.yellow : Centre.colors[4]),
             height: 7,
             width: 7,
             padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-            borderColor: event == null && state == type ? Centre.colors[8] : Colors.transparent),
+            borderColor: event == null && state == type
+                ? Centre.colors[8]
+                : Colors.transparent),
       );
     }
 
@@ -222,14 +237,17 @@ class AddEventDialog extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
       height: Centre.safeBlockHorizontal * 43,
       width: Centre.safeBlockVertical * 8,
-      decoration: BoxDecoration(boxShadow: [
-        BoxShadow(
-          color: Centre.darkerDialogBgColor,
-          spreadRadius: 5,
-          blurRadius: 7,
-          offset: const Offset(0, 2),
-        ),
-      ], color: Color.fromARGB(255, 77, 77, 77), borderRadius: BorderRadius.all(Radius.circular(10))),
+      decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Centre.darkerDialogBgColor,
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          color: Color.fromARGB(255, 77, 77, 77),
+          borderRadius: BorderRadius.all(Radius.circular(10))),
       child: BlocBuilder<CalendarTypeCubit, CalendarType>(
         builder: (context, state) => Column(
           children: [
@@ -244,7 +262,7 @@ class AddEventDialog extends StatelessWidget {
       ),
     );
 
-    // Button to select the dates and the text widgets that show the chosen dates
+    // Button to select the dates an`d the text widgets that show the chosen dates
     List<Widget> calendarPickerRow = [
       !daily || addingFutureTodo
           ? GestureDetector(
@@ -255,22 +273,27 @@ class AddEventDialog extends StatelessWidget {
                   borderRadius: BorderRadius.circular(40),
                   context: context,
                   config: CalendarDatePicker2WithActionButtonsConfig(
-                    weekdayLabelTextStyle: Centre.todoText.copyWith(color: Centre.yellow),
+                    weekdayLabelTextStyle:
+                        Centre.todoText.copyWith(color: Centre.yellow),
                     controlsTextStyle: Centre.dialogText,
                     gapBetweenCalendarAndButtons: 0,
                     closeDialogOnCancelTapped: true,
                     cancelButtonTextStyle: Centre.dialogText,
                     okButton: Container(
-                      margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 3),
+                      margin: EdgeInsets.only(
+                          right: Centre.safeBlockHorizontal * 3),
                       child: Text(
                         "OK",
                         style: Centre.dialogText,
                       ),
                     ),
                     dayTextStyle: Centre.todoText,
-                    calendarType: addingFutureTodo || context.read<CalendarTypeCubit>().state == CalendarType.single
+                    calendarType: addingFutureTodo ||
+                            context.read<CalendarTypeCubit>().state ==
+                                CalendarType.single
                         ? CalendarDatePicker2Type.single
-                        : context.read<CalendarTypeCubit>().state == CalendarType.ranged
+                        : context.read<CalendarTypeCubit>().state ==
+                                CalendarType.ranged
                             ? CalendarDatePicker2Type.range
                             : CalendarDatePicker2Type.multi,
                     firstDate: addingFutureTodo
@@ -278,7 +301,9 @@ class AddEventDialog extends StatelessWidget {
                             DateTime.now().year,
                             DateTime.now().month,
                             DateTime.now().day -
-                                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                (DateTime.now().hour == 0 ||
+                                        DateTime.now().hour == 1 &&
+                                            DateTime.now().minute <= 59
                                     ? 1
                                     : 0))
                         : DateTime.utc(monthOrDayDate.year),
@@ -287,7 +312,9 @@ class AddEventDialog extends StatelessWidget {
                                 DateTime.now().year,
                                 DateTime.now().month,
                                 DateTime.now().day -
-                                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute <= 59
+                                    (DateTime.now().hour == 0 ||
+                                            DateTime.now().hour == 1 &&
+                                                DateTime.now().minute <= 59
                                         ? 1
                                         : 0))
                             .add(const Duration(days: 5))
@@ -295,19 +322,33 @@ class AddEventDialog extends StatelessWidget {
                     currentDate: DateTime.now(),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
-                  dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
-                  initialValue: context.read<DialogDatesCubit>().state ?? (monthOrDayDate.year == DateTime.now().year && monthOrDayDate.month == DateTime.now().month ? [DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)] : [monthOrDayDate]),
+                  dialogSize: Size(Centre.safeBlockHorizontal * 85,
+                      Centre.safeBlockVertical * 54),
+                  initialValue: context.read<DialogDatesCubit>().state ??
+                      (monthOrDayDate.year == DateTime.now().year &&
+                              monthOrDayDate.month == DateTime.now().month
+                          ? [
+                              DateTime(DateTime.now().year,
+                                  DateTime.now().month, DateTime.now().day)
+                            ]
+                          : [monthOrDayDate]),
                 );
-                if (!addingFutureTodo && context.read<CalendarTypeCubit>().state == CalendarType.ranged ? (results != null && results.length == 2) : results != null) {
+                if (!addingFutureTodo &&
+                        context.read<CalendarTypeCubit>().state ==
+                            CalendarType.ranged
+                    ? (results != null && results.length == 2)
+                    : results != null) {
                   for (int i = 0; i < results.length; i++) {
                     // Convert the local date to UTC but we will still want times at 00 00 00
-                    if(!results[i]!.isUtc){
+                    if (!results[i]!.isUtc) {
                       results[i] = results[i]!.toUtc().add(DateTime(
-                            results[i]!.year, results[i]!.month, results[i]!.day, 7, 0)
-                        .timeZoneOffset);
-
+                              results[i]!.year,
+                              results[i]!.month,
+                              results[i]!.day,
+                              7,
+                              0)
+                          .timeZoneOffset);
                     }
-                    
                   }
                   dateResults.value = results;
                 }
@@ -315,7 +356,8 @@ class AddEventDialog extends StatelessWidget {
               child: Builder(
                 builder: (context) {
                   CalendarType state = CalendarType.single;
-                  if (!addingFutureTodo) state = context.watch<CalendarTypeCubit>().state;
+                  if (!addingFutureTodo)
+                    state = context.watch<CalendarTypeCubit>().state;
                   return svgButton(
                     name: state == CalendarType.single
                         ? "single_date"
@@ -326,10 +368,13 @@ class AddEventDialog extends StatelessWidget {
                     height: 7,
                     width: 7,
                     margin: addingFutureTodo
-                        ? EdgeInsets.fromLTRB(0, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical * 1.5)
+                        ? EdgeInsets.fromLTRB(0, 0, Centre.safeBlockHorizontal,
+                            Centre.safeBlockVertical * 1.5)
                         : EdgeInsets.symmetric(
                             horizontal: Centre.safeBlockHorizontal * 2,
-                            vertical: state == CalendarType.ranged ? Centre.safeBlockVertical * 3.5 : 0),
+                            vertical: state == CalendarType.ranged
+                                ? Centre.safeBlockVertical * 3.5
+                                : 0),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                   );
                 },
@@ -339,7 +384,8 @@ class AddEventDialog extends StatelessWidget {
       !daily || addingFutureTodo
           ? Builder(builder: (context) {
               CalendarType calendarState = CalendarType.single;
-              if (!addingFutureTodo) calendarState = context.watch<CalendarTypeCubit>().state;
+              if (!addingFutureTodo)
+                calendarState = context.watch<CalendarTypeCubit>().state;
               final dateResultsState = context.watch<DialogDatesCubit>().state;
 
               return Column(
@@ -348,7 +394,10 @@ class AddEventDialog extends StatelessWidget {
                   children: calendarState != CalendarType.ranged
                       ? [
                           Padding(
-                            padding: EdgeInsets.only(bottom: addingFutureTodo ? Centre.safeBlockVertical * 3.5 : 0),
+                            padding: EdgeInsets.only(
+                                bottom: addingFutureTodo
+                                    ? Centre.safeBlockVertical * 3.5
+                                    : 0),
                             child: SizedBox(
                                 width: addingFutureTodo
                                     ? Centre.safeBlockHorizontal * 15
@@ -356,11 +405,15 @@ class AddEventDialog extends StatelessWidget {
                                 child: Text(
                                   calendarState == CalendarType.single
                                       ? (dateResultsState?[0] != null
-                                          ? DateFormat('MMM d').format(dateResultsState![0]!)
+                                          ? DateFormat('MMM d')
+                                              .format(dateResultsState![0]!)
                                           : "")
                                       : (dateResultsState?[0] != null
-                                          ? [for (DateTime? i in dateResultsState!) DateFormat('MMM d').format(i!)]
-                                              .join(', ')
+                                          ? [
+                                              for (DateTime? i
+                                                  in dateResultsState!)
+                                                DateFormat('MMM d').format(i!)
+                                            ].join(', ')
                                           : ""),
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
@@ -373,7 +426,10 @@ class AddEventDialog extends StatelessWidget {
                           SizedBox(
                               width: Centre.safeBlockHorizontal * 21,
                               child: Text(
-                                dateResultsState?[0] != null ? DateFormat('MMM d').format(dateResultsState![0]!) : "",
+                                dateResultsState?[0] != null
+                                    ? DateFormat('MMM d')
+                                        .format(dateResultsState![0]!)
+                                    : "",
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: true,
@@ -382,7 +438,10 @@ class AddEventDialog extends StatelessWidget {
                           SizedBox(
                               width: Centre.safeBlockHorizontal * 21,
                               child: Text(
-                                dateResultsState?[1] != null ? DateFormat('MMM d').format(dateResultsState![1]!) : "",
+                                dateResultsState?[1] != null
+                                    ? DateFormat('MMM d')
+                                        .format(dateResultsState![1]!)
+                                    : "",
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: true,
@@ -401,7 +460,8 @@ class AddEventDialog extends StatelessWidget {
         checkBoxState = context.watch<CheckboxCubit>().state;
         calendarState = context.watch<CalendarTypeCubit>().state;
       }
-      final TimeRangeState timeRangeState = context.watch<TimeRangeCubit>().state;
+      final TimeRangeState timeRangeState =
+          context.watch<TimeRangeCubit>().state;
 
       return calendarState != CalendarType.ranged
           ? Row(
@@ -423,13 +483,17 @@ class AddEventDialog extends StatelessWidget {
                       if (!checkBoxState) {
                         TimeRangeState? value = await chooseTimeRange(
                             dailyDate: daily
-                                ? (!addingFutureTodo ? context.read<DateCubit>().state : dateResults.value![0])
+                                ? (!addingFutureTodo
+                                    ? context.read<DateCubit>().state
+                                    : dateResults.value![0])
                                 : null,
                             context: context,
                             daily: daily,
                             editingEvent: event,
-                            prevChosenStart: timeRangeState.startResult);
-                        if (value.startResult != null && value.endResult != null) {
+                            prevChosenStart: timeRangeState.startResult,
+                            prevChosenEnd: timeRangeState.endResult);
+                        if (value.startResult != null &&
+                            value.endResult != null) {
                           editedTimes = true;
                           timeRangeChosen.value = value;
                         }
@@ -437,22 +501,30 @@ class AddEventDialog extends StatelessWidget {
                     },
                     child: svgButton(
                       name: "range_time",
-                      color: !checkBoxState ? Centre.yellow : Centre.lighterDialogColor,
+                      color: !checkBoxState
+                          ? Centre.yellow
+                          : Centre.lighterDialogColor,
                       height: 7,
                       width: 7,
                       margin: daily
                           ? EdgeInsets.fromLTRB(
-                              addingFutureTodo ? Centre.safeBlockHorizontal : Centre.safeBlockHorizontal * 5,
+                              addingFutureTodo
+                                  ? Centre.safeBlockHorizontal
+                                  : Centre.safeBlockHorizontal * 5,
                               0,
                               Centre.safeBlockHorizontal,
                               0)
-                          : EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+                          : EdgeInsets.symmetric(
+                              horizontal: Centre.safeBlockHorizontal * 2),
                       padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                     )),
                 Padding(
-                    padding: EdgeInsets.only(bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
+                    padding: EdgeInsets.only(
+                        bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
                     child: Column(
-                      mainAxisAlignment: daily ? MainAxisAlignment.center : MainAxisAlignment.end,
+                      mainAxisAlignment: daily
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -461,10 +533,13 @@ class AddEventDialog extends StatelessWidget {
                               : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
                               ? fromDailyMonthlyList && !editedTimes
-                                  ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
+                                  ? Centre.dialogText.copyWith(
+                                      color: Centre.lighterDialogColor)
                                   : Centre.dialogText
-                              : Centre.dialogText
-                                  .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
+                              : Centre.dialogText.copyWith(
+                                  decoration: checkBoxState
+                                      ? TextDecoration.lineThrough
+                                      : null),
                         ),
                         Text(
                           timeRangeState.endResult == null
@@ -472,10 +547,13 @@ class AddEventDialog extends StatelessWidget {
                               : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
                               ? fromDailyMonthlyList && !editedTimes
-                                  ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
+                                  ? Centre.dialogText.copyWith(
+                                      color: Centre.lighterDialogColor)
                                   : Centre.dialogText
-                              : Centre.dialogText
-                                  .copyWith(decoration: checkBoxState ? TextDecoration.lineThrough : null),
+                              : Centre.dialogText.copyWith(
+                                  decoration: checkBoxState
+                                      ? TextDecoration.lineThrough
+                                      : null),
                         ),
                       ],
                     ))
@@ -487,7 +565,8 @@ class AddEventDialog extends StatelessWidget {
             );
     });
 
-    Widget fullDayCheckbox = BlocBuilder<CalendarTypeCubit, CalendarType>(builder: (unUsedcontext, state) {
+    Widget fullDayCheckbox = BlocBuilder<CalendarTypeCubit, CalendarType>(
+        builder: (unUsedcontext, state) {
       return state != CalendarType.ranged
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,13 +578,16 @@ class AddEventDialog extends StatelessWidget {
                         context.read<CheckboxCubit>().toggle();
                       },
                       child: Container(
-                        margin:
-                            EdgeInsets.only(left: Centre.safeBlockHorizontal * 6, right: Centre.safeBlockHorizontal),
+                        margin: EdgeInsets.only(
+                            left: Centre.safeBlockHorizontal * 6,
+                            right: Centre.safeBlockHorizontal),
                         height: Centre.safeBlockHorizontal * 6,
                         width: Centre.safeBlockHorizontal * 6,
                         decoration: BoxDecoration(
-                            border: Border.all(width: 2, color: Centre.colors[4]),
-                            borderRadius: const BorderRadius.all(Radius.circular(3)),
+                            border:
+                                Border.all(width: 2, color: Centre.colors[4]),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(3)),
                             color: Colors.transparent),
                         child: state
                             ? Center(
@@ -527,7 +609,8 @@ class AddEventDialog extends StatelessWidget {
                   style: Centre.todoText,
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 7.5),
+                  padding:
+                      EdgeInsets.only(left: Centre.safeBlockHorizontal * 7.5),
                   child: editButton(height: 5, width: 15, context: context),
                 )
               ],
@@ -542,13 +625,17 @@ class AddEventDialog extends StatelessWidget {
       onTap: () {},
       child: AlertDialog(
         scrollable: true,
-        contentPadding:
-            EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 5, vertical: Centre.safeBlockVertical * 3),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(40))),
+        contentPadding: EdgeInsets.symmetric(
+            horizontal: Centre.safeBlockHorizontal * 5,
+            vertical: Centre.safeBlockVertical * 3),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(40))),
         backgroundColor: Centre.dialogBgColor,
         elevation: 5,
         content: SizedBox(
-          height: daily ? Centre.safeBlockVertical * 35 : Centre.safeBlockVertical * 48,
+          height: daily
+              ? Centre.safeBlockVertical * 35
+              : Centre.safeBlockVertical * 48,
           width: Centre.safeBlockHorizontal * 85,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,7 +656,8 @@ class AddEventDialog extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    EventNameTextField(controller: controller, formKey: _formKey),
+                    EventNameTextField(
+                        controller: controller, formKey: _formKey),
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -580,10 +668,14 @@ class AddEventDialog extends StatelessWidget {
                                   height: Centre.safeBlockVertical * 43,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        children: [calendarPickerRow[0], calendarPickerRow[1]],
+                                        children: [
+                                          calendarPickerRow[0],
+                                          calendarPickerRow[1]
+                                        ],
                                       ),
                                       SizedBox(
                                         height: Centre.safeBlockVertical * 1,
@@ -598,15 +690,23 @@ class AddEventDialog extends StatelessWidget {
                                 calendarPickerRow[0],
                                 calendarPickerRow[1],
                                 SizedBox(
-                                  width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
+                                  width: addingFutureTodo
+                                      ? Centre.safeBlockHorizontal * 2
+                                      : 0,
                                 ),
                                 timePickerRow,
-                                Expanded(child: Row(
+                                Expanded(
+                                    child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     // Only show the addToUnfinished button if adding from the todo table, not the unfinished list or the daily monthly list
-                                  event !=null && !fromUnfinishedList && !fromDailyMonthlyList ? addToUnfinishedBtn(context: context) : const SizedBox(),
-                                    editButton(height: 7, width: 15, context: context),
+                                    event != null &&
+                                            !fromUnfinishedList &&
+                                            !fromDailyMonthlyList
+                                        ? addToUnfinishedBtn(context: context)
+                                        : const SizedBox(),
+                                    editButton(
+                                        height: 7, width: 15, context: context),
                                   ],
                                 ))
                               ],
@@ -622,39 +722,41 @@ class AddEventDialog extends StatelessWidget {
     );
   }
 
-  Widget addToUnfinishedBtn({required BuildContext context}){
+  Widget addToUnfinishedBtn({required BuildContext context}) {
     // Only called from daily page
     return GestureDetector(
-      onTap: (){
-        if(!_formKey.currentState!.validate()){
+      onTap: () {
+        if (!_formKey.currentState!.validate()) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              backgroundColor: Centre.dialogBgColor,
-              behavior: SnackBarBehavior.floating,
-              content: Text(
-                'Missing required info: name',
-                style: Centre.dialogText,
-              ),
-              duration: const Duration(seconds: 2),
-            ));
-            return;
-
+            backgroundColor: Centre.dialogBgColor,
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'Missing required info: name',
+              style: Centre.dialogText,
+            ),
+            duration: const Duration(seconds: 2),
+          ));
+          return;
         }
         TimeOfDay start = context.read<TimeRangeCubit>().state.startResult!;
         TimeOfDay end = context.read<TimeRangeCubit>().state.endResult!;
         EventData newEvent = event!.edit(
-                  fullDay: false,
-                  start: context.read<DateCubit>().state.add(Duration(
-                      hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
-                  end: context.read<DateCubit>().state.add(
-                      Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                  color: Centre.colors[context.read<ColorCubit>().state].value,
-                  text: controller.text,
-                  finished: false);
-              context.read<TodoBloc>().add(TodoToUnfinished(event: newEvent));
-              context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+            fullDay: false,
+            start: context.read<DateCubit>().state.add(Duration(
+                hours: start.hour >= 0 && start.hour < 2
+                    ? start.hour + 24
+                    : start.hour,
+                minutes: start.minute)),
+            end: context.read<DateCubit>().state.add(Duration(
+                hours:
+                    end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour,
+                minutes: end.minute)),
+            color: Centre.colors[context.read<ColorCubit>().state].value,
+            text: controller.text,
+            finished: false);
+        context.read<TodoBloc>().add(TodoToUnfinished(event: newEvent));
+        context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
         Navigator.pop(context);
-
-
       },
       child: SizedBox(
         height: Centre.safeBlockVertical * 7,
@@ -683,11 +785,12 @@ class AddEventDialog extends StatelessWidget {
             )),
       ),
     );
-    
-
   }
 
-  Widget editButton({required int height, required int width, required BuildContext context}) {
+  Widget editButton(
+      {required int height,
+      required int width,
+      required BuildContext context}) {
     EventData? oldEvent = event == null
         ? null
         : EventData(
@@ -721,7 +824,8 @@ class AddEventDialog extends StatelessWidget {
             });
 
             // Remove the last comma
-            snackBarString = snackBarString.substring(0, snackBarString.length - 1);
+            snackBarString =
+                snackBarString.substring(0, snackBarString.length - 1);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
@@ -744,7 +848,8 @@ class AddEventDialog extends StatelessWidget {
 
           Map<String, bool> missingNameTime = {
             "name": !_formKey.currentState!.validate(),
-            "time": context.read<TimeRangeCubit>().state.endResult == null || !editedTimes
+            "time": context.read<TimeRangeCubit>().state.endResult == null ||
+                !editedTimes
           };
 
           if (missingNameTime.values.contains(true)) {
@@ -754,7 +859,8 @@ class AddEventDialog extends StatelessWidget {
             });
 
             // Remove the last comma
-            snackBarString = snackBarString.substring(0, snackBarString.length - 1);
+            snackBarString =
+                snackBarString.substring(0, snackBarString.length - 1);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               backgroundColor: Centre.dialogBgColor,
               behavior: SnackBarBehavior.floating,
@@ -776,14 +882,16 @@ class AddEventDialog extends StatelessWidget {
 
           if (!daily) {
             // To monthly page
-            CalendarType calendarState = context.read<CalendarTypeCubit>().state;
+            CalendarType calendarState =
+                context.read<CalendarTypeCubit>().state;
 
-            if (calendarState != CalendarType.ranged && !context.read<CheckboxCubit>().state) {
+            if (calendarState != CalendarType.ranged &&
+                !context.read<CheckboxCubit>().state) {
               // If the event is not ranged and a time range was provided
               // Set the start and end times
 
               start = context.read<TimeRangeCubit>().state.startResult!;
-              end = context.read<TimeRangeCubit>().state.endResult!;              
+              end = context.read<TimeRangeCubit>().state.endResult!;
             }
             bool fullDay = context.read<CheckboxCubit>().state;
             if (calendarState == CalendarType.multi) {
@@ -794,9 +902,15 @@ class AddEventDialog extends StatelessWidget {
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: EventData(
                         fullDay: fullDay,
-                        start: date!.add(Duration(hours: start.hour, minutes: start.minute)),
-                        end: date.add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
-                        color: Centre.colors[context.read<ColorCubit>().state].value,
+                        start: date!.add(
+                            Duration(hours: start.hour, minutes: start.minute)),
+                        end: date.add(Duration(
+                            hours: start.isBefore(end: end)
+                                ? end.hour
+                                : end.hour + 24,
+                            minutes: end.minute)),
+                        color: Centre
+                            .colors[context.read<ColorCubit>().state].value,
                         text: controller.text,
                         finished: false)));
               }
@@ -806,16 +920,20 @@ class AddEventDialog extends StatelessWidget {
                   currentMonth: monthOrDayDate,
                   selectedDailyDay: context.read<DateCubit>().state,
                   event: EventData(
-                      fullDay: calendarState == CalendarType.ranged ? true : fullDay,
-                      start: context
-                          .read<DialogDatesCubit>()
-                          .state![0]!
-                          .add(Duration(hours: start.hour, minutes: start.minute)),
+                      fullDay:
+                          calendarState == CalendarType.ranged ? true : fullDay,
+                      start: context.read<DialogDatesCubit>().state![0]!.add(
+                          Duration(hours: start.hour, minutes: start.minute)),
                       end: context
                           .read<DialogDatesCubit>()
                           .state![calendarState == CalendarType.single ? 0 : 1]!
-                          .add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
-                      color: Centre.colors[context.read<ColorCubit>().state].value,
+                          .add(Duration(
+                              hours: start.isBefore(end: end)
+                                  ? end.hour
+                                  : end.hour + 24,
+                              minutes: end.minute)),
+                      color:
+                          Centre.colors[context.read<ColorCubit>().state].value,
                       text: controller.text,
                       finished: false)));
             }
@@ -834,13 +952,18 @@ class AddEventDialog extends StatelessWidget {
                             ? context.read<DialogDatesCubit>().state![0]!
                             : context.read<DateCubit>().state)
                         .add(Duration(
-                            hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                            hours: start.hour >= 0 && start.hour < 2
+                                ? start.hour + 24
+                                : start.hour,
                             minutes: start.minute)),
                     end: (addingFutureTodo
                             ? context.read<DialogDatesCubit>().state![0]!
                             : context.read<DateCubit>().state)
                         .add(Duration(
-                            hours: end.hour >= 0 && end.hour < 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                            hours: end.hour >= 0 && end.hour < 2
+                                ? end.hour + 24
+                                : end.hour,
+                            minutes: end.minute)),
                     color: Centre.colors[context.read<ColorCubit>().state].value,
                     text: controller.text,
                     finished: false)));
@@ -848,16 +971,16 @@ class AddEventDialog extends StatelessWidget {
         } else {
           // Editing an event
           if (!daily) {
-
-            CalendarType calendarState = context.read<CalendarTypeCubit>().state;
+            CalendarType calendarState =
+                context.read<CalendarTypeCubit>().state;
             bool fullDay = context.read<CheckboxCubit>().state;
 
             if (calendarState == CalendarType.multi) {
               context.read<MonthlyTodoBloc>().add(MonthlyTodoDelete(
-                                  event: event!,
-                                  selectedDailyDay: context.read<DateCubit>().state,
-                                  currentMonth: monthOrDayDate));
-              
+                  event: event!,
+                  selectedDailyDay: context.read<DateCubit>().state,
+                  currentMonth: monthOrDayDate));
+
               for (DateTime? date in context.read<DialogDatesCubit>().state!) {
                 // Add the event to the repository
                 context.read<MonthlyTodoBloc>().add(MonthlyTodoCreate(
@@ -865,64 +988,80 @@ class AddEventDialog extends StatelessWidget {
                     selectedDailyDay: context.read<DateCubit>().state,
                     event: EventData(
                         fullDay: fullDay,
-                        start: date!.add(Duration(hours: start.hour, minutes: start.minute)),
-                        end: date.add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
-                        color: Centre.colors[context.read<ColorCubit>().state].value,
+                        start: date!.add(
+                            Duration(hours: start.hour, minutes: start.minute)),
+                        end: date.add(Duration(
+                            hours: start.isBefore(end: end)
+                                ? end.hour
+                                : end.hour + 24,
+                            minutes: end.minute)),
+                        color: Centre
+                            .colors[context.read<ColorCubit>().state].value,
                         text: controller.text,
                         finished: false)));
               }
-            }else{
-
-              if (context.read<CalendarTypeCubit>().state != CalendarType.ranged &&
-                !context.read<CheckboxCubit>().state) {
-              // If the event is not ranged and a time range was provided
-              // Set the start and end times
+            } else {
+              if (context.read<CalendarTypeCubit>().state !=
+                      CalendarType.ranged &&
+                  !context.read<CheckboxCubit>().state) {
+                // If the event is not ranged and a time range was provided
+                // Set the start and end times
 
                 start = context.read<TimeRangeCubit>().state.startResult!;
                 end = context.read<TimeRangeCubit>().state.endResult!;
               }
 
-            DateTime? dateWithoutTime;
-            if (context.read<CalendarTypeCubit>().state == CalendarType.single) {
-              DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
-              dateWithoutTime = DateTime.utc(prevDate.year, prevDate.month, prevDate.day);
+              DateTime? dateWithoutTime;
+              if (context.read<CalendarTypeCubit>().state ==
+                  CalendarType.single) {
+                DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
+                dateWithoutTime =
+                    DateTime.utc(prevDate.year, prevDate.month, prevDate.day);
+              }
+
+              context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
+                  currentMonth: monthOrDayDate,
+                  oldEvent: oldEvent,
+                  selectedDailyDay: context.read<DateCubit>().state,
+                  event: event!.edit(
+                      fullDay: fullDay,
+                      start: (dateWithoutTime ??
+                              context.read<DialogDatesCubit>().state![0]!)
+                          .add(Duration(
+                              hours: start.hour, minutes: start.minute)),
+                      end: (dateWithoutTime ??
+                              context.read<DialogDatesCubit>().state![1]!)
+                          .add(Duration(
+                              hours: start.isBefore(end: end)
+                                  ? end.hour
+                                  : end.hour + 24,
+                              minutes: end.minute)),
+                      color:
+                          Centre.colors[context.read<ColorCubit>().state].value,
+                      text: controller.text,
+                      finished: false)));
             }
-
-            context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
-                currentMonth: monthOrDayDate,
-                oldEvent: oldEvent,
-                selectedDailyDay: context.read<DateCubit>().state,
-                event: event!.edit(
-                    fullDay: fullDay,
-                    start: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![0]!)
-                        .add(Duration(hours: start.hour, minutes: start.minute)),
-                    end: (dateWithoutTime ?? context.read<DialogDatesCubit>().state![1]!)
-                        .add(Duration(hours: start.isBefore(end: end) ? end.hour : end.hour +24, minutes: end.minute)),
-                    color: Centre.colors[context.read<ColorCubit>().state].value,
-                    text: controller.text,
-                    finished: false)));
-
-
-            }
-            
-
-            
           } else {
             start = context.read<TimeRangeCubit>().state.startResult!;
             end = context.read<TimeRangeCubit>().state.endResult!;
 
-            if (!fromUnfinishedList ||
-                fromDailyMonthlyList) {
+            if (!fromUnfinishedList || fromDailyMonthlyList) {
               context.read<TodoBloc>().add(TodoUpdate(
                   event: fromDailyMonthlyList
                       ? EventData(
                           fullDay: false,
                           start: context.read<DateCubit>().state.add(Duration(
-                              hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                              hours: start.hour >= 0 && start.hour < 2
+                                  ? start.hour + 24
+                                  : start.hour,
                               minutes: start.minute)),
                           end: context.read<DateCubit>().state.add(Duration(
-                              hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                          color: Centre.colors[context.read<ColorCubit>().state].value,
+                              hours: end.hour >= 0 && end.hour <= 2
+                                  ? end.hour + 24
+                                  : end.hour,
+                              minutes: end.minute)),
+                          color: Centre
+                              .colors[context.read<ColorCubit>().state].value,
                           text: controller.text,
                           finished: false)
                       // Somehow Editing the event here will reflect the changes in the monthly hive even though I never call put or save
@@ -931,11 +1070,17 @@ class AddEventDialog extends StatelessWidget {
                       : event!.edit(
                           fullDay: false,
                           start: context.read<DateCubit>().state.add(Duration(
-                              hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
+                              hours: start.hour >= 0 && start.hour < 2
+                                  ? start.hour + 24
+                                  : start.hour,
                               minutes: start.minute)),
                           end: context.read<DateCubit>().state.add(Duration(
-                              hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
-                          color: Centre.colors[context.read<ColorCubit>().state].value,
+                              hours: end.hour >= 0 && end.hour <= 2
+                                  ? end.hour + 24
+                                  : end.hour,
+                              minutes: end.minute)),
+                          color: Centre
+                              .colors[context.read<ColorCubit>().state].value,
                           text: controller.text,
                           finished: false),
                   fromDailyMonthlyList: fromDailyMonthlyList));
@@ -944,14 +1089,22 @@ class AddEventDialog extends StatelessWidget {
               EventData newEvent = event!.edit(
                   fullDay: false,
                   start: context.read<DateCubit>().state.add(Duration(
-                      hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour, minutes: start.minute)),
-                  end: context.read<DateCubit>().state.add(
-                      Duration(hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
+                      hours: start.hour >= 0 && start.hour < 2
+                          ? start.hour + 24
+                          : start.hour,
+                      minutes: start.minute)),
+                  end: context.read<DateCubit>().state.add(Duration(
+                      hours: end.hour >= 0 && end.hour <= 2
+                          ? end.hour + 24
+                          : end.hour,
+                      minutes: end.minute)),
                   color: Centre.colors[context.read<ColorCubit>().state].value,
                   text: controller.text,
                   finished: false);
               context.read<TodoBloc>().add(TodoFromUnfinished(event: newEvent));
-              context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+              context
+                  .read<UnfinishedListBloc>()
+                  .add(const UnfinishedListUpdate());
             }
           }
         }
@@ -997,6 +1150,7 @@ class AddEventDialog extends StatelessWidget {
     EventData? editingEvent,
     DateTime? dailyDate,
     TimeOfDay? prevChosenStart,
+    TimeOfDay? prevChosenEnd,
   }) async {
     TimeOfDay? endResult;
     TimeOfDay? startResult;
@@ -1014,18 +1168,27 @@ class AddEventDialog extends StatelessWidget {
               // nearest 5 minutes
               initialTime: prevChosenStart ??
                   TimeOfDay.now().replacing(
-                      minute:
-                          (TimeOfDay.now().minute / 5).ceil() * 5 == 60 ? 0 : (TimeOfDay.now().minute / 5).round() * 5,
+                      minute: (TimeOfDay.now().minute / 5).ceil() * 5 == 60
+                          ? 0
+                          : (TimeOfDay.now().minute / 5).round() * 5,
                       hour: (TimeOfDay.now().minute / 5).ceil() * 5 == 60
                           ? TimeOfDay.now().hour + 1
                           : TimeOfDay.now().hour),
               helpText: "Choose Start time",
               daily: daily,
-              orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
-              dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
+              orderedDailyKeyList: daily
+                  ? context.read<TodoBloc>().state.orderedDailyKeyList
+                  : null,
+              dailyTableMap:
+                  daily ? context.read<TodoBloc>().state.dailyTableMap : null,
 
               // If editing event already on the table, send in that event, but if not, treat it like adding a new event i.e. editingEvent = null
-              editingEvent: daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
+              editingEvent: daily &&
+                          !context
+                              .read<TodoBloc>()
+                              .state
+                              .orderedDailyKeyList
+                              .contains(editingEvent?.key) ||
                       fromDailyMonthlyList
                   ? null
                   : editingEvent,
@@ -1039,21 +1202,34 @@ class AddEventDialog extends StatelessWidget {
         endResult = await showDialog(
             context: context,
             builder: (BuildContext tcontext) {
+              TimeOfDay endMinimum = startResult!.add(minutes: 15);
+
               return custom_time_picker.TimePickerDialog(
                 // Start the initial time 15 minutes time after the chosen start time
-                initialTime: startResult!.replacing(
-                    minute: (startResult.minute + 15) % 60,
-                    hour: startResult.minute + 15 >= 60 ? startResult.hour + 1 % 24 : startResult.hour),
+                initialTime: (prevChosenEnd?.isBefore(end: endMinimum) ?? true
+                    ? startResult.replacing(
+                        minute: (startResult.minute + 15) % 60,
+                        hour: startResult.minute + 15 >= 60
+                            ? startResult.hour + 1 % 24
+                            : startResult.hour)
+                    : prevChosenEnd!),
                 helpText: "Choose End time",
                 daily: daily,
-                orderedDailyKeyList: daily ? context.read<TodoBloc>().state.orderedDailyKeyList : null,
-                dailyTableMap: daily ? context.read<TodoBloc>().state.dailyTableMap : null,
+                orderedDailyKeyList: daily
+                    ? context.read<TodoBloc>().state.orderedDailyKeyList
+                    : null,
+                dailyTableMap:
+                    daily ? context.read<TodoBloc>().state.dailyTableMap : null,
                 startTime: startResult,
-                editingEvent:
-                    daily && !context.read<TodoBloc>().state.orderedDailyKeyList.contains(editingEvent?.key) ||
-                            fromDailyMonthlyList
-                        ? null
-                        : editingEvent,
+                editingEvent: daily &&
+                            !context
+                                .read<TodoBloc>()
+                                .state
+                                .orderedDailyKeyList
+                                .contains(editingEvent?.key) ||
+                        fromDailyMonthlyList
+                    ? null
+                    : editingEvent,
                 dailyDate: dailyDate,
               );
             });

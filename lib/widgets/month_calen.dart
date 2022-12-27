@@ -9,6 +9,8 @@ class MonthCalendar extends StatelessWidget {
   final DateTime date;
   final List<Map<dynamic, EventData>> monthList;
   MonthCalendar({super.key, required this.date, required this.monthList});
+  List<List<EventData?>> monthListCopy = List<List<EventData?>>.filled(42, []);
+
   final List<String> weekdays = [
     "Mon",
     "Tue",
@@ -139,13 +141,6 @@ class MonthCalendar extends StatelessWidget {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: dayEvents(
-                                      // state
-                                      // This index logic ensure the correct for the day is grabbed since the list
-                                      // contains events starting from the previous month into the next month afterwards as well
-                                      // .monthlyMaps
-                                      monthList[dayNum.monthlyMapDayIndex(
-                                              currentMonth: date)]
-                                          .values,
                                       fadedList[(week - 1) * 7 +
                                           weekdays.indexOf(day)],
                                       dayNum,
@@ -164,137 +159,170 @@ class MonthCalendar extends StatelessWidget {
       ),
     );
   }
-}
 
-// Returns the list of event bars to display on each day of the calendar
-List<Widget> dayEvents(
-    Iterable<EventData> dayEventsList,
-    bool faded,
-    DateTime dayNum,
-    List<DateTime> weekStartingNums,
-    List<DateTime> weekEndingNums) {
-  List<Widget> list = [
-    // Start the list with the day number in the top left always
-    Padding(
-      padding: EdgeInsets.only(
-          left: Centre.safeBlockHorizontal * 1,
-          bottom: Centre.safeBlockVertical * 0.5),
-      child: Container(
-        padding: EdgeInsets.fromLTRB(Centre.safeBlockVertical * 0.3, 0,
-            Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          color: dayNum.isSameDate(
-                  other: DateTime.utc(DateTime.now().year, DateTime.now().month,
-                      DateTime.now().day),
-                  daily: false)
-              ? Centre.secondaryColor
-              : Colors.transparent,
-        ),
-        child: Text(
-          dayNum.day.toString(),
-          style: Centre.todoText.copyWith(
-              color: faded
-                  ? Colors.grey
-                  : dayNum.isSameDate(
-                          other: DateTime.utc(DateTime.now().year,
-                              DateTime.now().month, DateTime.now().day),
-                          daily: false)
-                      ? Centre.bgColor
-                      : Centre.textColor),
+  // Returns the list of event bars to display on each day of the calendar
+  List<Widget> dayEvents(bool faded, DateTime dayNum,
+      List<DateTime> weekStartingNums, List<DateTime> weekEndingNums) {
+    List<Widget> list = [
+      // Start the list with the day number in the top left always
+      Padding(
+        padding: EdgeInsets.only(
+            left: Centre.safeBlockHorizontal * 1,
+            bottom: Centre.safeBlockVertical * 0.5),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(Centre.safeBlockVertical * 0.3, 0,
+              Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: dayNum.isSameDate(
+                    other: DateTime.utc(DateTime.now().year,
+                        DateTime.now().month, DateTime.now().day),
+                    daily: false)
+                ? Centre.secondaryColor
+                : Colors.transparent,
+          ),
+          child: Text(
+            dayNum.day.toString(),
+            style: Centre.todoText.copyWith(
+                color: faded
+                    ? Colors.grey
+                    : dayNum.isSameDate(
+                            other: DateTime.utc(DateTime.now().year,
+                                DateTime.now().month, DateTime.now().day),
+                            daily: false)
+                        ? Centre.bgColor
+                        : Centre.textColor),
+          ),
         ),
       ),
-    ),
-  ];
+    ];
 
-  // Sort the list to ensure the ranged event bars stay together across the calendar
-  // Ensure that ranged events come first and then sort by time
-  List<EventData> sortedList = dayEventsList.toList();
-  sortedList.sort((a, b) {
-    if (a.fullDay && !a.start.isSameDate(other: a.end, daily: false)) {
-      if (!(b.fullDay && !b.start.isSameDate(other: b.end, daily: false))) {
-        return -1;
-      } else {
-        return a.start.compareTo(b.start);
+    // Sort the list to ensure the ranged event bars stay together across the calendar
+    // Ensure that ranged events come first and then sort by time
+
+    // This index logic ensure the correct for the day is grabbed since the list
+    // contains events starting from the previous month into the next month afterwards as well
+    int index = dayNum.monthlyMapDayIndex(currentMonth: date);
+
+    monthListCopy[index] = monthList[index].values.toList();
+    monthListCopy[index].sort((a, b) {
+      if (a!.fullDay && !a.start.isSameDate(other: a.end, daily: false)) {
+        if (!(b!.fullDay && !b.start.isSameDate(other: b.end, daily: false))) {
+          return -1;
+        } else {
+          return a.start.compareTo(b.start);
+        }
+      }
+      if (b!.fullDay && !b.start.isSameDate(other: b.end, daily: false)) {
+        if (!(a.fullDay && !a.start.isSameDate(other: a.end, daily: false))) {
+          return 1;
+        } else {
+          return a.start.compareTo(b.start);
+        }
+      }
+      return a.start.compareTo(b.start);
+    });
+
+    // Deals with ranged event collisions
+    List<EventData?> tempList = List<EventData?>.filled(7, null);
+    if (index != 0) {
+      for (EventData? event in monthListCopy[index]) {
+        if (event!.fullDay &&
+            !event.start.isSameDate(other: event.end, daily: false) &&
+            !dayNum.isSameDate(other: event.start, daily: false)) {
+          tempList[monthListCopy[index - 1].indexOf(event)] = event;
+        }
       }
     }
-    if (b.fullDay && !b.start.isSameDate(other: b.end, daily: false)) {
-      if (!(a.fullDay && !a.start.isSameDate(other: a.end, daily: false))) {
-        return 1;
-      } else {
-        return a.start.compareTo(b.start);
+    for (EventData? event in monthListCopy[index]) {
+      if (index == 0 ||
+          event!.start.isSameDate(other: event.end, daily: false) ||
+          event.fullDay &&
+              !event.start.isSameDate(other: event.end, daily: false) &&
+              dayNum.isSameDate(other: event.start, daily: false)) {
+        for (int i = 0; i < 7; i++) {
+          if (tempList[i] == null) {
+            tempList[i] = event;
+            break;
+          }
+        }
       }
     }
-    return a.start.compareTo(b.start);
-  });
+    monthListCopy[index] = tempList;
 
-  List<Widget> eventList = sortedList.map((event) {
-    // If the event is ranged
-    if (event.fullDay &&
-        !event.start.isSameDate(other: event.end, daily: false)) {
-      return Container(
-        // Margin and border logic to make the event look seamless across days on the calendar
-        margin: EdgeInsets.only(
-            left: dayNum.isSameDate(other: event.start, daily: false)
-                ? Centre.safeBlockHorizontal * 0.7
-                : 0,
-            right: dayNum.isSameDate(other: event.end, daily: false)
-                ? Centre.safeBlockHorizontal * 0.7
-                : 0,
-            bottom: Centre.safeBlockVertical * 0.3),
-        padding:
-            EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
-        decoration: BoxDecoration(
-            color: Color(event.color),
-            borderRadius: BorderRadius.horizontal(
-              left: dayNum.isSameDate(other: event.start, daily: false) ||
-                      weekStartingNums.contains(dayNum)
-                  ? const Radius.circular(10)
-                  : Radius.zero,
-              right: dayNum.isSameDate(other: event.end, daily: false) ||
-                      weekEndingNums.contains(dayNum)
-                  ? const Radius.circular(10)
-                  : Radius.zero,
-            )),
-        height: Centre.safeBlockVertical * 1.3,
-        child: dayNum.isSameDate(other: event.start, daily: false)
-            ? Center(
-                child: Text(
-                event.text.replaceAll(' ', '\u00A0'),
-                maxLines: 1,
-                overflow: TextOverflow.clip,
-                style: Centre.todoText.copyWith(
-                    fontSize: Centre.safeBlockHorizontal * 2,
-                    color: Centre.darkerBgColor),
-              ))
-            : null,
-      );
-    } else {
-      return Container(
-        margin: EdgeInsets.only(
-            left: Centre.safeBlockHorizontal * 0.7,
-            right: Centre.safeBlockHorizontal * 0.7,
-            bottom: Centre.safeBlockVertical * 0.3),
-        padding:
-            EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
-        decoration: BoxDecoration(
-            color: Color(event.color),
-            borderRadius: const BorderRadius.all(Radius.circular(10))),
-        height: Centre.safeBlockVertical * 1.3,
-        child: Center(
-            child: Text(
-          event.text.replaceAll(' ', '\u00A0'),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: Centre.todoText.copyWith(
-              fontSize: Centre.safeBlockHorizontal * 2,
-              color: Centre.darkerBgColor),
-        )),
-      );
-    }
-  }).toList();
-  list.addAll(eventList);
+    List<Widget> eventList = monthListCopy[index].map((event) {
+      if (event == null) {
+        return SizedBox(
+          height: Centre.safeBlockVertical * 1.6,
+        );
+      }
+      // If the event is ranged
+      if (event.fullDay &&
+          !event.start.isSameDate(other: event.end, daily: false)) {
+        return Container(
+          // Margin and border logic to make the event look seamless across days on the calendar
+          margin: EdgeInsets.only(
+              left: dayNum.isSameDate(other: event.start, daily: false)
+                  ? Centre.safeBlockHorizontal * 0.7
+                  : 0,
+              right: dayNum.isSameDate(other: event.end, daily: false)
+                  ? Centre.safeBlockHorizontal * 0.7
+                  : 0,
+              bottom: Centre.safeBlockVertical * 0.3),
+          padding: EdgeInsets.symmetric(
+              horizontal: Centre.safeBlockHorizontal * 0.2),
+          decoration: BoxDecoration(
+              color: Color(event.color),
+              borderRadius: BorderRadius.horizontal(
+                left: dayNum.isSameDate(other: event.start, daily: false) ||
+                        weekStartingNums.contains(dayNum)
+                    ? const Radius.circular(10)
+                    : Radius.zero,
+                right: dayNum.isSameDate(other: event.end, daily: false) ||
+                        weekEndingNums.contains(dayNum)
+                    ? const Radius.circular(10)
+                    : Radius.zero,
+              )),
+          height: Centre.safeBlockVertical * 1.3,
+          child: dayNum.isSameDate(other: event.start, daily: false)
+              ? Center(
+                  child: Text(
+                  event.text.replaceAll(' ', '\u00A0'),
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: Centre.todoText.copyWith(
+                      fontSize: Centre.safeBlockHorizontal * 2,
+                      color: Centre.darkerBgColor),
+                ))
+              : null,
+        );
+      } else {
+        return Container(
+          margin: EdgeInsets.only(
+              left: Centre.safeBlockHorizontal * 0.7,
+              right: Centre.safeBlockHorizontal * 0.7,
+              bottom: Centre.safeBlockVertical * 0.3),
+          padding: EdgeInsets.symmetric(
+              horizontal: Centre.safeBlockHorizontal * 0.2),
+          decoration: BoxDecoration(
+              color: Color(event.color),
+              borderRadius: const BorderRadius.all(Radius.circular(10))),
+          height: Centre.safeBlockVertical * 1.3,
+          child: Center(
+              child: Text(
+            event.text.replaceAll(' ', '\u00A0'),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: Centre.todoText.copyWith(
+                fontSize: Centre.safeBlockHorizontal * 2,
+                color: Centre.darkerBgColor),
+          )),
+        );
+      }
+    }).toList();
+    list.addAll(eventList);
 
-  // Only shows a max of 7 events on the calendar per day
-  return list.length > 7 ? list.getRange(0, 8).toList() : list;
+    // Only shows a max of 7 events on the calendar per day
+    return list.length > 7 ? list.getRange(0, 8).toList() : list;
+  }
 }

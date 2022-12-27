@@ -1,33 +1,47 @@
 import 'package:flutter/material.dart';
 
 extension TimeofDayCompare on TimeOfDay {
-  bool isBefore({required TimeOfDay end}){
-    if(end.hour == hour){
+  bool isBefore({required TimeOfDay end}) {
+    if (end.hour == hour) {
       return minute <= end.minute;
-    }else{
+    } else {
       return hour < end.hour;
     }
+  }
 
+  TimeOfDay add({required int minutes}) {
+    return replacing(
+        hour: (hour + ((minute + minutes) / 60).floor()) % 24,
+        minute: (minute + minutes) % 60);
   }
 }
 
 extension DatePrecisionCompare on DateTime {
   // Return whether or not the event occurs inside the calendar window
-  bool inCalendarWindow({required DateTime end, required DateTime currentMonth}) {
+  bool inCalendarWindow(
+      {required DateTime end, required DateTime currentMonth}) {
     return isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-        end.isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)));
+            currentMonth.startingMonthCalenNum(),
+            currentMonth
+                .startingMonthCalenNum()
+                .add(const Duration(days: 41))) ||
+        end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().add(const Duration(days: 41)));
   }
 
   // Return either the events date or a date just inside the calendar window
   DateTime dateInCalendarWindow({required DateTime currentMonth}) {
     // Return a date in UTC time which is what *this* should be
-    return isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+    return isBetweenDates(currentMonth.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
         ? toUtc()
         // a time at 00:00 should be at 7am UTC to preserve 00:00 local
-        : isBefore(currentMonth.startingMonthCalenNum()) ? currentMonth.startingMonthCalenNum().subtract(timeZoneOffset) : currentMonth.startingMonthCalenNum().add(const Duration(days: 41)).subtract(timeZoneOffset) ;
+        : isBefore(currentMonth.startingMonthCalenNum())
+            ? currentMonth.startingMonthCalenNum().subtract(timeZoneOffset)
+            : currentMonth
+                .startingMonthCalenNum()
+                .add(const Duration(days: 41))
+                .subtract(timeZoneOffset);
   }
 
   /* 
@@ -35,11 +49,16 @@ extension DatePrecisionCompare on DateTime {
    * This means that the first day of the month is not necessarily the first index of the list
    */
   int monthlyMapDayIndex({required DateTime currentMonth}) {
-    
     return isBefore(currentMonth)
         ? day - currentMonth.startingMonthCalenNum().day
-        : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
-            ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + day - 1
+        : isAfter(currentMonth.add(Duration(
+                days: currentMonth.totalDaysInMonth() - 1,
+                hours: 23,
+                minutes: 59)))
+            ? (currentMonth.weekday - 1) +
+                currentMonth.totalDaysInMonth() +
+                day -
+                1
             : day - 1 + (currentMonth.weekday - 1);
   }
 
@@ -50,7 +69,8 @@ extension DatePrecisionCompare on DateTime {
     if (daily) {
       return year == other.year &&
           (month == other.month &&
-                  (day == other.day && (hour >= 7 || hour <= 1) || day == other.day + 1 && hour <= 1) ||
+                  (day == other.day && (hour >= 7 || hour <= 1) ||
+                      day == other.day + 1 && hour <= 1) ||
               month == other.month + 1 && day == 1 && hour <= 1);
     } else {
       return year == other.year && month == other.month && day == other.day;
@@ -72,14 +92,16 @@ extension DatePrecisionCompare on DateTime {
       dayEnd = DateTime(end.year, end.month, end.day, 23, 59);
     }
 
-    return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
+    return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) &&
+        (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
   }
 
   bool isInTimeRange(DateTime start, DateTime end) {
     return isAfter(start) && isBefore(end);
   }
 
-  bool enclosesOrContains(DateTime end, DateTime otherStart, DateTime otherEnd) {
+  bool enclosesOrContains(
+      DateTime end, DateTime otherStart, DateTime otherEnd) {
     return (isAfter(otherStart) || isAtSameMomentAs(otherStart)) &&
             (end.isBefore(otherEnd) || end.isAtSameMomentAs(otherEnd)) ||
         isAtSameMomentAs(otherStart) && end.isAfter(otherEnd) ||
