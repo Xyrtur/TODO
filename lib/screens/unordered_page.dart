@@ -15,11 +15,9 @@ class UnorderedPage extends StatefulWidget {
   State<UnorderedPage> createState() => _UnorderedPageState();
 }
 
-class _UnorderedPageState extends State<UnorderedPage>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserver, TickerProviderStateMixin {
   final TextEditingController controller = TextEditingController();
-  final TextEditingController addingTodoTextController =
-      TextEditingController();
+  final TextEditingController addingTodoTextController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -34,9 +32,7 @@ class _UnorderedPageState extends State<UnorderedPage>
       vsync: this,
     )..addStatusListener((AnimationStatus status) {
         if (status == AnimationStatus.dismissed) {
-          context
-              .read<TodoTileAddCubit>()
-              .update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
+          context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
           addingTodoTextController.clear();
         }
       });
@@ -45,8 +41,7 @@ class _UnorderedPageState extends State<UnorderedPage>
       if (!focusNode.hasFocus) {
         int? indexEditing = context.read<TodoTextEditingCubit>().state;
         if (controller.text.isNotEmpty && indexEditing != null) {
-          FutureTodo currTodo =
-              context.read<FutureTodoBloc>().state.futureList[indexEditing];
+          FutureTodo currTodo = context.read<FutureTodoBloc>().state.futureList[indexEditing];
           currTodo.changeName(controller.text);
           context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: currTodo));
         }
@@ -77,8 +72,7 @@ class _UnorderedPageState extends State<UnorderedPage>
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 ||
-                          DateTime.now().hour == 1 && DateTime.now().minute == 0
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
                       ? 1
                       : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
@@ -86,11 +80,10 @@ class _UnorderedPageState extends State<UnorderedPage>
 
       if (!DateTime.utc(DateTime.now().year, DateTime.now().month)
           .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
+        context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
         context
-            .read<MonthDateCubit>()
-            .update(DateTime.utc(DateTime.now().year, DateTime.now().month));
-        context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(
-            date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
+            .read<MonthlyTodoBloc>()
+            .add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
       }
     }
   }
@@ -111,9 +104,8 @@ class _UnorderedPageState extends State<UnorderedPage>
             child: FutureTodoTile(
               todo: todo,
               focusNode: focusNode,
-              expandable: todo.index + 1 == list.length
-                  ? false
-                  : list[todo.index + 1].indented > todo.indented,
+              expandable:
+                  todo.index + 1 == list.length ? false : list[todo.index + 1].indented > todo.indented,
               textController: controller,
             ))
     ];
@@ -146,8 +138,7 @@ class _UnorderedPageState extends State<UnorderedPage>
             SizedBox(width: Centre.safeBlockHorizontal * (3 + 7 * indents)),
             Text(
               ' \u2022 ',
-              style: Centre.todoSemiTitle
-                  .copyWith(fontSize: Centre.safeBlockHorizontal * 10),
+              style: Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 10),
             ),
             Expanded(
                 child: TextFormField(
@@ -170,9 +161,7 @@ class _UnorderedPageState extends State<UnorderedPage>
                     FocusScope.of(context).unfocus();
                     context.read<FutureTodoBloc>().add(FutureTodoCreate(
                         event: FutureTodo(
-                            indented: indents,
-                            text: addingTodoTextController.text,
-                            index: index)));
+                            indented: indents, text: addingTodoTextController.text, index: index)));
                     context.read<TodoRecentlyAddedCubit>().update([index, 0]);
 
                     addingTodoTextController.clear();
@@ -182,8 +171,7 @@ class _UnorderedPageState extends State<UnorderedPage>
                       borderRadius: BorderRadius.circular(40),
                       border: Border.all(color: Centre.secondaryColor),
                     ),
-                    margin: EdgeInsets.symmetric(
-                        horizontal: Centre.safeBlockHorizontal * 2),
+                    margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
                     child: Icon(
                       Icons.check,
@@ -201,8 +189,7 @@ class _UnorderedPageState extends State<UnorderedPage>
                       borderRadius: BorderRadius.circular(40),
                       border: Border.all(color: Centre.red),
                     ),
-                    margin: EdgeInsets.symmetric(
-                        horizontal: Centre.safeBlockHorizontal * 2),
+                    margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
                     child: Icon(
                       Icons.delete,
@@ -231,12 +218,10 @@ class _UnorderedPageState extends State<UnorderedPage>
           FocusScope.of(context).unfocus();
           context.read<TodoTextEditingCubit>().update(null);
         },
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: Centre.safeBlockHorizontal * 7,
-                vertical: Centre.safeBlockVertical * 3),
+                horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
             child: Column(
               children: [
                 Row(
@@ -250,16 +235,14 @@ class _UnorderedPageState extends State<UnorderedPage>
                     ),
                     GestureDetector(
                       onTap: () {
-                        if (!(reorderablesList.indexWhere((Widget widget) =>
-                                widget.key == ValueKey(12345)) !=
+                        if (!(reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
                             -1)) {
                           context.read<TodoTileAddCubit>().update([0, 0, 0]);
                         }
                       },
                       child: Container(
                         margin: EdgeInsets.only(
-                            left: Centre.safeBlockHorizontal,
-                            right: Centre.safeBlockHorizontal * 2),
+                            left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
                         padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(40),
@@ -284,8 +267,7 @@ class _UnorderedPageState extends State<UnorderedPage>
                       onTap: () {
                         context.read<ToggleTodoEditingCubit>().toggle();
                         context.read<TodoTextEditingCubit>().update(null);
-                        if (reorderablesList.indexWhere((Widget widget) =>
-                                widget.key == ValueKey(12345)) !=
+                        if (reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
                             -1) {
                           animController.reverse();
                         }
@@ -293,15 +275,11 @@ class _UnorderedPageState extends State<UnorderedPage>
                       child: BlocBuilder<ToggleTodoEditingCubit, bool>(
                           builder: (context, editingState) => Container(
                                 margin: EdgeInsets.only(
-                                    left: Centre.safeBlockHorizontal,
-                                    right: Centre.safeBlockHorizontal * 2),
-                                padding:
-                                    EdgeInsets.all(Centre.safeBlockHorizontal),
+                                    left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+                                padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(40),
-                                  color: editingState
-                                      ? Centre.primaryColor
-                                      : Centre.lighterBgColor,
+                                  color: editingState ? Centre.primaryColor : Centre.lighterBgColor,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Centre.darkerBgColor,
@@ -313,9 +291,7 @@ class _UnorderedPageState extends State<UnorderedPage>
                                 ),
                                 child: Icon(
                                   Icons.edit,
-                                  color: editingState
-                                      ? Centre.lighterBgColor
-                                      : Centre.primaryColor,
+                                  color: editingState ? Centre.lighterBgColor : Centre.primaryColor,
                                   size: Centre.safeBlockHorizontal * 8,
                                 ),
                               )),
@@ -335,37 +311,31 @@ class _UnorderedPageState extends State<UnorderedPage>
           Expanded(
             child: MultiBlocListener(
                 listeners: [
-                  BlocListener<TodoTileAddCubit, List<int>>(
-                      listener: ((context, state) {
+                  BlocListener<TodoTileAddCubit, List<int>>(listener: ((context, state) {
                     if (state[2] == 1) {
                       reorderablesList.removeAt(state[0]);
                     } else {
-                      reorderablesList.insert(
-                          state[0], addingTodoTile(state[0], state[1]));
+                      reorderablesList.insert(state[0], addingTodoTile(state[0], state[1]));
                       animController.value = 0.0;
                       controller.clear();
                     }
                   })),
-                  BlocListener<FutureTodoBloc, FutureTodoState>(
-                      listener: ((notUsedContext, state) {
+                  BlocListener<FutureTodoBloc, FutureTodoState>(listener: ((notUsedContext, state) {
                     reorderableTodos(state.futureList);
                   })),
                 ],
                 child: BlocBuilder<TodoTextEditingCubit, int?>(
                     buildWhen: (previous, current) {
-                      return reorderablesList.indexWhere((Widget widget) =>
-                                  widget.key == ValueKey(12345)) !=
+                      return reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
                               -1 &&
                           current != null;
                       // If an addingTile exists but another tile is also about to be edited, remove the adding tile
                     },
-                    builder: (tcontext, textEditingState) => BlocBuilder<
-                            TodoTileAddCubit, List<int>>(
+                    builder: (tcontext, textEditingState) => BlocBuilder<TodoTileAddCubit, List<int>>(
                         builder: (tcontext, tileAddState) =>
-                            BlocBuilder<FutureTodoBloc, FutureTodoState>(
-                                builder: (tcontext, state) {
-                              if (reorderablesList.indexWhere((Widget widget) =>
-                                      widget.key == ValueKey(12345)) !=
+                            BlocBuilder<FutureTodoBloc, FutureTodoState>(builder: (tcontext, state) {
+                              if (reorderablesList
+                                      .indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
                                   -1) {
                                 // Adding tile exists
                                 if (textEditingState != null) {
@@ -381,89 +351,63 @@ class _UnorderedPageState extends State<UnorderedPage>
                                       scrollController: scrollController,
                                       children: reorderablesList,
                                       onReorderStart: (index) {
-                                        context.read<ExpandableBloc>().add(
-                                            ExpandableUpdate(
-                                                context
-                                                    .read<FutureTodoBloc>()
-                                                    .state
-                                                    .futureList,
-                                                index,
-                                                false));
+                                        context.read<ExpandableBloc>().add(ExpandableUpdate(
+                                            context.read<FutureTodoBloc>().state.futureList, index, false));
                                       },
                                       onReorder: (int old, int news) {
-                                        List<FutureTodo> oldList =
-                                            state.futureList;
-                                        List<FutureTodo> todosMoved = [
-                                          oldList[old]
-                                        ];
+                                        List<FutureTodo> oldList = state.futureList;
+                                        List<FutureTodo> todosMoved = [oldList[old]];
 
                                         // First todo in the todosMoved list is the ROOT todo of the tree that was picked up and dragged
 
                                         // Add the rest of the todos that are part of the root's tree
                                         int i = old + 1;
                                         while (i < oldList.length &&
-                                            oldList[old].indented <
-                                                oldList[i].indented) {
+                                            oldList[old].indented < oldList[i].indented) {
                                           todosMoved.add(oldList[i]);
 
                                           i++;
                                         }
 
                                         // Correct the new index
-                                        if (old < news)
-                                          news -= todosMoved.length;
+                                        if (old < news) news -= todosMoved.length;
 
                                         // Remove the tree and place it where it was dragged
-                                        oldList.removeRange(
-                                            old, old + todosMoved.length);
+                                        oldList.removeRange(old, old + todosMoved.length);
                                         oldList.insertAll(news, todosMoved);
 
                                         // Update the index attribute of each FutureTodo
-                                        for (int i = 0;
-                                            i < oldList.length;
-                                            i++) {
+                                        for (int i = 0; i < oldList.length; i++) {
                                           oldList[i].changeIndex(i);
                                         }
 
                                         // Update the indentation
-                                        int rootIndentation =
-                                            todosMoved[0].indented;
+                                        int rootIndentation = todosMoved[0].indented;
 
-                                        if (news == 0 ||
-                                            news + todosMoved.length - 1 ==
-                                                oldList.length - 1) {
+                                        if (news == 0 || news + todosMoved.length - 1 == oldList.length - 1) {
                                           // If at the top or bottom, default to no indentation
                                           if (rootIndentation != 0) {
-                                            for (int i = 0;
-                                                i < todosMoved.length;
-                                                i++) {
-                                              oldList[news + i].changeIndent(
-                                                  todosMoved[i].indented -
-                                                      rootIndentation);
+                                            for (int i = 0; i < todosMoved.length; i++) {
+                                              oldList[news + i]
+                                                  .changeIndent(todosMoved[i].indented - rootIndentation);
                                             }
                                           }
                                         } else {
                                           // In every other case, matches the indentation of the next item (outside of the group if moving a group of todos)
                                           int nextItemIndentation =
-                                              oldList[news + todosMoved.length]
-                                                  .indented;
+                                              oldList[news + todosMoved.length].indented;
 
-                                          if (rootIndentation !=
-                                              nextItemIndentation) {
-                                            for (int i = 0;
-                                                i < todosMoved.length;
-                                                i++) {
-                                              oldList[news + i].changeIndent(
-                                                  todosMoved[i].indented +
-                                                      (nextItemIndentation -
-                                                          rootIndentation));
+                                          if (rootIndentation != nextItemIndentation) {
+                                            for (int i = 0; i < todosMoved.length; i++) {
+                                              oldList[news + i].changeIndent(todosMoved[i].indented +
+                                                  (nextItemIndentation - rootIndentation));
                                             }
                                           }
                                         }
 
-                                        context.read<FutureTodoBloc>().add(
-                                            FutureTodoListUpdate(
-                                                eventList: oldList));
+                                        context
+                                            .read<FutureTodoBloc>()
+                                            .add(FutureTodoListUpdate(eventList: oldList));
                                       }));
                             })))),
           ),

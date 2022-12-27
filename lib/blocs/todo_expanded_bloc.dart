@@ -45,13 +45,9 @@ class ExpandableBloc extends Bloc<ExpandableEvent, ExpandableState> {
 
       if (indexTapped != null) {
         for (int i = indexTapped + 1;
-            i < event.todoList.length &&
-                event.todoList[indexTapped].indented <
-                    event.todoList[i].indented;
+            i < event.todoList.length && event.todoList[indexTapped].indented < event.todoList[i].indented;
             i++) {
-          if (event.expanding &&
-              event.todoList[i].indented ==
-                  event.todoList[indexTapped].indented + 1) {
+          if (event.expanding && event.todoList[i].indented == event.todoList[indexTapped].indented + 1) {
             toBeExpandedCollapsedIndexes.add(i);
           } else if (!event.expanding) {
             toBeExpandedCollapsedIndexes.add(i);

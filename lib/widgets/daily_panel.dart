@@ -43,7 +43,8 @@ class DailyPanel extends StatelessWidget {
                         builder: (BuildContext tcontext) {
                           return BlocProvider.value(
                             value: context.read<UnfinishedListBloc>(),
-                            child: DeleteConfirmationDialog(type: DeletingFrom.unfinishedList, event: list[index]),
+                            child: DeleteConfirmationDialog(
+                                type: DeletingFrom.unfinishedList, event: list[index]),
                           );
                         });
                   },
@@ -84,7 +85,8 @@ class DailyPanel extends StatelessWidget {
                                                 minute: list[index].end.toLocal().minute))),
                                   ),
                                   BlocProvider<ColorCubit>(
-                                    create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                                    create: (_) =>
+                                        ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
                                   ),
                                   BlocProvider.value(value: context.read<DateCubit>()),
                                   BlocProvider.value(value: context.read<TodoBloc>()),
@@ -119,7 +121,8 @@ class DailyPanel extends StatelessWidget {
                                             minute: list[index].end.toLocal().minute))),
                                   ),
                                   BlocProvider<ColorCubit>(
-                                    create: (_) => ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                                    create: (_) =>
+                                        ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
                                   ),
                                   BlocProvider.value(value: context.read<DateCubit>()),
                                   BlocProvider.value(value: context.read<TodoBloc>()),

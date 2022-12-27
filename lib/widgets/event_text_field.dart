@@ -10,8 +10,8 @@ class EventNameTextField extends StatefulWidget {
 }
 
 class _EventNameTextFieldState extends State<EventNameTextField> {
-  OutlineInputBorder border =
-      OutlineInputBorder(borderSide: const BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(5));
+  OutlineInputBorder border = OutlineInputBorder(
+      borderSide: const BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(5));
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -34,7 +34,8 @@ class _EventNameTextFieldState extends State<EventNameTextField> {
             style: Centre.dialogText.copyWith(fontSize: Centre.safeBlockHorizontal * 5),
             decoration: InputDecoration(
               hintText: "Event name",
-              hintStyle: Centre.dialogText.copyWith(color: Colors.grey, fontSize: Centre.safeBlockHorizontal * 5),
+              hintStyle:
+                  Centre.dialogText.copyWith(color: Colors.grey, fontSize: Centre.safeBlockHorizontal * 5),
               border: border,
               focusedBorder: border,
               enabledBorder: border,

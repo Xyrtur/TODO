@@ -92,8 +92,7 @@ class _TodoPagesState extends State<TodoPages> {
                     MultiBlocProvider(
                         providers: [
                           BlocProvider<FutureTodoBloc>(
-                            create: (BuildContext context) =>
-                                FutureTodoBloc(context.read<HiveRepository>()),
+                            create: (BuildContext context) => FutureTodoBloc(context.read<HiveRepository>()),
                           ),
                           BlocProvider<ToggleTodoEditingCubit>(
                             create: (_) => ToggleTodoEditingCubit(),
@@ -160,8 +159,7 @@ class _TodoPagesState extends State<TodoPages> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }

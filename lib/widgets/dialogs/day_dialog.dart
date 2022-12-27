@@ -95,7 +95,8 @@ class DayDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(left: Centre.safeBlockHorizontal * 4, right: Centre.safeBlockHorizontal * 3),
+              margin: EdgeInsets.only(
+                  left: Centre.safeBlockHorizontal * 4, right: Centre.safeBlockHorizontal * 3),
               height: Centre.safeBlockVertical * 3.5,
               width: Centre.safeBlockVertical * 3.5,
               child: SvgPicture.asset(
@@ -118,7 +119,8 @@ class DayDialog extends StatelessWidget {
                 margin: EdgeInsets.only(top: Centre.safeBlockVertical * 0.5),
                 padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                 decoration: BoxDecoration(
-                    color: Centre.lighterDialogColor, borderRadius: const BorderRadius.all(Radius.circular(4))),
+                    color: Centre.lighterDialogColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(4))),
                 height: Centre.safeBlockHorizontal * 6,
                 child: Center(
                   child: Text(
@@ -158,7 +160,8 @@ class DayDialog extends StatelessWidget {
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: state.monthlyMaps[date.monthlyMapDayIndex(currentMonth: currentMonth)].values
+                        children: state
+                            .monthlyMaps[date.monthlyMapDayIndex(currentMonth: currentMonth)].values
                             .toList()
                             .map((event) => GestureDetector(
                                 onTap: () => showDialog(
@@ -189,18 +192,21 @@ class DayDialog extends StatelessWidget {
                                                       ),
                                                       BlocProvider<CalendarTypeCubit>(
                                                         create: (_) => CalendarTypeCubit(event.fullDay &&
-                                                                !event.start.isSameDate(other: event.end, daily: false)
+                                                                !event.start.isSameDate(
+                                                                    other: event.end, daily: false)
                                                             ? CalendarType.ranged
                                                             : CalendarType.single),
                                                       ),
                                                       BlocProvider<DialogDatesCubit>(
                                                           create: (_) => DialogDatesCubit(event.fullDay &&
-                                                                  !event.start
-                                                                      .isSameDate(other: event.end, daily: false)
+                                                                  !event.start.isSameDate(
+                                                                      other: event.end, daily: false)
                                                               ? [event.start.toLocal(), event.end.toLocal()]
                                                               : [event.start.toLocal()])),
-                                                      BlocProvider(create: (_) => CheckboxCubit(event.fullDay)),
-                                                      BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                                      BlocProvider(
+                                                          create: (_) => CheckboxCubit(event.fullDay)),
+                                                      BlocProvider.value(
+                                                          value: context.read<MonthlyTodoBloc>()),
                                                       BlocProvider.value(value: context.read<DateCubit>()),
                                                     ],
                                                     child: AddEventDialog.monthly(

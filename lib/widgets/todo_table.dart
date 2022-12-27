@@ -16,8 +16,7 @@ class TodoTable extends StatelessWidget {
       List<Widget> schedBlockList = [];
 
       Duration localTimeDiff =
-          DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0)
-              .timeZoneOffset;
+          DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0).timeZoneOffset;
 
       // Marks whether or not going through the events has passed 1600 yet or not
       // We only want to make the checks once
@@ -35,7 +34,8 @@ class TodoTable extends StatelessWidget {
           // Creates two schedule blocks for one event, one block for each side of the table
 
           // Want to know which block is larger, the block before 1600 or after to see which block displays the event text
-          bool firstBlockLarger = mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
+          bool firstBlockLarger =
+              mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
 
           // Only wrap the split schedule blocks with the cubit so that dragging one also affects the other
           schedBlockList.add(BlocBuilder<DraggingSplitBlockCubit, bool>(
@@ -89,7 +89,8 @@ class ScheduleBlock extends StatelessWidget {
   bool firstBlockLarger;
 
   double topOfTable = Centre.safeBlockVertical * 16.2;
-  double middleOfTableWithBlockOffset = Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2;
+  double middleOfTableWithBlockOffset =
+      Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +158,8 @@ class ScheduleBlock extends StatelessWidget {
                                   minute: (actualEvent ?? event).end.toLocal().minute))),
                         ),
                         BlocProvider<ColorCubit>(
-                          create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
+                          create: (_) =>
+                              ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
                         ),
                         BlocProvider.value(value: context.read<DateCubit>()),
                         BlocProvider.value(value: context.read<TodoBloc>()),
@@ -201,8 +203,7 @@ class ScheduleBlock extends StatelessWidget {
         },
         onDragEnd: (drag) {
           Duration localTimeDiff =
-              DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
-                  .timeZoneOffset;
+              DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0).timeZoneOffset;
           double height = Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
 
@@ -226,8 +227,8 @@ class ScheduleBlock extends StatelessWidget {
 
           // Get the start and end times from the position the block was dragged to
           DateTime start = currentDate.add(Duration(
-              minutes:
-                  (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
+              minutes: (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0))
+                  .round()));
           // Hive repository expects that when todo's are being created/updated, for the DateTime to be UTC
           // and for the hours that were added to be in local hours
           // Usually this means currentDate would give isUTC = true and then if we wanted 7am local time, we would add 7 hours and give that to the repo
@@ -246,7 +247,9 @@ class ScheduleBlock extends StatelessWidget {
             if (v.key == (actualEvent?.key ?? event.key)) continue;
             if (start.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
                 end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
-                start.subtract(localTimeDiff).enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
+                start
+                    .subtract(localTimeDiff)
+                    .enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
               return;
             }
           }
@@ -274,15 +277,14 @@ class ScheduleBlock extends StatelessWidget {
             if (context.read<ToggleChecklistEditingCubit>().state) {
               showDailyDialog();
             } else {
-              (actualEvent ?? event).start = (actualEvent ?? event).start.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
-                      .timeZoneOffset);
-              (actualEvent ?? event).end = (actualEvent ?? event).end.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day, 7,0)
-                      .timeZoneOffset);
-              context
-                  .read<TodoBloc>()
-                  .add(TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));
+              (actualEvent ?? event).start = (actualEvent ?? event)
+                  .start
+                  .add(DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0).timeZoneOffset);
+              (actualEvent ?? event).end = (actualEvent ?? event)
+                  .end
+                  .add(DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0).timeZoneOffset);
+              context.read<TodoBloc>().add(
+                  TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));
             }
           },
           child: !(dragging ?? false)

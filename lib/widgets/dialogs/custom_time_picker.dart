@@ -250,7 +250,8 @@ class _HourMinuteControl extends StatelessWidget {
             width: Centre.safeBlockHorizontal),
         borderRadius: const BorderRadius.all(Radius.circular(4)));
 
-    final Set<MaterialState> states = isSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
+    final Set<MaterialState> states =
+        isSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
     return SizedBox(
       height: _kTimePickerHeaderControlHeight,
       child: Material(
@@ -378,7 +379,8 @@ class _StringFragment extends StatelessWidget {
         child: Center(
           child: Text(
             _stringFragmentValue(timeOfDayFormat),
-            style: hourMinuteStyle.apply(color: MaterialStateProperty.resolveAs(textColor, <MaterialState>{})),
+            style:
+                hourMinuteStyle.apply(color: MaterialStateProperty.resolveAs(textColor, <MaterialState>{})),
             textScaleFactor: 1.0,
           ),
         ),
@@ -511,10 +513,13 @@ class _DayPeriodControl extends StatelessWidget {
               : Colors.transparent;
         });
     final bool amSelected = selectedTime.period == DayPeriod.am;
-    final Set<MaterialState> amStates = amSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
+    final Set<MaterialState> amStates =
+        amSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
     final bool pmSelected = !amSelected;
-    final Set<MaterialState> pmStates = pmSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
-    final TextStyle textStyle = timePickerTheme.dayPeriodTextStyle ?? Theme.of(context).textTheme.titleMedium!;
+    final Set<MaterialState> pmStates =
+        pmSelected ? <MaterialState>{MaterialState.selected} : <MaterialState>{};
+    final TextStyle textStyle =
+        timePickerTheme.dayPeriodTextStyle ?? Theme.of(context).textTheme.titleMedium!;
     final TextStyle amStyle = textStyle.copyWith(
       color: MaterialStateProperty.resolveAs(textColor, amStates),
     );
@@ -1130,7 +1135,8 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
     TimeOfDay(hour: 22, minute: 0),
   ];
 
-  _TappableLabel _buildTappableLabel(TextTheme textTheme, Color color, int value, String label, VoidCallback onTap) {
+  _TappableLabel _buildTappableLabel(
+      TextTheme textTheme, Color color, int value, String label, VoidCallback onTap) {
     final TextStyle style = Centre.dialogText;
     final double labelScaleFactor = math.min(MediaQuery.of(context).textScaleFactor, 2.0);
     return _TappableLabel(
@@ -1204,8 +1210,9 @@ class _DialState extends State<_Dial> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final TimePickerThemeData pickerTheme = TimePickerTheme.of(context);
-    final Color primaryLabelColor = MaterialStateProperty.resolveAs(pickerTheme.dialTextColor, <MaterialState>{}) ??
-        themeData.colorScheme.onSurface;
+    final Color primaryLabelColor =
+        MaterialStateProperty.resolveAs(pickerTheme.dialTextColor, <MaterialState>{}) ??
+            themeData.colorScheme.onSurface;
     final Color secondaryLabelColor =
         MaterialStateProperty.resolveAs(pickerTheme.dialTextColor, <MaterialState>{MaterialState.selected}) ??
             themeData.colorScheme.onPrimary;
@@ -1421,7 +1428,8 @@ class _TimePickerInputState extends State<_TimePickerInput> with RestorationMixi
         MaterialLocalizations.of(context).timeOfDayFormat(alwaysUse24HourFormat: media.alwaysUse24HourFormat);
     final bool use24HourDials = hourFormat(of: timeOfDayFormat) != HourFormat.h;
     final ThemeData theme = Theme.of(context);
-    final TextStyle hourMinuteStyle = TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.displayMedium!;
+    final TextStyle hourMinuteStyle =
+        TimePickerTheme.of(context).hourMinuteTextStyle ?? theme.textTheme.displayMedium!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -1500,7 +1508,8 @@ class _TimePickerInputState extends State<_TimePickerInput> with RestorationMixi
                           if (!hourHasError.value && !minuteHasError.value)
                             ExcludeSemantics(
                               child: Text(
-                                widget.minuteLabelText ?? MaterialLocalizations.of(context).timePickerMinuteLabel,
+                                widget.minuteLabelText ??
+                                    MaterialLocalizations.of(context).timePickerMinuteLabel,
                                 style: theme.textTheme.caption,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1705,7 +1714,8 @@ class _HourMinuteTextFieldState extends State<_HourMinuteTextField> with Restora
         errorStyle: const TextStyle(fontSize: 0.0, height: 0.0),
       );
     }
-    final Color unfocusedFillColor = timePickerTheme.hourMinuteColor ?? colorScheme.onSurface.withOpacity(0.12);
+    final Color unfocusedFillColor =
+        timePickerTheme.hourMinuteColor ?? colorScheme.onSurface.withOpacity(0.12);
     // If screen reader is in use, make the hint text say hours/minutes.
     // Otherwise, remove the hint text when focused because the centered cursor
     // appears odd above the hint text.
@@ -1716,7 +1726,8 @@ class _HourMinuteTextFieldState extends State<_HourMinuteTextField> with Restora
             : (focusNode.hasFocus ? null : _formattedValue);
     inputDecoration = inputDecoration.copyWith(
       hintText: hintText,
-      fillColor: focusNode.hasFocus ? Colors.transparent : inputDecorationTheme?.fillColor ?? unfocusedFillColor,
+      fillColor:
+          focusNode.hasFocus ? Colors.transparent : inputDecorationTheme?.fillColor ?? unfocusedFillColor,
     );
 
     return SizedBox(
@@ -1947,10 +1958,12 @@ class _RestorableTimePickerModeN extends RestorableValue<_TimePickerMode?> {
 }
 
 class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMixin {
-  late final _RestorableTimePickerEntryMode _entryMode = _RestorableTimePickerEntryMode(widget.initialEntryMode);
+  late final _RestorableTimePickerEntryMode _entryMode =
+      _RestorableTimePickerEntryMode(widget.initialEntryMode);
   final _RestorableTimePickerMode _mode = _RestorableTimePickerMode(_TimePickerMode.hour);
   final _RestorableTimePickerModeN _lastModeAnnounced = _RestorableTimePickerModeN(null);
-  final _RestorableAutovalidateMode _autovalidateMode = _RestorableAutovalidateMode(AutovalidateMode.disabled);
+  final _RestorableAutovalidateMode _autovalidateMode =
+      _RestorableAutovalidateMode(AutovalidateMode.disabled);
   final RestorableBoolN _autofocusHour = RestorableBoolN(null);
   final RestorableBoolN _autofocusMinute = RestorableBoolN(null);
   final RestorableBool _announcedInitialTime = RestorableBool(false);
@@ -2118,17 +2131,17 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
       }
     }
     if (widget.daily) {
-      Duration localTimeDiff = DateTime(widget.dailyDate!.year, widget.dailyDate!.month, widget.dailyDate!.day,
-              7,0)
-          .timeZoneOffset;
+      Duration localTimeDiff =
+          DateTime(widget.dailyDate!.year, widget.dailyDate!.month, widget.dailyDate!.day, 7, 0)
+              .timeZoneOffset;
       if (!badHour && !badMinute) {
         if (widget.editingEvent == null) {
           DateTime start, end;
           if (widget.startTime == null) {
             // Checking startTime adding event
             for (EventData v in widget.dailyTableMap!.values) {
-              start = widget.dailyDate!
-                  .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
+              start = widget.dailyDate!.add(
+                  Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
               if (start.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
                   start.subtract(localTimeDiff).isAtSameMomentAs(v.start)) {
                 badHour = true;
@@ -2142,15 +2155,17 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
           } else {
             // Check End time and if new event encompasses / encloses an event
             for (EventData v in widget.dailyTableMap!.values) {
-              end = widget.dailyDate!
-                  .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
+              end = widget.dailyDate!.add(
+                  Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
               start = widget.dailyDate!.add(Duration(
                   hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 1
                       ? widget.startTime!.hour + 24
                       : widget.startTime!.hour,
                   minutes: widget.startTime!.minute));
               if (end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
-                  start.subtract(localTimeDiff).enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
+                  start
+                      .subtract(localTimeDiff)
+                      .enclosesOrContains(end.subtract(localTimeDiff), v.start, v.end)) {
                 badHour = true;
                 badMinute = true;
                 setState(() {
@@ -2164,8 +2179,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
           // Editing event!
           if (widget.startTime == null) {
             DateTime start;
-            start = widget.dailyDate!
-                .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
+            start = widget.dailyDate!.add(
+                Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
             int prevEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) - 1;
             int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
             if (prevEventIndex < 0
@@ -2185,9 +2200,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
                 : start
                         .subtract(localTimeDiff)
                         .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start) ||
-                    start
-                        .subtract(localTimeDiff)
-                        .isAtSameMomentAs(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
+                    start.subtract(localTimeDiff).isAtSameMomentAs(
+                        widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
               badHour = true;
               badMinute = true;
               setState(() {
@@ -2198,8 +2212,8 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             }
           } else {
             DateTime end;
-            end = widget.dailyDate!
-                .add(Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
+            end = widget.dailyDate!.add(
+                Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
             int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
             if (nextEventIndex == widget.orderedDailyKeyList!.length
                 ? false

@@ -32,11 +32,8 @@ class SettingsDialog extends StatelessWidget {
             BlocListener<ImportExportBloc, ImportExportState>(
               listener: (context, state) {
                 if (state is ImportFinished) {
-                  context.read<TodoBloc>().add(
-                      TodoDateChange(date: context.read<DateCubit>().state));
-                  context
-                      .read<UnfinishedListBloc>()
-                      .add(const UnfinishedListUpdate());
+                  context.read<TodoBloc>().add(TodoDateChange(date: context.read<DateCubit>().state));
+                  context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     behavior: SnackBarBehavior.floating,
                     backgroundColor: Centre.dialogBgColor,
@@ -63,14 +60,9 @@ class SettingsDialog extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   if (Theme.of(context).platform == TargetPlatform.iOS) {
-                    context
-                        .read<ImportExportBloc>()
-                        .add(const ImportClicked(false));
-                  } else if (Theme.of(context).platform ==
-                      TargetPlatform.android) {
-                    context
-                        .read<ImportExportBloc>()
-                        .add(const ImportClicked(true));
+                    context.read<ImportExportBloc>().add(const ImportClicked(false));
+                  } else if (Theme.of(context).platform == TargetPlatform.android) {
+                    context.read<ImportExportBloc>().add(const ImportClicked(true));
                   }
                 },
                 child: svgButton(
@@ -85,14 +77,9 @@ class SettingsDialog extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 if (Theme.of(context).platform == TargetPlatform.iOS) {
-                  context
-                      .read<ImportExportBloc>()
-                      .add(const ExportClicked(false));
-                } else if (Theme.of(context).platform ==
-                    TargetPlatform.android) {
-                  context
-                      .read<ImportExportBloc>()
-                      .add(const ExportClicked(true));
+                  context.read<ImportExportBloc>().add(const ExportClicked(false));
+                } else if (Theme.of(context).platform == TargetPlatform.android) {
+                  context.read<ImportExportBloc>().add(const ExportClicked(true));
                 }
               },
               child: svgButton(

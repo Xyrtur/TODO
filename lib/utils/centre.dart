@@ -78,10 +78,8 @@ class Centre {
     screenWidth = mediaQueryData.size.width;
     screenHeight = mediaQueryData.size.height;
 
-    safeAreaHorizontal =
-        mediaQueryData.padding.left + mediaQueryData.padding.right;
-    safeAreaVertical =
-        mediaQueryData.padding.top + mediaQueryData.padding.bottom;
+    safeAreaHorizontal = mediaQueryData.padding.left + mediaQueryData.padding.right;
+    safeAreaVertical = mediaQueryData.padding.top + mediaQueryData.padding.bottom;
     safeBlockHorizontal = (screenWidth - safeAreaHorizontal) / 100;
     safeBlockVertical = (screenHeight - safeAreaVertical) / 100;
 

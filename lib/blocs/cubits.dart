@@ -34,8 +34,7 @@ class DateCubit extends Cubit<DateTime> {
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 ||
-                        DateTime.now().hour == 1 && DateTime.now().minute == 0
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
                     ? 1
                     : 0)));
 
@@ -45,10 +44,7 @@ class DateCubit extends Cubit<DateTime> {
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day -
-          (DateTime.now().hour == 0 ||
-                  DateTime.now().hour == 1 && DateTime.now().minute == 0
-              ? 1
-              : 0)));
+          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
 }
 
 /*
@@ -56,8 +52,7 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit()
-      : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
+  MonthDateCubit() : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
   void update(DateTime date) => emit(date);
 }
 
@@ -87,8 +82,7 @@ class CalendarTypeCubit extends Cubit<CalendarType> {
  */
 class DailyMonthlyListCubit extends Cubit<List<EventData>> {
   final HiveRepository hive;
-  DailyMonthlyListCubit(this.hive)
-      : super(hive.dailyMonthlyEventsMap.values.toList());
+  DailyMonthlyListCubit(this.hive) : super(hive.dailyMonthlyEventsMap.values.toList());
   void update() {
     return emit(hive.dailyMonthlyEventsMap.values.toList());
   }
@@ -121,8 +115,7 @@ class TimeRangeState {
 class TimeRangeCubit extends Cubit<TimeRangeState> {
   final TimeRangeState range;
   TimeRangeCubit(this.range) : super(range);
-  void update(TimeOfDay? start, TimeOfDay? end) =>
-      emit(TimeRangeState(start, end));
+  void update(TimeOfDay? start, TimeOfDay? end) => emit(TimeRangeState(start, end));
 }
 
 /*
