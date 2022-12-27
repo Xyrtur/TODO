@@ -231,7 +231,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     ]);
 
     Widget dailyDateColumn =
-        BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
+        BlocBuilder<DateCubit, DateTime>(builder: (unUsedContext, state) {
       return Column(
         children: [
           SizedBox(
@@ -244,15 +244,17 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                       barrierColor: Colors.white.withOpacity(0),
                       followerAnchor: Alignment.topLeft,
                       targetAnchor: Alignment.topLeft,
-                      offset: Offset(Centre.safeBlockHorizontal * 7.5,
-                          Centre.safeBlockVertical),
+                      offset: Offset(Centre.safeBlockHorizontal * 8,
+                          Centre.safeBlockVertical * 4),
                       avoidOverflow: true,
                       context: context,
-                      builder: (BuildContext ycontext) {
+                      builder: (BuildContext unUsedContext) {
                         return MultiBlocProvider(
                           providers: [
                             BlocProvider.value(
                                 value: context.read<ImportExportBloc>()),
+                            BlocProvider.value(
+                                value: context.read<DateCubit>()),
                             BlocProvider.value(value: context.read<TodoBloc>()),
                             BlocProvider.value(
                                 value: context.read<UnfinishedListBloc>())
@@ -292,8 +294,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       Expanded(
         child: BlocListener<TodoBloc, TodoState>(
           listener: (context, state) {
-            if (state.dateChanged)
+            if (state.dateChanged) {
               context.read<DailyMonthlyListCubit>().update();
+            }
           },
           child: dailyDateColumn,
         ),

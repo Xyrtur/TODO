@@ -225,8 +225,10 @@ class MonthCalendar extends StatelessWidget {
 
     // Deals with ranged event collisions
     List<EventData?> tempList = List<EventData?>.filled(7, null);
+    // If not at the beginning of the monthCalen
     if (index != 0) {
       for (EventData? event in monthListCopy[index]) {
+        // If event is ranged and currently not at beginning of the event, match the event with the index it was already assigned previouly
         if (event!.fullDay &&
             !event.start.isSameDate(other: event.end, daily: false) &&
             !dayNum.isSameDate(other: event.start, daily: false)) {
@@ -235,11 +237,13 @@ class MonthCalendar extends StatelessWidget {
       }
     }
     for (EventData? event in monthListCopy[index]) {
+      // If at the beginning of monthCalen OR the event is not ranged OR the event is ranged and are currently at beginning of event
       if (index == 0 ||
           event!.start.isSameDate(other: event.end, daily: false) ||
           event.fullDay &&
               !event.start.isSameDate(other: event.end, daily: false) &&
               dayNum.isSameDate(other: event.start, daily: false)) {
+        // Look for first available spot, if not taken, take it as the future spots at that same index will not be taken
         for (int i = 0; i < 7; i++) {
           if (tempList[i] == null) {
             tempList[i] = event;
@@ -250,6 +254,7 @@ class MonthCalendar extends StatelessWidget {
     }
     monthListCopy[index] = tempList;
 
+    // Creates the event widgets in the list
     List<Widget> eventList = monthListCopy[index].map((event) {
       if (event == null) {
         return SizedBox(
