@@ -173,22 +173,7 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
             },
           )
         ],
-        child:
-
-            // SlidingUpPanel(
-            //   borderRadius: const BorderRadius.only(
-            //       topLeft: Radius.circular(40), topRight: Radius.circular(40)),
-            //   color: Centre.bgColor,
-            //   backdropColor: Centre.colors[9],
-            //   backdropOpacity: 0.3,
-            //   backdropEnabled: true,
-            //   minHeight: 0,
-            //   controller: widget.pc,
-            //   maxHeight: Centre.safeBlockVertical * 54,
-            //   panel: const MonthlyPanel(),
-            //   body:
-
-            Scaffold(
+        child: Scaffold(
           floatingActionButton: fab,
           backgroundColor: Centre.bgColor,
           body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -208,9 +193,6 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
                         .read<HiveRepository>()
                         .getMonthlyEvents(date: DateTime.utc(2020 + (index / 12).floor(), index % 12 + 1));
 
-                    // context.read<MonthlyTodoBloc>().add(MonthlyTodoDateChange(
-                    //     date: DateTime.utc(
-                    //         2020 + (index / 12).floor(), index % 12 + 1)));
                     return MonthCalendar(
                       date: DateTime.utc(2020 + (index / 12).floor(), index % 12 + 1),
                       monthList: context.read<HiveRepository>().thisMonthEventsMaps,
@@ -219,7 +201,6 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
                 ))
           ]),
         ),
-        // ),
       ),
     ));
   }

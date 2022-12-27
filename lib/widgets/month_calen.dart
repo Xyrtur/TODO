@@ -160,7 +160,11 @@ class MonthCalendar extends StatelessWidget {
           child: Text(
             dayNum.day.toString(),
             style: Centre.todoText.copyWith(
-                color: faded
+                color: faded &&
+                        !dayNum.isSameDate(
+                            other:
+                                DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+                            daily: false)
                     ? Colors.grey
                     : dayNum.isSameDate(
                             other:

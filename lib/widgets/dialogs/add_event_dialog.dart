@@ -210,7 +210,7 @@ class AddEventDialog extends StatelessWidget {
         },
         child: svgButton(
             name: name,
-            color: (state == type ? Centre.yellow : Centre.colors[4]),
+            color: (state == type ? Centre.colors[8] : Centre.colors[3]),
             height: 7,
             width: 7,
             padding: EdgeInsets.all(Centre.safeBlockHorizontal),
@@ -523,7 +523,7 @@ class AddEventDialog extends StatelessWidget {
                         height: Centre.safeBlockHorizontal * 6,
                         width: Centre.safeBlockHorizontal * 6,
                         decoration: BoxDecoration(
-                            border: Border.all(width: 2, color: Centre.colors[4]),
+                            border: Border.all(width: 2, color: state ? Centre.colors[8] : Centre.colors[3]),
                             borderRadius: const BorderRadius.all(Radius.circular(3)),
                             color: Colors.transparent),
                         child: state
