@@ -417,7 +417,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(40), topRight: Radius.circular(40)),
           color: Centre.bgColor,
-          backdropColor: Centre.colors[9],
+          backdropColor: Centre.colors[2],
           backdropOpacity: 0.3,
           backdropEnabled: true,
           minHeight: 0,
