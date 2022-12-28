@@ -84,7 +84,7 @@ class SettingsDialog extends StatelessWidget {
               },
               child: svgButton(
                 name: "export",
-                color: Centre.colors[4],
+                color: Centre.yellow,
                 height: 5,
                 width: 5,
                 padding: EdgeInsets.all(Centre.safeBlockHorizontal),

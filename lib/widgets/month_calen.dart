@@ -219,10 +219,10 @@ class MonthCalendar extends StatelessWidget {
     for (EventData? event in monthListCopy[index]) {
       // If at the beginning of monthCalen OR the event is not ranged OR the event is ranged and are currently at beginning of event
       if (index == 0 ||
-          event!.start.isSameDate(other: event.end, daily: false) ||
+          event!.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) ||
           event.fullDay &&
-              !event.start.isSameDate(other: event.end, daily: false) &&
-              dayNum.isSameDate(other: event.start, daily: false)) {
+              !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
+              dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {
         // Look for first available spot, if not taken, take it as the future spots at that same index will not be taken
         for (int i = 0; i < 7; i++) {
           if (tempList[i] == null) {
@@ -242,22 +242,27 @@ class MonthCalendar extends StatelessWidget {
         );
       }
       // If the event is ranged
-      if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
+      if (event.fullDay && !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false)) {
         return Container(
           // Margin and border logic to make the event look seamless across days on the calendar
           margin: EdgeInsets.only(
-              left:
-                  dayNum.isSameDate(other: event.start, daily: false) ? Centre.safeBlockHorizontal * 0.7 : 0,
-              right: dayNum.isSameDate(other: event.end, daily: false) ? Centre.safeBlockHorizontal * 0.7 : 0,
+              left: dayNum.isSameDate(other: event.start.toLocal(), daily: false)
+                  ? Centre.safeBlockHorizontal * 0.7
+                  : 0,
+              right: dayNum.isSameDate(other: event.end.toLocal(), daily: false)
+                  ? Centre.safeBlockHorizontal * 0.7
+                  : 0,
               bottom: Centre.safeBlockVertical * 0.3),
           padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
           decoration: BoxDecoration(
               color: Color(event.color),
               borderRadius: BorderRadius.horizontal(
-                left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
+                left: dayNum.isSameDate(other: event.start.toLocal(), daily: false) ||
+                        weekStartingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
-                right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
+                right: dayNum.isSameDate(other: event.end.toLocal(), daily: false) ||
+                        weekEndingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
               )),
