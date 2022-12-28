@@ -284,7 +284,7 @@ class AddEventDialog extends StatelessWidget {
                                         DateTime.now().hour == 1 && DateTime.now().minute <= 59
                                     ? 1
                                     : 0))
-                        : DateTime.utc(monthOrDayDate.year),
+                        : DateTime.utc(monthOrDayDate.year - 1),
                     lastDate: addingFutureTodo
                         ? DateTime.utc(
                                 DateTime.now().year,
