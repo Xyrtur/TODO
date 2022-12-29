@@ -212,10 +212,10 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               child: GestureDetector(
                 onTap: () {
                   showAlignedDialog(
-                      barrierColor: Colors.white.withOpacity(0),
+                      barrierColor: Centre.colors[3].withOpacity(0.2),
                       followerAnchor: Alignment.topLeft,
                       targetAnchor: Alignment.topLeft,
-                      offset: Offset(Centre.safeBlockHorizontal * 8, Centre.safeBlockVertical * 4),
+                      offset: Offset(Centre.safeBlockHorizontal * 6, Centre.safeBlockVertical * 8),
                       avoidOverflow: true,
                       context: context,
                       builder: (BuildContext unUsedContext) {
