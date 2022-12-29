@@ -46,13 +46,6 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
         context.read<DailyMonthlyListCubit>().update();
       }
-      if (!DateTime.utc(DateTime.now().year, DateTime.now().month)
-          .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
-        context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
-        context
-            .read<MonthlyTodoBloc>()
-            .add(MonthlyTodoDateChange(date: DateTime.utc(DateTime.now().year, DateTime.now().month)));
-      }
     }
   }
 

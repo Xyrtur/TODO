@@ -50,11 +50,6 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
         context.read<DailyMonthlyListCubit>().update();
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
       }
-
-      if (!DateTime.utc(DateTime.now().year, DateTime.now().month)
-          .isAtSameMomentAs(context.read<MonthDateCubit>().state)) {
-        context.read<MonthDateCubit>().update(DateTime.utc(DateTime.now().year, DateTime.now().month));
-      }
     }
   }
 

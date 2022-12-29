@@ -72,7 +72,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
   Widget tileBtn({required IconData icon, required Color color, required VoidCallback onTap}) {
     return GestureDetector(
         onTap: () {
-          onTap;
+          onTap();
         },
         child: Container(
           decoration: BoxDecoration(
@@ -98,6 +98,9 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
             if (state.indexesToBeExpandedCollapsed.isNotEmpty) {
               if (state.indexesToBeExpandedCollapsed[0] - 1 == widget.todo.index && !state.expanding) {
                 arrowController.reverse();
+              }
+              if (state.indexesToBeExpandedCollapsed[0] - 1 == widget.todo.index && state.expanding) {
+                arrowController.forward();
               }
               if (state.indexesToBeExpandedCollapsed.contains(widget.todo.index)) {
                 if (state.expanding) {
@@ -146,11 +149,9 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                 if (widget.expandable) {
                   if (arrowController.status == AnimationStatus.dismissed ||
                       arrowController.status == AnimationStatus.reverse) {
-                    arrowController.forward();
                     context.read<ExpandableBloc>().add(ExpandableUpdate(
                         context.read<FutureTodoBloc>().state.futureList, widget.todo.index, true));
                   } else {
-                    arrowController.reverse();
                     context.read<ExpandableBloc>().add(ExpandableUpdate(
                         context.read<FutureTodoBloc>().state.futureList, widget.todo.index, false));
                   }
@@ -186,8 +187,16 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                   widget.todo.indented) {
                             // Once this finishes, update the indentation
                             stillNeedsIndenting = true;
-                            context.read<ExpandableBloc>().add(ExpandableUpdate(
-                                context.read<FutureTodoBloc>().state.futureList, widget.todo.index, true));
+
+                            // Expand the index of the tree parent that the current widget was just indented into
+                            int i = widget.todo.index - 1;
+                            while (context.read<FutureTodoBloc>().state.futureList[i].indented !=
+                                widget.todo.indented) {
+                              i--;
+                            }
+
+                            context.read<ExpandableBloc>().add(
+                                ExpandableUpdate(context.read<FutureTodoBloc>().state.futureList, i, true));
                           }
                         },
                         child: widget.expandable

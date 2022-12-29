@@ -163,7 +163,10 @@ class TodoTileAddCubit extends Cubit<List<int>> {
   TodoTileAddCubit() : super([]);
   // [x,y,z]
   // x = index, y = indents, z = removing
-  void update(List<int> tileInfo) => emit(tileInfo);
+  void update(List<int> tileInfo) {
+    print("updating this shit??");
+    emit(tileInfo);
+  }
 }
 
 class TodoRecentlyAddedCubit extends Cubit<List<int>> {

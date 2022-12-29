@@ -13,7 +13,6 @@ import '../utils/centre.dart';
 class TodoPages extends StatefulWidget {
   TodoPages({super.key});
   final PanelController dailyPc = PanelController();
-  final PanelController monthlyPc = PanelController();
 
   @override
   State<TodoPages> createState() => _TodoPagesState();
@@ -61,20 +60,12 @@ class _TodoPagesState extends State<TodoPages> {
                     if (widget.dailyPc.isPanelClosed) {
                       widget.dailyPc.open();
                     }
-                  } else if (controller.page == 1) {
-                    if (widget.monthlyPc.isPanelClosed) {
-                      widget.monthlyPc.open();
-                    }
                   }
                 },
                 onSwipeDown: () {
                   if (controller.page == 0) {
                     if (widget.dailyPc.isPanelOpen) {
                       widget.dailyPc.close();
-                    }
-                  } else {
-                    if (widget.monthlyPc.isPanelOpen) {
-                      widget.monthlyPc.close();
                     }
                   }
                 },
