@@ -16,6 +16,7 @@ class DailyPage extends StatefulWidget {
 
 class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   bool isDialogOpen = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,18 +32,34 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
+      DateTime onDate = context.read<DateCubit>().state;
       if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
               DateTime.now().minute)
-          .isAfter(context.read<DateCubit>().state.add(const Duration(hours: 25)))) {
-        context.read<DateCubit>().setToCurrentDayOnResume();
-        context.read<TodoBloc>().add(TodoDateChange(
-            date: DateTime.utc(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day -
-                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
-                        ? 1
-                        : 0))));
+          .isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
+        context.read<FirstDailyDateBtnCubit>().update(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                    ? 1
+                    : 0)));
+        if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
+                DateTime.now().minute)
+            .isAfter(onDate)) {
+          context.read<DateCubit>().setToCurrentDayOnResume();
+          context.read<TodoBloc>().add(TodoDateChange(
+              date: DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                          ? 1
+                          : 0))));
+        } else {
+          // Make sure daily date buttons update
+          context.read<DateCubit>().changeDay(DateTime.utc(onDate.year, onDate.month, onDate.day));
+        }
+
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
         context.read<DailyMonthlyListCubit>().update();
       }
@@ -50,55 +67,54 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   }
 
   Widget changeDailyDateBtns() {
-    DateTime todayDate = DateTime.utc(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day -
-            (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0));
-    return BlocBuilder<DateCubit, DateTime>(
-        builder: (context, state) => Padding(
-              padding: EdgeInsets.only(top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
-              child: Row(
-                children: [
-                  for (int day = 0; day < 5; day++)
-                    GestureDetector(
-                      onTap: () {
-                        context.read<DateCubit>().changeDay(todayDate.add(Duration(days: day)));
-                        context
-                            .read<TodoBloc>()
-                            .add(TodoDateChange(date: todayDate.add(Duration(days: day))));
-                      },
-                      child: Container(
-                          height: Centre.safeBlockHorizontal * 10,
-                          width: Centre.safeBlockHorizontal * 10,
-                          margin: EdgeInsets.only(
-                              left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
-                          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            border: todayDate.add(Duration(days: day)).isAtSameMomentAs(state)
-                                ? Border.all(color: Centre.primaryColor)
-                                : null,
-                            color: Centre.lighterBgColor,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Centre.darkerBgColor,
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              DateFormat('E').format(todayDate.add(Duration(days: day)))[0],
-                              style: Centre.titleDialogText.copyWith(color: Centre.primaryColor),
-                            ),
-                          )),
-                    )
-                ],
-              ),
-            ));
+    return BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
+      DateTime todayDate = DateTime.utc(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day -
+              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0));
+      return Padding(
+        padding: EdgeInsets.only(top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
+        child: Row(
+          children: [
+            for (int day = 0; day < 5; day++)
+              GestureDetector(
+                onTap: () {
+                  context.read<DateCubit>().changeDay(todayDate.add(Duration(days: day)));
+                  context.read<TodoBloc>().add(TodoDateChange(date: todayDate.add(Duration(days: day))));
+                },
+                child: Container(
+                    height: Centre.safeBlockHorizontal * 10,
+                    width: Centre.safeBlockHorizontal * 10,
+                    margin: EdgeInsets.only(
+                        left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+                    padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      border: todayDate.add(Duration(days: day)).isAtSameMomentAs(state)
+                          ? Border.all(color: Centre.primaryColor)
+                          : null,
+                      color: Centre.lighterBgColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Centre.darkerBgColor,
+                          spreadRadius: 5,
+                          blurRadius: 7,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        DateFormat('E').format(todayDate.add(Duration(days: day)))[0],
+                        style: Centre.titleDialogText.copyWith(color: Centre.primaryColor),
+                      ),
+                    )),
+              )
+          ],
+        ),
+      );
+    });
   }
 
   @override

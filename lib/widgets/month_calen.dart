@@ -219,7 +219,8 @@ class MonthCalendar extends StatelessWidget {
     for (EventData? event in monthListCopy[index]) {
       // If at the beginning of monthCalen OR the event is not ranged OR the event is ranged and are currently at beginning of event
       if (index == 0 ||
-          event!.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) ||
+          !event!.fullDay ||
+          event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) ||
           event.fullDay &&
               !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
               dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {

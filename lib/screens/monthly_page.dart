@@ -35,20 +35,36 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
+      DateTime onDate = context.read<DateCubit>().state;
       if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
               DateTime.now().minute)
-          .isAfter(context.read<DateCubit>().state.add(const Duration(hours: 25)))) {
-        context.read<DateCubit>().setToCurrentDayOnResume();
-        context.read<TodoBloc>().add(TodoDateChange(
-            date: DateTime.utc(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day -
-                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
-                        ? 1
-                        : 0))));
-        context.read<DailyMonthlyListCubit>().update();
+          .isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
+        context.read<FirstDailyDateBtnCubit>().update(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                    ? 1
+                    : 0)));
+        if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
+                DateTime.now().minute)
+            .isAfter(onDate)) {
+          context.read<DateCubit>().setToCurrentDayOnResume();
+          context.read<TodoBloc>().add(TodoDateChange(
+              date: DateTime.utc(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day -
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                          ? 1
+                          : 0))));
+        } else {
+          // Make sure daily date buttons update
+          context.read<DateCubit>().changeDay(DateTime.utc(onDate.year, onDate.month, onDate.day));
+        }
+
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
+        context.read<DailyMonthlyListCubit>().update();
       }
     }
   }

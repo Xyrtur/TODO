@@ -52,6 +52,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 BlocProvider<DateCubit>(
                   create: (_) => DateCubit(),
                 ),
+                BlocProvider<FirstDailyDateBtnCubit>(
+                  create: (_) => FirstDailyDateBtnCubit(),
+                ),
                 BlocProvider<ImportExportBloc>(
                   create: (context) => ImportExportBloc(context.read<HiveRepository>()),
                 ),

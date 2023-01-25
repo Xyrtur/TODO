@@ -61,7 +61,9 @@ class AddEventDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.read<TimeRangeCubit>().state.endResult != null && !fromDailyMonthlyList) {
+    if (context.read<TimeRangeCubit>().state.endResult != null &&
+        !fromDailyMonthlyList &&
+        !fromUnfinishedList) {
       editedTimes = true;
     }
     // Only if adding to monthly or from unordered page does the user set dates for the event
@@ -245,7 +247,7 @@ class AddEventDialog extends StatelessWidget {
       ),
     );
 
-    // Button to select the dates an`d the text widgets that show the chosen dates
+    // Button to select the dates and the text widgets that show the chosen dates
     List<Widget> calendarPickerRow = [
       !daily || addingFutureTodo
           ? GestureDetector(
@@ -479,7 +481,7 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? fromDailyMonthlyList && !editedTimes
+                              ? (fromDailyMonthlyList || fromUnfinishedList) && !editedTimes
                                   ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
                                   : Centre.dialogText
                               : Centre.dialogText
@@ -490,7 +492,7 @@ class AddEventDialog extends StatelessWidget {
                               ? ""
                               : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
                           style: daily
-                              ? fromDailyMonthlyList && !editedTimes
+                              ? (fromDailyMonthlyList || fromUnfinishedList) && !editedTimes
                                   ? Centre.dialogText.copyWith(color: Centre.lighterDialogColor)
                                   : Centre.dialogText
                               : Centre.dialogText
@@ -662,12 +664,18 @@ class AddEventDialog extends StatelessWidget {
         }
         TimeOfDay start = context.read<TimeRangeCubit>().state.startResult!;
         TimeOfDay end = context.read<TimeRangeCubit>().state.endResult!;
+        DateTime prevDay = DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0) -
+                1);
         EventData newEvent = event!.edit(
             fullDay: false,
-            start: context.read<DateCubit>().state.add(Duration(
+            start: prevDay.add(Duration(
                 hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
                 minutes: start.minute)),
-            end: context.read<DateCubit>().state.add(Duration(
+            end: prevDay.add(Duration(
                 hours: end.hour >= 0 && end.hour <= 2 ? end.hour + 24 : end.hour, minutes: end.minute)),
             color: Centre.colors[context.read<ColorCubit>().state].value,
             text: controller.text,
@@ -1057,6 +1065,7 @@ class AddEventDialog extends StatelessWidget {
         // Pick the end time
         prevChosenStart = startResult;
 
+        // ignore: use_build_context_synchronously
         endResult = await showDialog(
             context: context,
             builder: (BuildContext tcontext) {

@@ -175,3 +175,17 @@ class TodoRecentlyAddedCubit extends Cubit<List<int>> {
   // x = index, y = dealt with: 1 = yes, 0 = no
   void update(List<int> recentInfo) => emit(recentInfo);
 }
+
+class FirstDailyDateBtnCubit extends Cubit<DateTime> {
+  FirstDailyDateBtnCubit()
+      : super(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                    ? 1
+                    : 0)));
+  // [x,y]
+  // x = index, y = dealt with: 1 = yes, 0 = no
+  void update(DateTime date) => emit(date);
+}

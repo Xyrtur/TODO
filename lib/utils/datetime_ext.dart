@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 extension TimeofDayCompare on TimeOfDay {
   bool isBefore({required TimeOfDay end}) {
+    if (hour <= 1 && end.hour >= 7) return false;
+
     if (end.hour == hour) {
       return minute <= end.minute;
     } else {
