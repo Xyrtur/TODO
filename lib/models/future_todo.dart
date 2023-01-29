@@ -9,6 +9,8 @@ class FutureTodo extends HiveObject {
   int indented;
   @HiveField(3)
   int index;
+  @HiveField(6)
+  bool collapsed;
 
 /*
  * Indented: Whether the event is indented by the user (only one indent allowed; Need more? change this implementation)
@@ -16,7 +18,7 @@ class FutureTodo extends HiveObject {
  * Finished: Whether the user has crossed it off or not
  * Index: Where the user put it in the list
  */
-  FutureTodo({required this.indented, required this.text, required this.index});
+  FutureTodo({required this.indented, required this.text, required this.index, required this.collapsed});
 
   FutureTodo changeName(String newText) {
     text = newText;
@@ -30,6 +32,11 @@ class FutureTodo extends HiveObject {
 
   FutureTodo changeIndex(int newIndex) {
     index = newIndex;
+    return this;
+  }
+
+  FutureTodo setCollapsed(bool isCollapsed) {
+    collapsed = isCollapsed;
     return this;
   }
 

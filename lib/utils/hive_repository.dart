@@ -201,6 +201,21 @@ class HiveRepository {
     return deletedTreeIndexes;
   }
 
+  undoDeletedTodo({required FutureTodo todo, required List<int> fixIndentIndices}) {
+    futureTodosHive.add(todo);
+
+    futureList.insert(todo.index, todo);
+    int i = todo.index + 1;
+    while (i < futureList.length) {
+      if (fixIndentIndices.contains(i - 1)) {
+        futureList[i].changeIndent(futureList[i].indented + 1);
+      }
+      futureList[i].changeIndex(i);
+      futureList[i].save();
+      i++;
+    }
+  }
+
   // Add the event to the proper lists/maps
   createEvent(
       {required bool daily,

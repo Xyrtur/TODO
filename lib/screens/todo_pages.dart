@@ -97,9 +97,6 @@ class _TodoPagesState extends State<TodoPages> {
                           BlocProvider<TodoRecentlyAddedCubit>(
                             create: (_) => TodoRecentlyAddedCubit(),
                           ),
-                          BlocProvider<ExpandableBloc>(
-                            create: (context) => ExpandableBloc(),
-                          ),
                         ],
                         child: UnorderedPage(
                           pageController: controller,

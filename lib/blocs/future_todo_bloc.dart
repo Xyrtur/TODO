@@ -30,6 +30,12 @@ class FutureTodoDelete extends FutureTodoEvent {
   const FutureTodoDelete({required this.event});
 }
 
+class FutureTodoUndoDelete extends FutureTodoEvent {
+  final FutureTodo event;
+  final List<int> undoIndentsIndices;
+  const FutureTodoUndoDelete({required this.event, required this.undoIndentsIndices});
+}
+
 abstract class FutureTodoState {
   final List<FutureTodo> futureList;
   const FutureTodoState(this.futureList);
@@ -47,7 +53,8 @@ class FutureTodoRefreshed extends FutureTodoState {
 
 class FutureTodoRefreshedFromDelete extends FutureTodoState {
   final List<int> deletedTreeIndexes;
-  const FutureTodoRefreshedFromDelete(super.futureList, this.deletedTreeIndexes);
+  final FutureTodo deletedTodo;
+  const FutureTodoRefreshedFromDelete(super.futureList, this.deletedTreeIndexes, this.deletedTodo);
 }
 
 class FutureTodoBloc extends Bloc<FutureTodoEvent, FutureTodoState> {
@@ -76,7 +83,12 @@ class FutureTodoBloc extends Bloc<FutureTodoEvent, FutureTodoState> {
       emit(FutureTodoRefreshed(hive.futureList));
     });
     on<FutureTodoDelete>((event, emit) {
-      emit(FutureTodoRefreshedFromDelete(hive.futureList, hive.deleteFutureTodo(todo: event.event)));
+      emit(FutureTodoRefreshedFromDelete(
+          hive.futureList, hive.deleteFutureTodo(todo: event.event), event.event));
+    });
+    on<FutureTodoUndoDelete>((event, emit) {
+      hive.undoDeletedTodo(fixIndentIndices: event.undoIndentsIndices, todo: event.event);
+      emit(FutureTodoRefreshed(hive.futureList));
     });
   }
 }

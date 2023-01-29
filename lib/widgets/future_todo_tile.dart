@@ -31,8 +31,6 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
   late AnimationController animController;
   bool deleted = false;
 
-  bool stillNeedsIndenting = false;
-
   @override
   void initState() {
     super.initState();
@@ -60,6 +58,19 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
           context.read<FutureTodoBloc>().add(FutureTodoDelete(event: widget.todo));
         }
       });
+    if (widget.expandable) {
+      if (context.read<FutureTodoBloc>().state.futureList[widget.todo.index + 1].collapsed) {
+        arrowController.reverse();
+      } else {
+        arrowController.forward();
+      }
+    }
+    if (context.read<FutureTodoBloc>().state.futureList[widget.todo.index].collapsed) {
+      animController.reverse();
+      arrowController.reverse();
+    } else {
+      animController.forward();
+    }
   }
 
   @override
@@ -93,36 +104,28 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        BlocListener<ExpandableBloc, ExpandableState>(
-          listener: (context, state) {
-            if (state.indexesToBeExpandedCollapsed.isNotEmpty) {
-              if (state.indexesToBeExpandedCollapsed[0] - 1 == widget.todo.index && !state.expanding) {
-                arrowController.reverse();
-              }
-              if (state.indexesToBeExpandedCollapsed[0] - 1 == widget.todo.index && state.expanding) {
-                arrowController.forward();
-              }
-              if (state.indexesToBeExpandedCollapsed.contains(widget.todo.index)) {
-                if (state.expanding) {
-                  animController.forward();
-                } else {
-                  animController.reverse();
-                  arrowController.reverse();
-                }
-              }
-            }
-            if (stillNeedsIndenting) {
-              widget.todo.changeIndent(widget.todo.indented + 1);
-
-              context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: widget.todo));
-              stillNeedsIndenting = false;
-            }
-          },
-        ),
-        BlocListener<FutureTodoBloc, FutureTodoState>(listener: (context, state) {
+        BlocListener<FutureTodoBloc, FutureTodoState>(listener: (unUsedContext, state) {
           if (state is FutureTodoRefreshedFromDelete &&
               state.deletedTreeIndexes.contains(widget.todo.index)) {
             animController.forward();
+          } else if (state is FutureTodoRefreshed) {
+            // Control the arrows
+            if (widget.expandable) {
+              if (widget.todo.index + 1 != state.futureList.length &&
+                  state.futureList[widget.todo.index + 1].collapsed) {
+                arrowController.reverse();
+              } else {
+                arrowController.forward();
+              }
+            }
+
+            // Control whether or not todo is expanded
+            if (state.futureList[widget.todo.index].collapsed) {
+              animController.reverse();
+              arrowController.reverse();
+            } else {
+              animController.forward();
+            }
           }
         })
       ],
@@ -147,13 +150,29 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
               onLongPress: () {},
               onTap: () {
                 if (widget.expandable) {
+                  List<FutureTodo> futureList = context.read<FutureTodoBloc>().state.futureList;
+
                   if (arrowController.status == AnimationStatus.dismissed ||
                       arrowController.status == AnimationStatus.reverse) {
-                    context.read<ExpandableBloc>().add(ExpandableUpdate(
-                        context.read<FutureTodoBloc>().state.futureList, widget.todo.index, true));
+                    for (int i = widget.todo.index + 1;
+                        i < futureList.length &&
+                            futureList[widget.todo.index].indented < futureList[i].indented;
+                        i++) {
+                      if (futureList[i].indented == futureList[widget.todo.index].indented + 1) {
+                        futureList[i].setCollapsed(false);
+                      }
+                    }
+
+                    context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: futureList));
                   } else {
-                    context.read<ExpandableBloc>().add(ExpandableUpdate(
-                        context.read<FutureTodoBloc>().state.futureList, widget.todo.index, false));
+                    for (int i = widget.todo.index + 1;
+                        i < futureList.length &&
+                            futureList[widget.todo.index].indented < futureList[i].indented;
+                        i++) {
+                      futureList[i].setCollapsed(true);
+                    }
+
+                    context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: futureList));
                   }
                 }
               },
@@ -177,26 +196,30 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                     SizedBox(width: Centre.safeBlockHorizontal * (3 + 7 * widget.todo.indented)),
                     GestureDetector(
                         onDoubleTap: () {
+                          List<FutureTodo> futureList = context.read<FutureTodoBloc>().state.futureList;
                           if (widget.todo.indented < 4 &&
                               widget.todo.index != 0 &&
-                              context
-                                      .read<FutureTodoBloc>()
-                                      .state
-                                      .futureList[widget.todo.index - 1]
-                                      .indented >=
-                                  widget.todo.indented) {
-                            // Once this finishes, update the indentation
-                            stillNeedsIndenting = true;
+                              futureList[widget.todo.index - 1].indented >= widget.todo.indented) {
+                            // Update the indentation
+                            futureList[widget.todo.index].changeIndent(widget.todo.indented + 1);
 
                             // Expand the index of the tree parent that the current widget was just indented into
-                            int i = widget.todo.index - 1;
-                            while (context.read<FutureTodoBloc>().state.futureList[i].indented !=
-                                widget.todo.indented) {
-                              i--;
+                            int indexTapped = widget.todo.index - 1;
+                            while (indexTapped != -1 &&
+                                futureList[indexTapped].indented != widget.todo.indented) {
+                              indexTapped--;
+                            }
+                            indexTapped = indexTapped == -1 ? widget.todo.index - 1 : indexTapped;
+                            for (int i = indexTapped + 1;
+                                i < futureList.length &&
+                                    futureList[indexTapped].indented < futureList[i].indented;
+                                i++) {
+                              if (futureList[i].indented == futureList[indexTapped].indented + 1) {
+                                futureList[i].setCollapsed(false);
+                              }
                             }
 
-                            context.read<ExpandableBloc>().add(
-                                ExpandableUpdate(context.read<FutureTodoBloc>().state.futureList, i, true));
+                            context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: futureList));
                           }
                         },
                         child: widget.expandable
@@ -264,13 +287,26 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                         onTap: () {
                                           widget.textController.clear();
                                           arrowController.forward();
-                                          context.read<ExpandableBloc>().add(ExpandableUpdate(
-                                              context.read<FutureTodoBloc>().state.futureList,
-                                              widget.todo.index,
-                                              true));
+
+                                          List<FutureTodo> futureList =
+                                              context.read<FutureTodoBloc>().state.futureList;
+
+                                          for (int i = widget.todo.index + 1;
+                                              i < futureList.length &&
+                                                  futureList[widget.todo.index].indented <
+                                                      futureList[i].indented;
+                                              i++) {
+                                            if (futureList[i].indented ==
+                                                futureList[widget.todo.index].indented + 1) {
+                                              futureList[i].setCollapsed(false);
+                                            }
+                                          }
                                           context
                                               .read<TodoTileAddCubit>()
                                               .update([widget.todo.index + 1, widget.todo.indented + 1, 0]);
+                                          context
+                                              .read<FutureTodoBloc>()
+                                              .add(FutureTodoListUpdate(eventList: futureList));
                                         }),
                                 tileBtn(
                                     icon: Icons.delete,

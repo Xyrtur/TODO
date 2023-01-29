@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:todo/blocs/todo_expanded_bloc.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/models/future_todo.dart';
@@ -22,6 +21,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   List<Widget> reorderablesList = [];
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   FocusNode focusNode = FocusNode();
   late final AnimationController animController;
@@ -31,7 +31,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((AnimationStatus status) {
-        if (status == AnimationStatus.dismissed) {
+        if (status == AnimationStatus.reverse) {
           context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
           addingTodoTextController.clear();
         }
@@ -66,6 +66,17 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
+      if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
+              DateTime.now().minute)
+          .isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
+        context.read<FirstDailyDateBtnCubit>().update(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day -
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                    ? 1
+                    : 0)));
+      }
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
           date: DateTime.utc(
@@ -81,6 +92,10 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
   }
 
   reorderableTodos(List<FutureTodo> list) {
+    // If there was an addTile, keep it there
+    int addTileIndex = reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345));
+    Widget? addTile = addTileIndex != -1 ? reorderablesList[addTileIndex] : null;
+
     reorderablesList = [
       for (FutureTodo todo in list)
         MultiBlocProvider(
@@ -89,7 +104,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               BlocProvider.value(value: context.read<ToggleTodoEditingCubit>()),
               BlocProvider.value(value: context.read<TodoTileAddCubit>()),
               BlocProvider.value(value: context.read<TodoTextEditingCubit>()),
-              BlocProvider.value(value: context.read<ExpandableBloc>()),
               BlocProvider.value(value: context.read<FutureTodoBloc>()),
               BlocProvider.value(value: context.read<TodoRecentlyAddedCubit>()),
             ],
@@ -101,22 +115,29 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               textController: controller,
             ))
     ];
+    if (addTileIndex != -1) {
+      reorderablesList.insert(addTileIndex, addTile ?? const SizedBox());
+    }
   }
 
   Widget addingTodoTile(int index, int indents) {
+    final formKey = GlobalKey<FormState>();
     Animation<double> animation = CurvedAnimation(
       parent: animController,
       curve: Curves.fastOutSlowIn,
     );
     return AnimatedBuilder(
-      key: ValueKey(12345),
+      key: const ValueKey(12345),
       animation: animation,
       builder: (_, child) => ClipRect(
-        child: Align(
-          alignment: Alignment.center,
-          heightFactor: animation.value,
-          widthFactor: null,
-          child: child,
+        child: Form(
+          key: formKey,
+          child: Align(
+            alignment: Alignment.center,
+            heightFactor: animation.value,
+            widthFactor: null,
+            child: child,
+          ),
         ),
       ),
       child: GestureDetector(
@@ -134,6 +155,12 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
             ),
             Expanded(
                 child: TextFormField(
+              validator: (input) {
+                if (input == null || input.isEmpty) {
+                  return 'Can\'t be empty';
+                }
+                return null;
+              },
               decoration: const InputDecoration(
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.amber),
@@ -150,13 +177,20 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               children: [
                 GestureDetector(
                   onTap: () {
-                    FocusScope.of(context).unfocus();
-                    context.read<FutureTodoBloc>().add(FutureTodoCreate(
-                        event: FutureTodo(
-                            indented: indents, text: addingTodoTextController.text, index: index)));
-                    context.read<TodoRecentlyAddedCubit>().update([index, 0]);
-
-                    addingTodoTextController.clear();
+                    if (formKey.currentState!.validate()) {
+                      FocusScope.of(context).unfocus();
+                      context.read<FutureTodoBloc>().add(FutureTodoCreate(
+                          event: FutureTodo(
+                              indented: indents,
+                              text: addingTodoTextController.text,
+                              index: index,
+                              collapsed: false)));
+                      context.read<TodoRecentlyAddedCubit>().update([index, 0]);
+                      context
+                          .read<TodoTileAddCubit>()
+                          .update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
+                      addingTodoTextController.clear();
+                    }
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -204,6 +238,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
     return SafeArea(
         child: Scaffold(
+      key: scaffoldKey,
       backgroundColor: Centre.bgColor,
       body: GestureDetector(
         onTap: () {
@@ -303,6 +338,31 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
           Expanded(
             child: MultiBlocListener(
                 listeners: [
+                  BlocListener<FutureTodoBloc, FutureTodoState>(listener: ((notUsedContext, state) {
+                    reorderableTodos(state.futureList);
+
+                    if (state is FutureTodoRefreshedFromDelete) {
+                      // Show Snackbar with Undo action
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Centre.darkerDialogBgColor,
+                        content: Text(
+                          'Deleted: ${state.deletedTodo.text}',
+                          overflow: TextOverflow.ellipsis,
+                          style: Centre.dialogText,
+                        ),
+                        duration: const Duration(seconds: 2),
+                        action: SnackBarAction(
+                          label: 'Undo',
+                          textColor: Centre.secondaryColor,
+                          onPressed: () {
+                            scaffoldKey.currentContext!.read<FutureTodoBloc>().add(FutureTodoUndoDelete(
+                                event: state.deletedTodo, undoIndentsIndices: state.deletedTreeIndexes));
+                          },
+                        ),
+                      ));
+                    }
+                  })),
                   BlocListener<TodoTileAddCubit, List<int>>(listener: ((context, state) {
                     if (state[2] == 1) {
                       reorderablesList.removeAt(state[0]);
@@ -311,9 +371,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                       animController.value = 0.0;
                       controller.clear();
                     }
-                  })),
-                  BlocListener<FutureTodoBloc, FutureTodoState>(listener: ((notUsedContext, state) {
-                    reorderableTodos(state.futureList);
                   })),
                 ],
                 child: BlocBuilder<TodoTextEditingCubit, int?>(
@@ -336,6 +393,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                   animController.forward();
                                 }
                               }
+                              print("bruh $reorderablesList");
 
                               return SizedBox(
                                   height: Centre.safeBlockVertical * 75,
@@ -343,8 +401,17 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                       scrollController: scrollController,
                                       children: reorderablesList,
                                       onReorderStart: (index) {
-                                        context.read<ExpandableBloc>().add(ExpandableUpdate(
-                                            context.read<FutureTodoBloc>().state.futureList, index, false));
+                                        for (int i = index + 1;
+                                            i < state.futureList.length &&
+                                                state.futureList[index].indented <
+                                                    state.futureList[i].indented;
+                                            i++) {
+                                          state.futureList[i].setCollapsed(true);
+                                        }
+
+                                        context
+                                            .read<FutureTodoBloc>()
+                                            .add(FutureTodoListUpdate(eventList: state.futureList));
                                       },
                                       onReorder: (int old, int news) {
                                         List<FutureTodo> oldList = state.futureList;
@@ -366,6 +433,13 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
                                         // Remove the tree and place it where it was dragged
                                         oldList.removeRange(old, old + todosMoved.length);
+
+                                        // But first check if placing it under a collapsed tree to ensure not placing it inside the tree
+                                        if (news < oldList.length) {
+                                          while (oldList[news].collapsed) {
+                                            if (++news == oldList.length) break;
+                                          }
+                                        }
                                         oldList.insertAll(news, todosMoved);
 
                                         // Update the index attribute of each FutureTodo

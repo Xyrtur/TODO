@@ -20,19 +20,22 @@ class FutureTodoAdapter extends TypeAdapter<FutureTodo> {
       indented: fields[5] as int,
       text: fields[0] as String,
       index: fields[3] as int,
+      collapsed: fields[6] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, FutureTodo obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.text)
       ..writeByte(5)
       ..write(obj.indented)
       ..writeByte(3)
-      ..write(obj.index);
+      ..write(obj.index)
+      ..writeByte(6)
+      ..write(obj.collapsed);
   }
 
   @override
