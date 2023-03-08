@@ -160,7 +160,7 @@ class Integer {
 }
 
 class TodoTileAddCubit extends Cubit<List<int>> {
-  TodoTileAddCubit() : super([]);
+  TodoTileAddCubit() : super([-1, -1, -1]);
   // [x,y,z]
   // x = index, y = indents, z = removing
   void update(List<int> tileInfo) {

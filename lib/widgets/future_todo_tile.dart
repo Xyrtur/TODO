@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -304,6 +302,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                       onTap: () {
                                         context.read<TodoTextEditingCubit>().update(widget.todo.index);
                                         widget.textController.text = widget.todo.text;
+                                        widget.focusNode.requestFocus();
                                       },
                                       child: Text(widget.todo.text,
                                           maxLines: 2,
@@ -336,6 +335,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                         onTap: () {
                                           widget.textController.clear();
                                           arrowController.forward();
+                                          context.read<TodoTextEditingCubit>().update(null);
 
                                           List<FutureTodo> futureList =
                                               context.read<FutureTodoBloc>().state.futureList;
@@ -350,6 +350,15 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                               futureList[i].setCollapsed(false);
                                             }
                                           }
+
+                                          bool addTileExists = context.read<TodoTileAddCubit>().state[2] == 0;
+
+                                          if (addTileExists) {
+                                            // Get the add tile's index (indents don't matter)
+                                            int addTileIndex = context.read<TodoTileAddCubit>().state[0];
+                                            context.read<TodoTileAddCubit>().update([addTileIndex, 0, 1]);
+                                          }
+
                                           context
                                               .read<TodoTileAddCubit>()
                                               .update([widget.todo.index + 1, widget.todo.indented + 1, 0]);

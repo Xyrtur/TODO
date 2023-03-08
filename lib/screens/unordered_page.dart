@@ -23,7 +23,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
   List<Widget> reorderablesList = [];
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
-  FocusNode focusNode = FocusNode();
+  FocusNode addingFocusNode = FocusNode();
+  FocusNode editingFocusNode = FocusNode();
   late final AnimationController animController;
   @override
   initState() {
@@ -33,12 +34,11 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
     )..addStatusListener((AnimationStatus status) {
         if (status == AnimationStatus.reverse) {
           context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
-          addingTodoTextController.clear();
         }
       });
     reorderableTodos(context.read<FutureTodoBloc>().state.futureList);
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
+    editingFocusNode.addListener(() {
+      if (!editingFocusNode.hasFocus) {
         int? indexEditing = context.read<TodoTextEditingCubit>().state;
         if (controller.text.isNotEmpty && indexEditing != null) {
           FutureTodo currTodo = context.read<FutureTodoBloc>().state.futureList[indexEditing];
@@ -109,7 +109,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
             ],
             child: FutureTodoTile(
               todo: todo,
-              focusNode: focusNode,
+              focusNode: editingFocusNode,
               textController: controller,
             ))
     ];
@@ -124,6 +124,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
       parent: animController,
       curve: Curves.fastOutSlowIn,
     );
+    addingFocusNode.requestFocus();
+    addingTodoTextController.clear();
     return AnimatedBuilder(
       key: const ValueKey(12345),
       animation: animation,
@@ -168,7 +170,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
               controller: addingTodoTextController,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
               maxLength: 100,
-              focusNode: focusNode,
+              focusNode: addingFocusNode,
               style: Centre.smallerDialogText,
             )),
             Row(
@@ -254,9 +256,19 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                     ),
                     GestureDetector(
                       onTap: () {
-                        if (!(reorderablesList
-                                .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
-                            -1)) {
+                        editingFocusNode.unfocus();
+                        context.read<TodoTextEditingCubit>().update(null);
+                        bool addTileExists = context.read<TodoTileAddCubit>().state[2] == 0;
+
+                        if (addTileExists) {
+                          // Get the add tile's index (indents don't matter)
+                          int addTileIndex = context.read<TodoTileAddCubit>().state[0];
+                          // If the tile is already at the beginning of the list, do nothing
+                          if (!(addTileIndex == 0)) {
+                            context.read<TodoTileAddCubit>().update([addTileIndex, 0, 1]);
+                            context.read<TodoTileAddCubit>().update([0, 0, 0]);
+                          }
+                        } else {
                           context.read<TodoTileAddCubit>().update([0, 0, 0]);
                         }
                       },
@@ -368,20 +380,11 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                   })),
                 ],
                 child: BlocBuilder<TodoTextEditingCubit, int?>(
-                    buildWhen: (previous, current) {
-                      return reorderablesList
-                                  .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
-                              -1 &&
-                          current != null;
-                      // If an addingTile exists but another tile is also about to be edited, remove the adding tile
-                    },
                     builder: (tcontext, textEditingState) => BlocBuilder<TodoTileAddCubit, List<int>>(
                         builder: (tcontext, tileAddState) =>
                             BlocBuilder<FutureTodoBloc, FutureTodoState>(builder: (tcontext, state) {
-                              if (reorderablesList
-                                      .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
-                                  -1) {
-                                // Adding tile exists
+                              bool addTileExists = tileAddState[2] == 0;
+                              if (addTileExists) {
                                 if (textEditingState != null) {
                                   animController.reverse();
                                 } else {

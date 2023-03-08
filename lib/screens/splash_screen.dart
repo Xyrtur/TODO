@@ -42,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ),
           screenFunction: () async {
             context.read<HiveRepository>().cacheInitialData();
+            context.read<HiveRepository>().futureTodosHive.clear();
 
             return RepositoryProvider.value(
               value: context.read<HiveRepository>(),
