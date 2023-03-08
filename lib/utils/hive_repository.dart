@@ -163,6 +163,13 @@ class HiveRepository {
     futureTodosHive.add(todo);
 
     futureList.insert(todo.index, todo);
+
+    // Set previous todo to expandable if need be
+    if (todo.index != 0 && !futureList[todo.index - 1].expandable) {
+      futureList[todo.index - 1].setExpandable(true);
+      futureList[todo.index - 1].save();
+    }
+
     int i = todo.index + 1;
     while (i < futureList.length) {
       futureList[i].changeIndex(i);
@@ -535,6 +542,9 @@ class HiveRepository {
       final firstStream = OutputFileStream(firstBoxPath);
       final secondStream = OutputFileStream(secondBoxPath);
       final thirdStream = OutputFileStream(thirdBoxPath);
+
+      // Ensure there are only 3 files in the zip
+      if (archive.files.length != 3) return false;
 
       for (int i = 0; i < 3; i++) {
         if (archive.files[i].name.contains('month')) {

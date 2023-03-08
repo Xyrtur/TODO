@@ -1,8 +1,9 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:todo/blocs/todo_expanded_bloc.dart';
 import 'package:todo/blocs/future_todo_bloc.dart';
 import 'package:todo/blocs/cubits.dart';
 import 'package:todo/models/future_todo.dart';
@@ -10,16 +11,11 @@ import 'package:todo/utils/centre.dart';
 
 class FutureTodoTile extends StatefulWidget {
   final FutureTodo todo;
-  final bool expandable;
   final TextEditingController textController;
   final FocusNode focusNode;
 
   const FutureTodoTile(
-      {super.key,
-      required this.todo,
-      required this.expandable,
-      required this.textController,
-      required this.focusNode});
+      {super.key, required this.todo, required this.textController, required this.focusNode});
 
   @override
   State<FutureTodoTile> createState() => _FutureTodoTileState();
@@ -58,7 +54,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
           context.read<FutureTodoBloc>().add(FutureTodoDelete(event: widget.todo));
         }
       });
-    if (widget.expandable) {
+    if (widget.todo.expandable) {
       if (context.read<FutureTodoBloc>().state.futureList[widget.todo.index + 1].collapsed) {
         arrowController.reverse();
       } else {
@@ -86,16 +82,12 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
           onTap();
         },
         child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: color),
-          ),
           margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
           padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
           child: Icon(
             icon,
             color: color,
-            size: Centre.safeBlockHorizontal * 5,
+            size: Centre.safeBlockHorizontal * 5.5,
           ),
         ));
   }
@@ -110,7 +102,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
             animController.forward();
           } else if (state is FutureTodoRefreshed) {
             // Control the arrows
-            if (widget.expandable) {
+            if (widget.todo.expandable) {
               if (widget.todo.index + 1 != state.futureList.length &&
                   state.futureList[widget.todo.index + 1].collapsed) {
                 arrowController.reverse();
@@ -149,7 +141,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
               // onLongPress overrides the dragging from ReorderableListView
               onLongPress: () {},
               onTap: () {
-                if (widget.expandable) {
+                if (widget.todo.expandable) {
                   List<FutureTodo> futureList = context.read<FutureTodoBloc>().state.futureList;
 
                   if (arrowController.status == AnimationStatus.dismissed ||
@@ -178,18 +170,71 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
               },
               onDoubleTap: () {
                 List<FutureTodo> futureList = context.read<FutureTodoBloc>().state.futureList;
-                if (widget.todo.indented > 0 &&
-                    (widget.todo.index + 1 == futureList.length ||
-                        futureList[widget.todo.index + 1].indented <= widget.todo.indented)) {
-                  widget.todo.changeIndent(widget.todo.indented - 1);
-                  arrowController.forward();
+                if (widget.todo.indented > 0) {
+                  // Update indentation
+                  int indexAfterAllOfList = widget.todo.index + 1;
 
-                  context.read<FutureTodoBloc>().add(FutureTodoUpdate(event: widget.todo));
+                  // Get the index that is right after the list tree being dealt with
+                  while (indexAfterAllOfList < futureList.length &&
+                      futureList[indexAfterAllOfList].indented > widget.todo.index) {
+                    indexAfterAllOfList++;
+                  }
+
+                  // todosToMove are all the items after the list being dealt with that are in the list's parent tree
+                  List<FutureTodo> todosToMove = [];
+                  if (indexAfterAllOfList < futureList.length &&
+                      futureList[indexAfterAllOfList].indented == widget.todo.indented) {
+                    todosToMove.add(futureList[indexAfterAllOfList]);
+                  }
+                  while (todosToMove.isNotEmpty &&
+                      indexAfterAllOfList + todosToMove.length < futureList.length &&
+                      futureList[indexAfterAllOfList + todosToMove.length].indented >=
+                          futureList[indexAfterAllOfList].indented) {
+                    todosToMove.add(futureList[indexAfterAllOfList + todosToMove.length]);
+                  }
+
+                  // shift the list being indented out to the end of its parent tree
+                  if (todosToMove.isNotEmpty) {
+                    futureList.removeRange(indexAfterAllOfList, indexAfterAllOfList + todosToMove.length);
+                    futureList.insertAll(widget.todo.index, todosToMove);
+                  }
+                  // Before the indices are updated, get what the new index of the indented out list is gonna be
+                  int currentWidgetIndex = widget.todo.index + todosToMove.length;
+
+                  // Update the index attribute of each FutureTodo
+                  for (int i = 0; i < futureList.length; i++) {
+                    futureList[i].changeIndex(i);
+                  }
+
+                  for (int i = currentWidgetIndex + 1;
+                      i < futureList.length &&
+                          futureList[currentWidgetIndex].indented < futureList[i].indented;
+                      i++) {
+                    futureList[i].changeIndent(futureList[i].indented - 1);
+                  }
+                  futureList[currentWidgetIndex].changeIndent(widget.todo.indented - 1);
+
+                  indexAfterAllOfList = currentWidgetIndex + 1;
+
+                  while (indexAfterAllOfList < futureList.length &&
+                      futureList[indexAfterAllOfList].indented > futureList[currentWidgetIndex].indented) {
+                    indexAfterAllOfList++;
+                  }
+
+                  // If there is nothing left in the list, replace arrow with dot
+                  if (futureList[currentWidgetIndex - 1].indented == widget.todo.indented &&
+                      (currentWidgetIndex + 1 == futureList.length ||
+                          futureList[indexAfterAllOfList].indented <=
+                              futureList[currentWidgetIndex - 1].indented)) {
+                    futureList[currentWidgetIndex - 1].setExpandable(false);
+                  }
+
+                  context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: futureList));
                 }
               },
               child: BlocBuilder<ToggleTodoEditingCubit, bool>(builder: (context, editingState) {
                 return SizedBox(
-                  height: Centre.safeBlockVertical * (editingState ? 8.5 : 6),
+                  height: Centre.safeBlockVertical * (editingState ? 5 : 5),
                   width: Centre.safeBlockHorizontal * 90,
                   child: Row(children: [
                     // Indents
@@ -200,56 +245,60 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                           if (widget.todo.indented < 4 &&
                               widget.todo.index != 0 &&
                               futureList[widget.todo.index - 1].indented >= widget.todo.indented) {
-                            // Update the indentation
-                            futureList[widget.todo.index].changeIndent(widget.todo.indented + 1);
-
-                            // Expand the index of the tree parent that the current widget was just indented into
+                            // Get the tree parent that the widget is being indented into
                             int indexTapped = widget.todo.index - 1;
                             while (indexTapped != -1 &&
                                 futureList[indexTapped].indented != widget.todo.indented) {
                               indexTapped--;
                             }
                             indexTapped = indexTapped == -1 ? widget.todo.index - 1 : indexTapped;
-                            for (int i = indexTapped + 1;
+                            // futureList[widget.todo.index].setCollapsed(true);
+
+                            // Change the parent to be expandable
+                            futureList[indexTapped].setExpandable(true);
+
+                            // Also updates indentation
+                            for (int i = widget.todo.index + 1;
                                 i < futureList.length &&
-                                    futureList[indexTapped].indented < futureList[i].indented;
+                                    futureList[widget.todo.index].indented < futureList[i].indented;
                                 i++) {
-                              if (futureList[i].indented == futureList[indexTapped].indented + 1) {
-                                futureList[i].setCollapsed(false);
-                              }
+                              futureList[i].changeIndent(futureList[i].indented + 1);
                             }
+                            futureList[widget.todo.index].changeIndent(widget.todo.indented + 1);
 
                             context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: futureList));
                           }
                         },
-                        child: widget.expandable
+                        child: widget.todo.expandable
                             ? RotationTransition(
                                 turns: Tween(begin: 0.0, end: 0.25).animate(arrowController),
                                 child: Icon(Icons.arrow_right_rounded,
-                                    color: Centre.textColor, size: Centre.safeBlockHorizontal * 10),
+                                    color: Centre.textColor, size: Centre.safeBlockHorizontal * 8),
                               )
                             : Text(
                                 ' \u2022 ',
                                 style:
-                                    Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 10),
+                                    Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 8),
                               )),
                     Expanded(
                       child: !editingState
                           ? Text(widget.todo.text,
-                              maxLines: 2, overflow: TextOverflow.ellipsis, style: Centre.dialogText)
+                              maxLines: 2, overflow: TextOverflow.ellipsis, style: Centre.smallerDialogText)
                           : BlocBuilder<TodoTextEditingCubit, int?>(builder: (context, indexEditing) {
                               return (indexEditing ?? -1) == widget.todo.index
                                   ? TextFormField(
                                       decoration: const InputDecoration(
+                                        isDense: true,
+                                        counterText: "",
                                         focusedBorder: UnderlineInputBorder(
                                           borderSide: BorderSide(color: Colors.amber),
                                         ),
                                       ),
                                       controller: widget.textController,
                                       maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                                      maxLength: 50,
+                                      maxLength: 100,
                                       focusNode: widget.focusNode,
-                                      style: Centre.dialogText,
+                                      style: Centre.smallerDialogText,
                                     )
                                   : GestureDetector(
                                       onTap: () {
@@ -259,7 +308,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                                       child: Text(widget.todo.text,
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
-                                          style: Centre.dialogText),
+                                          style: Centre.smallerDialogText),
                                     );
                             }),
                     ),
@@ -268,7 +317,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
                             index: widget.todo.index,
                             child: Padding(
                               padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
-                              child: Icon(Icons.drag_handle_rounded, size: Centre.safeBlockHorizontal * 6),
+                              child: Icon(Icons.drag_handle_rounded, size: Centre.safeBlockHorizontal * 5),
                             ))
                         : BlocBuilder<TodoTextEditingCubit, int?>(builder: (context, indexEditing) {
                             return Row(

@@ -185,6 +185,7 @@ class DailyPanel extends StatelessWidget {
                             child: Text(
                               list[index].text,
                               maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: Centre.smallerDialogText,
                             ),
                           ),

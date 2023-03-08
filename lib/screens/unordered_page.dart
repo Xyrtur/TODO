@@ -93,7 +93,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
   reorderableTodos(List<FutureTodo> list) {
     // If there was an addTile, keep it there
-    int addTileIndex = reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345));
+    int addTileIndex = reorderablesList.indexWhere((Widget widget) => widget.key == const ValueKey(12345));
     Widget? addTile = addTileIndex != -1 ? reorderablesList[addTileIndex] : null;
 
     reorderablesList = [
@@ -110,8 +110,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
             child: FutureTodoTile(
               todo: todo,
               focusNode: focusNode,
-              expandable:
-                  todo.index + 1 == list.length ? false : list[todo.index + 1].indented > todo.indented,
               textController: controller,
             ))
     ];
@@ -144,14 +142,14 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
         // onLongPress overrides the dragging from ReorderableListView
         onLongPress: () {},
         child: SizedBox(
-          height: Centre.safeBlockVertical * 10,
+          height: Centre.safeBlockVertical * 5,
           width: Centre.safeBlockHorizontal * 90,
           child: Row(children: [
             // Indents
             SizedBox(width: Centre.safeBlockHorizontal * (3 + 7 * indents)),
             Text(
               ' \u2022 ',
-              style: Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 10),
+              style: Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 8),
             ),
             Expanded(
                 child: TextFormField(
@@ -162,15 +160,16 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                 return null;
               },
               decoration: const InputDecoration(
+                counterText: "",
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.amber),
                 ),
               ),
               controller: addingTodoTextController,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
-              maxLength: 50,
+              maxLength: 100,
               focusNode: focusNode,
-              style: Centre.dialogText,
+              style: Centre.smallerDialogText,
             )),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -184,6 +183,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                               indented: indents,
                               text: addingTodoTextController.text,
                               index: index,
+                              expandable: false,
                               collapsed: false)));
                       context.read<TodoRecentlyAddedCubit>().update([index, 0]);
                       context
@@ -193,16 +193,12 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                     }
                   },
                   child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: Centre.secondaryColor),
-                    ),
                     margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
                     child: Icon(
                       Icons.check,
                       color: Centre.secondaryColor,
-                      size: Centre.safeBlockHorizontal * 5,
+                      size: Centre.safeBlockHorizontal * 5.5,
                     ),
                   ),
                 ),
@@ -211,16 +207,12 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                     animController.reverse();
                   },
                   child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: Centre.red),
-                    ),
                     margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal * 1.5),
                     child: Icon(
                       Icons.delete,
                       color: Centre.red,
-                      size: Centre.safeBlockHorizontal * 5,
+                      size: Centre.safeBlockHorizontal * 5.5,
                     ),
                   ),
                 ),
@@ -247,22 +239,23 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
         },
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: Centre.safeBlockHorizontal * 7, vertical: Centre.safeBlockVertical * 3),
+            padding: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal * 7, Centre.safeBlockVertical * 3,
+                Centre.safeBlockHorizontal * 7, Centre.safeBlockVertical * 1.5),
             child: Column(
               children: [
                 Row(
                   children: [
                     Text(
                       "Todo List",
-                      style: Centre.todoSemiTitle,
+                      style: Centre.todoSemiTitle.copyWith(fontSize: Centre.safeBlockHorizontal * 6),
                     ),
                     const Expanded(
                       child: SizedBox(),
                     ),
                     GestureDetector(
                       onTap: () {
-                        if (!(reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
+                        if (!(reorderablesList
+                                .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
                             -1)) {
                           context.read<TodoTileAddCubit>().update([0, 0, 0]);
                         }
@@ -286,7 +279,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                         child: Icon(
                           Icons.add,
                           color: Centre.primaryColor,
-                          size: Centre.safeBlockHorizontal * 8,
+                          size: Centre.safeBlockHorizontal * 7,
                         ),
                       ),
                     ),
@@ -294,7 +287,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                       onTap: () {
                         context.read<ToggleTodoEditingCubit>().toggle();
                         context.read<TodoTextEditingCubit>().update(null);
-                        if (reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
+                        if (reorderablesList
+                                .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
                             -1) {
                           animController.reverse();
                         }
@@ -319,7 +313,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                 child: Icon(
                                   Icons.edit,
                                   color: editingState ? Centre.lighterBgColor : Centre.primaryColor,
-                                  size: Centre.safeBlockHorizontal * 8,
+                                  size: Centre.safeBlockHorizontal * 7,
                                 ),
                               )),
                     ),
@@ -375,7 +369,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                 ],
                 child: BlocBuilder<TodoTextEditingCubit, int?>(
                     buildWhen: (previous, current) {
-                      return reorderablesList.indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
+                      return reorderablesList
+                                  .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
                               -1 &&
                           current != null;
                       // If an addingTile exists but another tile is also about to be edited, remove the adding tile
@@ -384,7 +379,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                         builder: (tcontext, tileAddState) =>
                             BlocBuilder<FutureTodoBloc, FutureTodoState>(builder: (tcontext, state) {
                               if (reorderablesList
-                                      .indexWhere((Widget widget) => widget.key == ValueKey(12345)) !=
+                                      .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
                                   -1) {
                                 // Adding tile exists
                                 if (textEditingState != null) {
@@ -393,7 +388,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                   animController.forward();
                                 }
                               }
-                              print("bruh $reorderablesList");
 
                               return SizedBox(
                                   height: Centre.safeBlockVertical * 75,
@@ -431,6 +425,14 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                         // Correct the new index
                                         if (old < news) news -= todosMoved.length;
 
+                                        // If there is nothing left in the list it was a part of, if any, replace arrow with dot
+                                        if (oldList[old].indented != 0 &&
+                                            oldList[old - 1].indented == oldList[old].indented &&
+                                            (old + todosMoved.length == oldList.length ||
+                                                oldList[old + todosMoved.length].indented ==
+                                                    oldList[old - 1].indented)) {
+                                          oldList[old - 1].setExpandable(false);
+                                        }
                                         // Remove the tree and place it where it was dragged
                                         oldList.removeRange(old, old + todosMoved.length);
 
