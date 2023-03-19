@@ -2147,7 +2147,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
                 badHour = true;
                 badMinute = true;
                 setState(() {
-                  widget.errorInvalidText = "Clashes with event ${v.text}";
+                  widget.errorInvalidText = "Will clash with event ${v.text}";
                 });
                 return;
               }
@@ -2169,7 +2169,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
                 badHour = true;
                 badMinute = true;
                 setState(() {
-                  widget.errorInvalidText = "Clashes with event ${v.text}";
+                  widget.errorInvalidText = "Will clash with event ${v.text}";
                 });
                 return;
               }
@@ -2181,52 +2181,50 @@ class _TimePickerDialogState extends State<TimePickerDialog> with RestorationMix
             DateTime start;
             start = widget.dailyDate!.add(
                 Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
-            int prevEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) - 1;
-            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
-            if (prevEventIndex < 0
-                ? false
-                : start
-                    .subtract(localTimeDiff)
-                    .isBefore(widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.end)) {
-              badHour = true;
-              badMinute = true;
-              setState(() {
-                widget.errorInvalidText =
-                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![prevEventIndex]]!.text}";
-              });
-              return;
-            } else if (nextEventIndex == widget.orderedDailyKeyList!.length
-                ? false
-                : start
-                        .subtract(localTimeDiff)
-                        .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start) ||
-                    start.subtract(localTimeDiff).isAtSameMomentAs(
-                        widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
-              badHour = true;
-              badMinute = true;
-              setState(() {
-                widget.errorInvalidText =
-                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.text}";
-              });
-              return;
+
+            for (EventData event in widget.dailyTableMap!.values) {
+              // Check times against every event except itself
+              if (event.key == widget.editingEvent!.key) continue;
+              DateTime possibleEnd = start.add(const Duration(minutes: 15));
+              if (start.subtract(localTimeDiff).isInTimeRange(event.start, event.end) ||
+                  possibleEnd.subtract(localTimeDiff).isInTimeRange(event.start, event.end) ||
+                  start
+                      .subtract(localTimeDiff)
+                      .enclosesOrContains(possibleEnd.subtract(localTimeDiff), event.start, event.end)) {
+                badHour = true;
+                badMinute = true;
+                setState(() {
+                  widget.errorInvalidText = "Will clash with event ${event.text}";
+                });
+                return;
+              }
             }
           } else {
             DateTime end;
+            DateTime start;
+            start = widget.dailyDate!.add(Duration(
+                hours: widget.startTime!.hour >= 0 && widget.startTime!.hour <= 1
+                    ? widget.startTime!.hour + 24
+                    : widget.startTime!.hour,
+                minutes: widget.startTime!.minute));
+
             end = widget.dailyDate!.add(
                 Duration(hours: newHour >= 0 && newHour <= 1 ? newHour + 24 : newHour, minutes: newMinute));
-            int nextEventIndex = widget.orderedDailyKeyList!.indexOf(widget.editingEvent!.key) + 1;
-            if (nextEventIndex == widget.orderedDailyKeyList!.length
-                ? false
-                : end
-                    .subtract(localTimeDiff)
-                    .isAfter(widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.start)) {
-              badHour = true;
-              badMinute = true;
-              setState(() {
-                widget.errorInvalidText =
-                    "Clashes with event ${widget.dailyTableMap![widget.orderedDailyKeyList![nextEventIndex]]!.text}";
-              });
-              return;
+            for (EventData event in widget.dailyTableMap!.values) {
+              // Check times against every event except itself
+              if (event.key == widget.editingEvent!.key) continue;
+              if (start.subtract(localTimeDiff).isInTimeRange(event.start, event.end) ||
+                  end.subtract(localTimeDiff).isInTimeRange(event.start, event.end) ||
+                  start
+                      .subtract(localTimeDiff)
+                      .enclosesOrContains(end.subtract(localTimeDiff), event.start, event.end)) {
+                badHour = true;
+                badMinute = true;
+                setState(() {
+                  widget.errorInvalidText = "Will clash with event ${event.text}";
+                });
+                return;
+              }
             }
           }
         }

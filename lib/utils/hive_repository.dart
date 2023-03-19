@@ -525,7 +525,7 @@ class HiveRepository {
       futureTodosHive = await Hive.openBox<FutureTodo>('futureTodosBox');
     }
 
-    // Get the user to pick a  zip file
+    // Get the user to pick a zip file
     FilePicker.platform.clearTemporaryFiles();
     FilePickerResult? result = await FilePicker.platform
         .pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
@@ -534,7 +534,7 @@ class HiveRepository {
       await monthlyHive.close();
       await dailyHive.close();
       await futureTodosHive.close();
-//
+
       final inputStream = InputFileStream(result.files.single.path!);
       final archive = ZipDecoder().decodeBuffer(inputStream);
 
@@ -545,6 +545,10 @@ class HiveRepository {
 
       // Ensure there are only 3 files in the zip
       if (archive.files.length != 3) return false;
+
+      // If the files aren't hive files, not sure how to stop the user from inputting those
+      // Checking file names doesn't matter because a user can just rename their input files to contain the right strings and extensions
+      // Not sure what to do
 
       for (int i = 0; i < 3; i++) {
         if (archive.files[i].name.contains('month')) {

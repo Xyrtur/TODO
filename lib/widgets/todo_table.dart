@@ -114,7 +114,7 @@ class ScheduleBlock extends StatelessWidget {
           width: Centre.safeBlockHorizontal * 35,
           padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
           height: Centre.scheduleBlock * (heightInMinutes / 60),
-          child: firstBlockLarger
+          child: firstBlockLarger || feedBack
               ? Center(
                   child: Text(
                     event.text.replaceAll(' ', '\u00A0'),
