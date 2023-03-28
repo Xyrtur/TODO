@@ -3,7 +3,6 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:swipe/swipe.dart';
 
 import 'package:todo/blocs/blocs_barrel.dart';
-import 'package:todo/blocs/todo_expanded_bloc.dart';
 import 'package:todo/screens/daily_page.dart';
 import 'package:todo/screens/monthly_page.dart';
 import 'package:todo/screens/unordered_page.dart';

@@ -36,6 +36,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
           context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
         }
       });
+      print(context.read<FutureTodoBloc>().state.futureList);
     reorderableTodos(context.read<FutureTodoBloc>().state.futureList);
     editingFocusNode.addListener(() {
       if (!editingFocusNode.hasFocus) {
@@ -430,12 +431,13 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
                                         // If there is nothing left in the list it was a part of, if any, replace arrow with dot
                                         if (oldList[old].indented != 0 &&
-                                            oldList[old - 1].indented == oldList[old].indented &&
+                                            oldList[old - 1].indented == oldList[old].indented - 1 &&
                                             (old + todosMoved.length == oldList.length ||
-                                                oldList[old + todosMoved.length].indented ==
-                                                    oldList[old - 1].indented)) {
+                                                !(oldList[old + todosMoved.length].indented ==
+                                                    oldList[old].indented))) {
                                           oldList[old - 1].setExpandable(false);
                                         }
+
                                         // Remove the tree and place it where it was dragged
                                         oldList.removeRange(old, old + todosMoved.length);
 
