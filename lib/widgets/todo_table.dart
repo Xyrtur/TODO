@@ -166,7 +166,6 @@ class ScheduleBlock extends StatelessWidget {
                         BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                       ],
                       child: AddEventDialog.daily(
-                        addingFutureTodo: false,
                         event: actualEvent ?? event,
                       )),
                 ));

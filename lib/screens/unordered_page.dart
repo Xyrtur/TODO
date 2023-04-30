@@ -36,7 +36,6 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
           context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
         }
       });
-      print(context.read<FutureTodoBloc>().state.futureList);
     reorderableTodos(context.read<FutureTodoBloc>().state.futureList);
     editingFocusNode.addListener(() {
       if (!editingFocusNode.hasFocus) {

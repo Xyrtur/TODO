@@ -23,11 +23,6 @@ class AddEventDialog extends StatelessWidget {
   // If editing an event, this will be set
   final EventData? event;
 
-  // If adding a future todo from the unordered page
-  final bool addingFutureTodo;
-
-  // The name of the future todo
-  final String? futureTodoText;
   final bool fromDailyMonthlyList;
   final bool fromUnfinishedList;
 
@@ -45,8 +40,6 @@ class AddEventDialog extends StatelessWidget {
       {super.key,
       this.daily = true,
       this.event,
-      required this.addingFutureTodo,
-      this.futureTodoText,
       this.fromUnfinishedList = false,
       this.fromDailyMonthlyList = false});
   AddEventDialog.monthly(
@@ -55,8 +48,6 @@ class AddEventDialog extends StatelessWidget {
       this.event,
       this.fromUnfinishedList = false,
       required this.monthOrDayDate,
-      this.addingFutureTodo = false, // Can set this to false because the dialog does not change in any way
-      this.futureTodoText,
       this.fromDailyMonthlyList = false});
 
   @override
@@ -67,16 +58,9 @@ class AddEventDialog extends StatelessWidget {
       editedTimes = true;
     }
     // Only if adding to monthly or from unordered page does the user set dates for the event
-    if (!daily || addingFutureTodo) {
-      if (addingFutureTodo && daily) {
-        monthOrDayDate = context.read<DateCubit>().state;
-      }
+    if (!daily) {
       dateResults.addListener(() {
         context.read<DialogDatesCubit>().update(dateResults.value);
-        if (addingFutureTodo && daily && dateResults.value?[0] != null) {
-          // Set the date chosen so that the user can pick a time range next associated with this date or just set to current daily date
-          monthOrDayDate = dateResults.value![0]!;
-        }
       });
     } else {
       // Adding to daily page so set this date to the current date shown on the daily page
@@ -93,7 +77,7 @@ class AddEventDialog extends StatelessWidget {
       if (deleting.value ?? false) Navigator.pop(context);
     });
 
-    controller = TextEditingController(text: event?.text ?? futureTodoText);
+    controller = TextEditingController(text: event?.text ?? "");
 
     // Title and cancel/delete button
     Widget dialogHeader = Row(
@@ -249,7 +233,7 @@ class AddEventDialog extends StatelessWidget {
 
     // Button to select the dates and the text widgets that show the chosen dates
     List<Widget> calendarPickerRow = [
-      !daily || addingFutureTodo
+      !daily
           ? GestureDetector(
               onTap: () async {
                 List<DateTime?>? results = await showCalendarDatePicker2Dialog(
@@ -272,43 +256,24 @@ class AddEventDialog extends StatelessWidget {
                     ),
                     dayTextStyle: Centre.todoText,
                     calendarType:
-                        addingFutureTodo || context.read<CalendarTypeCubit>().state == CalendarType.single
+                        context.read<CalendarTypeCubit>().state == CalendarType.single
                             ? CalendarDatePicker2Type.single
                             : context.read<CalendarTypeCubit>().state == CalendarType.ranged
                                 ? CalendarDatePicker2Type.range
                                 : CalendarDatePicker2Type.multi,
-                    firstDate: addingFutureTodo
-                        ? DateTime.utc(
-                            DateTime.now().year,
-                            DateTime.now().month,
-                            DateTime.now().day -
-                                (DateTime.now().hour == 0 ||
-                                        DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                                    ? 1
-                                    : 0))
-                        : DateTime.utc(monthOrDayDate.year - 1),
-                    lastDate: addingFutureTodo
-                        ? DateTime.utc(
-                                DateTime.now().year,
-                                DateTime.now().month,
-                                DateTime.now().day -
-                                    (DateTime.now().hour == 0 ||
-                                            DateTime.now().hour == 1 && DateTime.now().minute <= 59
-                                        ? 1
-                                        : 0))
-                            .add(const Duration(days: 5))
-                        : DateTime.utc(monthOrDayDate.year + 2, 12, 31),
+                    firstDate: DateTime.utc(monthOrDayDate.year - 1),
+                    lastDate: DateTime.utc(monthOrDayDate.year + 2, 12, 31),
                     currentDate: DateTime.now(),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
                   dialogSize: Size(Centre.safeBlockHorizontal * 85, Centre.safeBlockVertical * 54),
-                  initialValue: context.read<DialogDatesCubit>().state ??
+                  value: context.read<DialogDatesCubit>().state ??
                       (monthOrDayDate.year == DateTime.now().year &&
                               monthOrDayDate.month == DateTime.now().month
                           ? [DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)]
                           : [monthOrDayDate]),
                 );
-                if (!addingFutureTodo && context.read<CalendarTypeCubit>().state == CalendarType.ranged
+                if (context.read<CalendarTypeCubit>().state == CalendarType.ranged
                     ? (results != null && results.length == 2)
                     : results != null) {
                   for (int i = 0; i < results.length; i++) {
@@ -324,8 +289,7 @@ class AddEventDialog extends StatelessWidget {
               },
               child: Builder(
                 builder: (context) {
-                  CalendarType state = CalendarType.single;
-                  if (!addingFutureTodo) state = context.watch<CalendarTypeCubit>().state;
+                  CalendarType state = context.watch<CalendarTypeCubit>().state;
                   return svgButton(
                     name: state == CalendarType.single
                         ? "single_date"
@@ -335,10 +299,7 @@ class AddEventDialog extends StatelessWidget {
                     color: Centre.yellow,
                     height: 7,
                     width: 7,
-                    margin: addingFutureTodo
-                        ? EdgeInsets.fromLTRB(
-                            0, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical * 1.5)
-                        : EdgeInsets.symmetric(
+                    margin: EdgeInsets.symmetric(
                             horizontal: Centre.safeBlockHorizontal * 2,
                             vertical: state == CalendarType.ranged ? Centre.safeBlockVertical * 3.5 : 0),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal),
@@ -346,11 +307,10 @@ class AddEventDialog extends StatelessWidget {
                 },
               ),
             )
-          : SizedBox(),
-      !daily || addingFutureTodo
+          : const SizedBox(),
+      !daily
           ? Builder(builder: (context) {
-              CalendarType calendarState = CalendarType.single;
-              if (!addingFutureTodo) calendarState = context.watch<CalendarTypeCubit>().state;
+              CalendarType calendarState = context.watch<CalendarTypeCubit>().state;
               final dateResultsState = context.watch<DialogDatesCubit>().state;
 
               return Column(
@@ -358,30 +318,24 @@ class AddEventDialog extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: calendarState != CalendarType.ranged
                       ? [
-                          Padding(
-                            padding: EdgeInsets.only(
-                                bottom: addingFutureTodo ? Centre.safeBlockVertical * 3.5 : 0),
-                            child: SizedBox(
-                                width: addingFutureTodo
-                                    ? Centre.safeBlockHorizontal * 15
-                                    : Centre.safeBlockHorizontal * 30,
-                                child: Text(
-                                  calendarState == CalendarType.single
-                                      ? (dateResultsState?[0] != null
-                                          ? DateFormat('MMM d').format(dateResultsState![0]!)
-                                          : "")
-                                      : (dateResultsState?[0] != null
-                                          ? [
-                                              for (DateTime? i in dateResultsState!)
-                                                DateFormat('MMM d').format(i!)
-                                            ].join(', ')
-                                          : ""),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: true,
-                                  style: Centre.dialogText,
-                                )),
-                          )
+                          SizedBox(
+                              width: Centre.safeBlockHorizontal * 30,
+                              child: Text(
+                                calendarState == CalendarType.single
+                                    ? (dateResultsState?[0] != null
+                                        ? DateFormat('MMM d').format(dateResultsState![0]!)
+                                        : "")
+                                    : (dateResultsState?[0] != null
+                                        ? [
+                                            for (DateTime? i in dateResultsState!)
+                                              DateFormat('MMM d').format(i!)
+                                          ].join(', ')
+                                        : ""),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: Centre.dialogText,
+                              ))
                         ]
                       : [
                           SizedBox(
@@ -426,24 +380,10 @@ class AddEventDialog extends StatelessWidget {
               children: [
                 GestureDetector(
                     onTap: () async {
-                      if (addingFutureTodo && dateResults.value?[0] == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          backgroundColor: Centre.dialogBgColor,
-                          behavior: SnackBarBehavior.floating,
-                          content: Text(
-                            'Please select a day first',
-                            style: Centre.dialogText,
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ));
-                        return;
-                      }
                       if (!checkBoxState) {
                         TimeRangeState? value = await chooseTimeRange(
                             dailyDate: daily
-                                ? (!addingFutureTodo
-                                    ? context.read<DateCubit>().state
-                                    : dateResults.value![0])
+                                ? context.read<DateCubit>().state
                                 : null,
                             context: context,
                             daily: daily,
@@ -463,7 +403,7 @@ class AddEventDialog extends StatelessWidget {
                       width: 7,
                       margin: daily
                           ? EdgeInsets.fromLTRB(
-                              addingFutureTodo ? Centre.safeBlockHorizontal : Centre.safeBlockHorizontal * 5,
+                              Centre.safeBlockHorizontal * 5,
                               0,
                               Centre.safeBlockHorizontal,
                               0)
@@ -618,9 +558,6 @@ class AddEventDialog extends StatelessWidget {
                             : [
                                 calendarPickerRow[0],
                                 calendarPickerRow[1],
-                                SizedBox(
-                                  width: addingFutureTodo ? Centre.safeBlockHorizontal * 2 : 0,
-                                ),
                                 timePickerRow,
                                 Expanded(
                                     child: Row(
@@ -856,18 +793,14 @@ class AddEventDialog extends StatelessWidget {
             // Add the event to the repository
             // If the hours fall past 00:00, event is on the next day, so another 24 hours must be added
             context.read<TodoBloc>().add(TodoCreate(
-                date: addingFutureTodo ? context.read<DateCubit>().state : null,
+                date: null,
                 event: EventData(
                     fullDay: false,
-                    start: (addingFutureTodo
-                            ? context.read<DialogDatesCubit>().state![0]!
-                            : context.read<DateCubit>().state)
+                    start: (context.read<DateCubit>().state)
                         .add(Duration(
                             hours: start.hour >= 0 && start.hour < 2 ? start.hour + 24 : start.hour,
                             minutes: start.minute)),
-                    end: (addingFutureTodo
-                            ? context.read<DialogDatesCubit>().state![0]!
-                            : context.read<DateCubit>().state)
+                    end: (context.read<DateCubit>().state)
                         .add(Duration(
                             hours: end.hour >= 0 && end.hour < 2 ? end.hour + 24 : end.hour,
                             minutes: end.minute)),

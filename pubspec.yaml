@@ -40,9 +40,9 @@ dependencies:
   r_dotted_line_border: ^0.1.1
   fading_edge_scrollview: ^3.0.0
   intl: ^0.17.0
-  flutter_svg: ^1.1.3
+  flutter_svg: ^2.0.5
   time_range_picker: ^2.2.0
-  calendar_date_picker2: ^0.2.5
+  calendar_date_picker2: ^0.5.2
   aligned_dialog: ^0.0.6
   dotted_line: ^3.1.0
   hive: ^2.2.3
@@ -55,6 +55,8 @@ dependencies:
   permission_handler: ^10.1.0
   path_provider: ^2.0.11
   file_picker: ^5.2.1  
+  sentry_flutter: ^7.5.0
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -82,9 +84,9 @@ flutter_icons:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  hive_generator: ^1.1.3  
+  hive_generator: ^2.0.0  
   build_runner: ^2.2.0
-  flutter_launcher_icons: "^0.10.0"
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

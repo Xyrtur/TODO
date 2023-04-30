@@ -237,8 +237,7 @@ class HiveRepository {
     event.end = event.end.subtract(localTimeDiff);
     daily ? dailyHive.add(event) : monthlyHive.add(event);
     // Only update daily lists and maps if the event falls on the selected daily date
-    if (daily &&
-        event.start.toLocal().isSameDate(other: currentDailyDate ?? event.start.toLocal(), daily: daily)) {
+    if (daily) {
       dailyTableEvents.add(event);
       dailyTableEvents.sort((a, b) => a.start.compareTo(b.start));
       inOrderDailyTableEvents.insert(dailyTableEvents.indexOf(event), event.key);
@@ -259,6 +258,7 @@ class HiveRepository {
     if (!daily && inDay) {
       dailyMonthlyEventsMap[event.key] = event;
     }
+    print(dailyTableEvents);
   }
 
   updateEvent(

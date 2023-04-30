@@ -142,7 +142,6 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                         BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                       ],
                       child: AddEventDialog.daily(
-                        addingFutureTodo: false,
                       ))));
         },
       );
