@@ -259,7 +259,6 @@ class HiveRepository {
     if (!daily && inDay) {
       dailyMonthlyEventsMap[event.key] = event;
     }
-    print(dailyTableEvents);
   }
 
   updateEvent(
