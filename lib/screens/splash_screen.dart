@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// Sentry code to get emailed exceptions
+// import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/hive_repository.dart';
@@ -42,10 +43,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             isRepeatingAnimation: false,
           ),
           screenFunction: () async {
-            try {
+            // Sentry code to get emailed exceptions
+            // try {
              
   context.read<HiveRepository>().cacheInitialData();
-            context.read<HiveRepository>().futureTodosHive.clear();
 
             return RepositoryProvider.value(
               value: context.read<HiveRepository>(),
@@ -73,14 +74,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     create: (BuildContext context) => UnfinishedListBloc(context.read<HiveRepository>())),
               ], child: TodoPages()),
             );
-          
-} catch (exception, stackTrace) {
-  await Sentry.captureException(
-    exception,
-    stackTrace: stackTrace,
-  );
-  return const SizedBox();
-}
+// Sentry code to get emailed exceptions
+// } catch (exception, stackTrace) {
+//   await Sentry.captureException(
+//     exception,
+//     stackTrace: stackTrace,
+//   );
+//   return const SizedBox();
+// }
 })
             
     );
