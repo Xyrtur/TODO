@@ -195,6 +195,7 @@ class HiveRepository {
     List<int> deletedTreeIndexes = [];
     while (i < futureList.length && futureList[todo.index].indented < futureList[i].indented) {
       futureList[i].changeIndent(futureList[i].indented - 1);
+      futureList[i].setCollapsed(false);
       deletedTreeIndexes.add(i - 1);
       i++;
     }

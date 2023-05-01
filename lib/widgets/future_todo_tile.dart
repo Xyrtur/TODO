@@ -95,10 +95,6 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
     return MultiBlocListener(
       listeners: [
         BlocListener<FutureTodoBloc, FutureTodoState>(listener: (unUsedContext, state) {
-          if (state is FutureTodoRefreshedFromDelete &&
-              state.deletedTreeIndexes.contains(widget.todo.index)) {
-            animController.forward();
-          } else if (state is FutureTodoRefreshed) {
             // Control the arrows
             if (widget.todo.expandable) {
               if (widget.todo.index + 1 != state.futureList.length &&
@@ -116,7 +112,7 @@ class _FutureTodoTileState extends State<FutureTodoTile> with TickerProviderStat
             } else {
               animController.forward();
             }
-          }
+          
         })
       ],
       child: AnimatedBuilder(
