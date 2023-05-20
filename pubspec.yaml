@@ -55,9 +55,9 @@ dependencies:
   permission_handler: ^10.1.0
   path_provider: ^2.0.11
   file_picker: ^5.2.1
-  
+
   # Sentry code to get emailed exceptions  
-  # sentry_flutter: ^7.5.0
+  sentry_flutter: ^7.5.0
 
 
   # The following adds the Cupertino Icons font to your application.

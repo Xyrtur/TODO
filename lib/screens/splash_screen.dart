@@ -3,7 +3,7 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 // Sentry code to get emailed exceptions
-// import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/utils/hive_repository.dart';
@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ),
           screenFunction: () async {
             // Sentry code to get emailed exceptions
-            // try {
+            try {
              
   context.read<HiveRepository>().cacheInitialData();
 
@@ -75,13 +75,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ], child: TodoPages()),
             );
 // Sentry code to get emailed exceptions
-// } catch (exception, stackTrace) {
-//   await Sentry.captureException(
-//     exception,
-//     stackTrace: stackTrace,
-//   );
-//   return const SizedBox();
-// }
+} catch (exception, stackTrace) {
+  await Sentry.captureException(
+    exception,
+    stackTrace: stackTrace,
+  );
+  return const SizedBox();
+}
 })
             
     );
