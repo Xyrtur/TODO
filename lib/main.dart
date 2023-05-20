@@ -19,27 +19,28 @@ void main() async {
   Hive.registerAdapter(EventDataAdapter());
   Hive.registerAdapter(FutureTodoAdapter());
 
-  await Hive.openBox<EventData>('monthEventBox', compactionStrategy: (entries, deletedEntries) {
+  await Hive.openBox<EventData>('monthEventBox',
+      compactionStrategy: (entries, deletedEntries) {
     return deletedEntries > 20;
   });
-  await Hive.openBox<EventData>('dailyEventBox', compactionStrategy: (entries, deletedEntries) {
+  await Hive.openBox<EventData>('dailyEventBox',
+      compactionStrategy: (entries, deletedEntries) {
     return deletedEntries > 20;
   });
-  await Hive.openBox<FutureTodo>('futureTodosBox', compactionStrategy: (entries, deletedEntries) {
+  await Hive.openBox<FutureTodo>('futureTodosBox',
+      compactionStrategy: (entries, deletedEntries) {
     return deletedEntries > 20;
   });
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   // Sentry code to get emailed exceptions
-  await SentryFlutter.init(
-    (options) { options.dsn = 'https://8457a9015b0f4e978bd2078b054503cb@o4505104841965568.ingest.sentry.io/4505104845766656';
-    options.debug = true;
-    },
-
-    appRunner: () => 
-    runApp(const TodoApp()
-    // Sentry code to get emailed exceptions
-    )
-    );
+  await SentryFlutter.init((options) {
+    options.dsn =
+        'https://8457a9015b0f4e978bd2078b054503cb@o4505104841965568.ingest.sentry.io/4505104845766656';
+  },
+      appRunner: () => runApp(const TodoApp()
+          // Sentry code to get emailed exceptions
+          ));
 }
 
 class TodoApp extends StatelessWidget {
@@ -63,7 +64,8 @@ class TodoApp extends StatelessWidget {
         primarySwatch: Colors.amber,
         fontFamily: 'Raleway',
       ),
-      home: RepositoryProvider(create: (context) => HiveRepository(), child: const SplashScreen()),
+      home: RepositoryProvider(
+          create: (context) => HiveRepository(), child: const SplashScreen()),
     );
   }
 }
