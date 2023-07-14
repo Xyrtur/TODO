@@ -29,8 +29,7 @@ class ImportFinished extends ImportExportState {
 }
 
 class ExportFinished extends ImportExportState {
-  final String? path;
-  const ExportFinished(this.path);
+  const ExportFinished();
 }
 
 class ImportExportInitial extends ImportExportState {
@@ -54,10 +53,10 @@ class ImportExportBloc extends Bloc<ImportExportEvent, ImportExportState> {
     });
 
     on<ExportClicked>((event, emit) async {
-      String? directoryPath = await hive.exportFile(event.isAndroid);
+      await hive.exportFile(event.isAndroid);
       hive.cacheInitialData();
       emit(const ImportExportInitial());
-      emit(ExportFinished(directoryPath));
+      emit(const ExportFinished());
     });
   }
 }

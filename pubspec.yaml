@@ -55,6 +55,7 @@ dependencies:
   permission_handler: ^10.1.0
   path_provider: ^2.0.11
   file_picker: ^5.2.1
+  share_plus: ^7.0.2
 
   # Sentry code to get emailed exceptions  
   sentry_flutter: ^7.5.0

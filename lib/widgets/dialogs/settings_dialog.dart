@@ -13,19 +13,21 @@ class SettingsDialog extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(10)),
       child: SizedBox(
         height: Centre.safeBlockVertical * 18,
-        width: Centre.safeBlockHorizontal * 58,
+        width: Centre.safeBlockHorizontal * 65,
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: Centre.safeBlockVertical),
           child: Column(
             children: [
               GestureDetector(
                   onTap: () {
-                    showLicensePage(context: context, applicationName: "//TODO:");
+                    showLicensePage(
+                        context: context, applicationName: "//TODO:");
                   },
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: Centre.safeBlockHorizontal),
                         child: SizedBox(
                           height: Centre.safeBlockHorizontal * 9,
                           width: Centre.safeBlockHorizontal * 9,
@@ -45,8 +47,11 @@ class SettingsDialog extends StatelessWidget {
               BlocListener<ImportExportBloc, ImportExportState>(
                 listener: (context, state) {
                   if (state is ImportFinished) {
-                    context.read<TodoBloc>().add(TodoDateChange(date: context.read<DateCubit>().state));
-                    context.read<UnfinishedListBloc>().add(const UnfinishedListUpdate());
+                    context.read<TodoBloc>().add(
+                        TodoDateChange(date: context.read<DateCubit>().state));
+                    context
+                        .read<UnfinishedListBloc>()
+                        .add(const UnfinishedListUpdate());
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: Centre.dialogBgColor,
@@ -56,26 +61,19 @@ class SettingsDialog extends StatelessWidget {
                       ),
                       duration: const Duration(seconds: 2),
                     ));
-                  } else if (state is ExportFinished) {
-                    if (state.path != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Centre.dialogBgColor,
-                        content: Text(
-                          "Saved to ${state.path}. Please move the file out",
-                          style: Centre.dialogText,
-                        ),
-                        duration: const Duration(seconds: 5),
-                      ));
-                    }
-                  }
+                  } else if (state is ExportFinished) {}
                 },
                 child: GestureDetector(
                   onTap: () async {
                     if (Theme.of(context).platform == TargetPlatform.iOS) {
-                      context.read<ImportExportBloc>().add(const ImportClicked(false));
-                    } else if (Theme.of(context).platform == TargetPlatform.android) {
-                      context.read<ImportExportBloc>().add(const ImportClicked(true));
+                      context
+                          .read<ImportExportBloc>()
+                          .add(const ImportClicked(false));
+                    } else if (Theme.of(context).platform ==
+                        TargetPlatform.android) {
+                      context
+                          .read<ImportExportBloc>()
+                          .add(const ImportClicked(true));
                     }
                   },
                   child: Row(
@@ -83,10 +81,11 @@ class SettingsDialog extends StatelessWidget {
                       svgButton(
                           name: "import",
                           color: Centre.colors[3],
-                          height: 5,
-                          width: 5,
+                          height: (Centre.safeBlockHorizontal * 1.1).floor(),
+                          width: (Centre.safeBlockHorizontal * 1.1).floor(),
                           padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal)),
+                          margin: EdgeInsets.only(
+                              left: Centre.safeBlockHorizontal)),
                       Text(
                         "Import data from zip file",
                         style: Centre.smallerDialogText,
@@ -99,9 +98,14 @@ class SettingsDialog extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   if (Theme.of(context).platform == TargetPlatform.iOS) {
-                    context.read<ImportExportBloc>().add(const ExportClicked(false));
-                  } else if (Theme.of(context).platform == TargetPlatform.android) {
-                    context.read<ImportExportBloc>().add(const ExportClicked(true));
+                    context
+                        .read<ImportExportBloc>()
+                        .add(const ExportClicked(false));
+                  } else if (Theme.of(context).platform ==
+                      TargetPlatform.android) {
+                    context
+                        .read<ImportExportBloc>()
+                        .add(const ExportClicked(true));
                   }
                 },
                 child: Row(
@@ -109,10 +113,11 @@ class SettingsDialog extends StatelessWidget {
                     svgButton(
                         name: "export",
                         color: Centre.colors[3],
-                        height: 5,
-                        width: 5,
+                        height: (Centre.safeBlockHorizontal * 1.1).floor(),
+                        width: (Centre.safeBlockHorizontal * 1.1).floor(),
                         padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                        margin: EdgeInsets.only(left: Centre.safeBlockHorizontal)),
+                        margin:
+                            EdgeInsets.only(left: Centre.safeBlockHorizontal)),
                     Text(
                       "Export data to zip file",
                       style: Centre.smallerDialogText,

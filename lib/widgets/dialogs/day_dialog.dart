@@ -11,7 +11,15 @@ class DayDialog extends StatelessWidget {
   final DateTime date;
   final DateTime currentMonth;
   DayDialog({super.key, required this.date, required this.currentMonth});
-  final List<String> weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  final List<String> weekdays = [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun"
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +34,8 @@ class DayDialog extends StatelessWidget {
                   body: MultiBlocProvider(
                     providers: [
                       BlocProvider<TimeRangeCubit>(
-                        create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                        create: (_) =>
+                            TimeRangeCubit(TimeRangeState(null, null)),
                       ),
                       BlocProvider<ColorCubit>(
                         create: (_) => ColorCubit(null),
@@ -34,9 +43,11 @@ class DayDialog extends StatelessWidget {
                       BlocProvider<CalendarTypeCubit>(
                         create: (_) => CalendarTypeCubit(null),
                       ),
-                      BlocProvider<DialogDatesCubit>(create: (_) => DialogDatesCubit([date])),
+                      BlocProvider<DialogDatesCubit>(
+                          create: (_) => DialogDatesCubit([date])),
                       BlocProvider(create: (_) => CheckboxCubit(false)),
-                      BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                      BlocProvider.value(
+                          value: context.read<MonthlyTodoBloc>()),
                       BlocProvider.value(value: context.read<DateCubit>()),
                     ],
                     child: AddEventDialog.monthly(
@@ -46,15 +57,16 @@ class DayDialog extends StatelessWidget {
         },
       ),
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+        margin:
+            EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
         padding: EdgeInsets.all(Centre.safeBlockHorizontal * 0.5),
         height: Centre.safeBlockVertical * 5,
-        width: Centre.safeBlockVertical * 6,
+        width: Centre.safeBlockHorizontal * 12,
         child: Icon(
           Icons.add_circle_rounded,
           weight: 700,
           color: Centre.primaryColor,
-          size: 45,
+          size: Centre.safeBlockHorizontal * 11,
         ),
       ),
     );
@@ -96,7 +108,8 @@ class DayDialog extends StatelessWidget {
           children: [
             Container(
               margin: EdgeInsets.only(
-                  left: Centre.safeBlockHorizontal * 4, right: Centre.safeBlockHorizontal * 3),
+                  left: Centre.safeBlockHorizontal * 4,
+                  right: Centre.safeBlockHorizontal * 3),
               height: Centre.safeBlockVertical * 3.5,
               width: Centre.safeBlockVertical * 3.5,
               child: SvgPicture.asset(
@@ -127,7 +140,8 @@ class DayDialog extends StatelessWidget {
                     !event.fullDay
                         ? "${DateFormat("HHmm").format(event.start.toLocal())}-${DateFormat("HHmm").format(event.end.toLocal())}"
                         : "All day",
-                    style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 3),
+                    style: Centre.todoText
+                        .copyWith(fontSize: Centre.safeBlockHorizontal * 3),
                   ),
                 ),
               )
@@ -138,7 +152,8 @@ class DayDialog extends StatelessWidget {
     }
 
     return AlertDialog(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(40))),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(40))),
         backgroundColor: Centre.dialogBgColor,
         elevation: 5,
         content: SizedBox(
@@ -154,63 +169,117 @@ class DayDialog extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
-                BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(builder: (context, state) {
+                BlocBuilder<MonthlyTodoBloc, MonthlyTodoState>(
+                    builder: (context, state) {
                   return SizedBox(
-                    height: Centre.safeBlockVertical * 41,
+                    height: Centre.safeBlockVertical * 40,
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: state
-                            .monthlyMaps[date.monthlyMapDayIndex(currentMonth: currentMonth)].values
+                            .monthlyMaps[date.monthlyMapDayIndex(
+                                currentMonth: currentMonth)]
+                            .values
                             .toList()
                             .map((event) => GestureDetector(
                                 onTap: () => showDialog(
                                       context: context,
                                       builder: (BuildContext dialogContext) {
                                         return GestureDetector(
-                                            onTap: () => Navigator.pop(dialogContext),
+                                            onTap: () =>
+                                                Navigator.pop(dialogContext),
                                             child: Scaffold(
-                                                backgroundColor: Colors.transparent,
+                                                backgroundColor:
+                                                    Colors.transparent,
                                                 body: MultiBlocProvider(
                                                     providers: [
-                                                      BlocProvider<TimeRangeCubit>(
-                                                        create: (_) => TimeRangeCubit((event.fullDay)
-                                                            ? TimeRangeState(null, null)
+                                                      BlocProvider<
+                                                          TimeRangeCubit>(
+                                                        create: (_) => TimeRangeCubit((event
+                                                                .fullDay)
+                                                            ? TimeRangeState(
+                                                                null, null)
                                                             : TimeRangeState(
                                                                 TimeOfDay(
-                                                                    hour: event.start.toLocal().hour,
-                                                                    minute: event.start.toLocal().minute),
+                                                                    hour: event.start
+                                                                        .toLocal()
+                                                                        .hour,
+                                                                    minute: event
+                                                                        .start
+                                                                        .toLocal()
+                                                                        .minute),
                                                                 TimeOfDay(
-                                                                    hour: event.end.toLocal().hour,
-                                                                    minute: event.end.toLocal().minute))),
+                                                                    hour: event
+                                                                        .end
+                                                                        .toLocal()
+                                                                        .hour,
+                                                                    minute: event
+                                                                        .end
+                                                                        .toLocal()
+                                                                        .minute))),
                                                       ),
                                                       BlocProvider<ColorCubit>(
-                                                        create: (_) => ColorCubit(
-                                                            !Centre.colors.contains(Color(event.color))
-                                                                ? null
-                                                                : Centre.colors.indexOf(Color(event.color))),
+                                                        create: (_) => ColorCubit(!Centre
+                                                                .colors
+                                                                .contains(Color(
+                                                                    event
+                                                                        .color))
+                                                            ? null
+                                                            : Centre.colors
+                                                                .indexOf(Color(
+                                                                    event
+                                                                        .color))),
                                                       ),
-                                                      BlocProvider<CalendarTypeCubit>(
-                                                        create: (_) => CalendarTypeCubit(event.fullDay &&
+                                                      BlocProvider<
+                                                          CalendarTypeCubit>(
+                                                        create: (_) => CalendarTypeCubit(event
+                                                                    .fullDay &&
                                                                 !event.start.isSameDate(
-                                                                    other: event.end, daily: false)
-                                                            ? CalendarType.ranged
-                                                            : CalendarType.single),
+                                                                    other: event
+                                                                        .end,
+                                                                    daily:
+                                                                        false)
+                                                            ? CalendarType
+                                                                .ranged
+                                                            : CalendarType
+                                                                .single),
                                                       ),
-                                                      BlocProvider<DialogDatesCubit>(
-                                                          create: (_) => DialogDatesCubit(event.fullDay &&
+                                                      BlocProvider<
+                                                              DialogDatesCubit>(
+                                                          create: (_) => DialogDatesCubit(event
+                                                                      .fullDay &&
                                                                   !event.start.isSameDate(
-                                                                      other: event.end, daily: false)
-                                                              ? [event.start.toLocal(), event.end.toLocal()]
-                                                              : [event.start.toLocal()])),
+                                                                      other: event
+                                                                          .end,
+                                                                      daily:
+                                                                          false)
+                                                              ? [
+                                                                  event.start
+                                                                      .toLocal(),
+                                                                  event.end
+                                                                      .toLocal()
+                                                                ]
+                                                              : [
+                                                                  event.start
+                                                                      .toLocal()
+                                                                ])),
                                                       BlocProvider(
-                                                          create: (_) => CheckboxCubit(event.fullDay)),
+                                                          create: (_) =>
+                                                              CheckboxCubit(event
+                                                                  .fullDay)),
                                                       BlocProvider.value(
-                                                          value: context.read<MonthlyTodoBloc>()),
-                                                      BlocProvider.value(value: context.read<DateCubit>()),
+                                                          value: context.read<
+                                                              MonthlyTodoBloc>()),
+                                                      BlocProvider.value(
+                                                          value: context.read<
+                                                              DateCubit>()),
                                                     ],
-                                                    child: AddEventDialog.monthly(
-                                                      monthOrDayDate: context.read<MonthDateCubit>().state,
+                                                    child:
+                                                        AddEventDialog.monthly(
+                                                      monthOrDayDate: context
+                                                          .read<
+                                                              MonthDateCubit>()
+                                                          .state,
                                                       event: event,
                                                     ))));
                                       },

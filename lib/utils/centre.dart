@@ -4,6 +4,7 @@ class Centre {
   static late double safeBlockHorizontal;
   static late double safeBlockVertical;
   static late double screenWidth;
+  static late Size size;
   static late double screenHeight;
 
   static late double scheduleBlock;
@@ -43,7 +44,7 @@ class Centre {
   static final todoSemiTitle = TextStyle(
       color: textColor,
       fontWeight: FontWeight.w400,
-      fontSize: Centre.safeBlockHorizontal * 6.5,
+      fontSize: Centre.safeBlockHorizontal * 6.2,
       fontFamily: 'Raleway');
 
   static final todoTitle = TextStyle(
@@ -55,7 +56,7 @@ class Centre {
   static final dialogText = TextStyle(
       color: textColor,
       fontWeight: FontWeight.w400,
-      fontSize: Centre.safeBlockHorizontal * 4.5,
+      fontSize: Centre.safeBlockHorizontal * 4.2,
       fontFamily: 'Raleway');
 
   static final smallerDialogText = TextStyle(
@@ -67,7 +68,7 @@ class Centre {
   static final titleDialogText = TextStyle(
       color: textColor,
       fontWeight: FontWeight.w400,
-      fontSize: Centre.safeBlockHorizontal * 5.5,
+      fontSize: Centre.safeBlockHorizontal * 5.2,
       fontFamily: 'Raleway');
 
   void init(BuildContext buildContext) {
@@ -78,12 +79,16 @@ class Centre {
     screenWidth = mediaQueryData.size.width;
     screenHeight = mediaQueryData.size.height;
 
-    safeAreaHorizontal = mediaQueryData.padding.left + mediaQueryData.padding.right;
-    safeAreaVertical = mediaQueryData.padding.top + mediaQueryData.padding.bottom;
+    safeAreaHorizontal =
+        mediaQueryData.padding.left + mediaQueryData.padding.right;
+    safeAreaVertical =
+        mediaQueryData.padding.top + mediaQueryData.padding.bottom;
     safeBlockHorizontal = (screenWidth - safeAreaHorizontal) / 100;
     safeBlockVertical = (screenHeight - safeAreaVertical) / 100;
 
     // Size of one hour on the Todo table
     scheduleBlock = Centre.safeBlockVertical * 9.5;
+
+    size = MediaQuery.of(buildContext).size;
   }
 }
