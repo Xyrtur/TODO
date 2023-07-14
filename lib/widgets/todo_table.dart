@@ -213,7 +213,8 @@ class ScheduleBlock extends StatelessWidget {
         : Centre.safeBlockHorizontal * 54;
 
     return Positioned(
-      top: top.toDouble(),
+      // Add offset to top so that the box is more aligned with dotted lines
+      top: top.toDouble() + 0.5,
       left: left,
       child: LongPressDraggable(
         delay: const Duration(milliseconds: 100),
@@ -347,6 +348,7 @@ class ScheduleBlock extends StatelessWidget {
               : Container(
                   color: Colors.transparent,
                   width: Centre.safeBlockHorizontal * 35,
+                  //
                   height: Centre.scheduleBlock *
                       (event.end.difference(event.start).inMinutes / 60),
                 ),

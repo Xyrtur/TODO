@@ -365,16 +365,22 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                             ),
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
                             Text(
                               i.toString(),
                               style: Centre.todoText,
                             ),
-                            SizedBox(height: Centre.safeBlockVertical * 2.6),
-                            DottedLine(
-                              dashColor: Centre.lighterDialogColor,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                    height: Centre.scheduleBlock / 2 -
+                                        0.5), // Offset here helps alignment with schedule blocks
+                                DottedLine(
+                                  dashColor: Centre.lighterDialogColor,
+                                )
+                              ],
                             )
                           ],
                         ),
@@ -399,16 +405,22 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                             ),
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
                             Text(
                               (i % 24).toString(),
                               style: Centre.todoText,
                             ),
-                            SizedBox(height: Centre.safeBlockVertical * 2.6),
-                            DottedLine(
-                              dashColor: Centre.lighterDialogColor,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                    height: Centre.scheduleBlock / 2 -
+                                        0.5), // Offset here helps alignment with schedule blocks
+                                DottedLine(
+                                  dashColor: Centre.lighterDialogColor,
+                                )
+                              ],
                             )
                           ],
                         ),
@@ -425,7 +437,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(40), topRight: Radius.circular(40)),
           color: Centre.bgColor,
-          backdropColor: Centre.colors[2],
+          backdropColor: Centre.colors[1],
           backdropOpacity: 0.3,
           backdropEnabled: true,
           minHeight: 0,
