@@ -23,16 +23,16 @@ class Centre {
   static Color primaryColor = const Color.fromARGB(255, 255, 205, 148);
 
   static const List<Color> colors = [
-    Color.fromARGB(255, 252, 151, 138),
-    Color.fromARGB(255, 248, 173, 198),
-    Color.fromARGB(255, 252, 226, 255),
-    Color.fromARGB(255, 191, 195, 255),
+    Color.fromARGB(255, 245, 123, 149),
+    Color.fromARGB(255, 252, 167, 216),
+    Color.fromARGB(255, 255, 145, 126),
+    Color.fromARGB(255, 212, 169, 247),
     Color.fromARGB(255, 221, 221, 221),
-    Color.fromARGB(255, 184, 253, 221),
-    Color.fromARGB(255, 195, 245, 245),
-    Color.fromARGB(255, 191, 226, 255),
-    Color.fromARGB(255, 255, 219, 151),
-    Color.fromARGB(255, 255, 249, 158),
+    Color.fromARGB(255, 156, 250, 179),
+    Color.fromARGB(255, 139, 168, 248),
+    Color.fromARGB(255, 159, 241, 252),
+    Color.fromARGB(255, 255, 190, 130),
+    Color.fromARGB(255, 248, 241, 139),
   ];
 
   static final todoText = TextStyle(
