@@ -2498,30 +2498,7 @@ class _TimePickerDialogState extends State<TimePickerDialog>
     );
 
     final Widget picker;
-    final List<String> timesList = [
-      "15",
-      "20",
-      "30",
-      "45",
-      "60",
-      "90",
-      "120",
-      "180"
-    ];
 
-    // final Widget timesColumn = Column(
-    //   mainAxisSize: MainAxisSize.min,
-    //   children: <Widget>[
-    //     for (int i = 0; i < 4; i++)
-    //       Row(
-    //         mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //         children: [
-    //           monthBtn(2 * i + 1, state, index),
-    //           monthBtn(2 * i + 2, state, index),
-    //         ],
-    //       ),
-    //   ],
-    // );
     switch (_entryMode.value) {
       case TimePickerEntryMode.dial:
         final Widget dial = Padding(
@@ -2594,7 +2571,6 @@ class _TimePickerDialogState extends State<TimePickerDialog>
         break;
     }
 
-    final Size dialogSize = _dialogSize(context);
     return Dialog(
       shape: shape,
       backgroundColor: Centre.dialogBgColor,
