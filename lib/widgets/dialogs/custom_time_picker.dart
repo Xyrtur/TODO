@@ -2252,7 +2252,7 @@ class _TimePickerDialogState extends State<TimePickerDialog>
           setState(() {
             widget.errorInvalidText = "Events must be minimum 15 minutes";
           });
-        } else if (widget.startTime!.hour + newHour > 25 ||
+        } else if (newHour < widget.startTime!.hour && newHour > 1 ||
             widget.startTime!.hour == 0 && newHour > 1) {
           badHour = true;
           badMinute = true;

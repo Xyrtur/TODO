@@ -602,41 +602,44 @@ class AddEventDialog extends StatelessWidget {
       Duration localTimeDiff =
           DateTime(dailyDate.year, dailyDate.month, dailyDate.day, 7, 0)
               .timeZoneOffset;
+
       dailyTableList.sort();
       if (event != null) {
         dailyTableList.remove(event);
       }
-      for (int duration in timesToPick.keys) {
-        if (duration <=
-            dailyDate
-                .add(const Duration(hours: 7))
-                .subtract(localTimeDiff)
-                .difference(dailyTableList[0].start)
-                .inMinutes
-                .abs()) {
-          continue;
-        }
+      if (dailyTableList.isNotEmpty) {
+        for (int duration in timesToPick.keys) {
+          if (duration <=
+              dailyDate
+                  .add(const Duration(hours: 7))
+                  .subtract(localTimeDiff)
+                  .difference(dailyTableList[0].start)
+                  .inMinutes
+                  .abs()) {
+            continue;
+          }
 
-        for (int i = 0; i < dailyTableList.length; i++) {
-          if (i == (dailyTableList.length - 1)) {
-            if (duration <=
-                dailyDate
-                    .add(const Duration(hours: 25))
-                    .subtract(localTimeDiff)
-                    .difference(dailyTableList[i].end)
+          for (int i = 0; i < dailyTableList.length; i++) {
+            if (i == (dailyTableList.length - 1)) {
+              if (duration <=
+                  dailyDate
+                      .add(const Duration(hours: 25))
+                      .subtract(localTimeDiff)
+                      .difference(dailyTableList[i].end)
+                      .inMinutes
+                      .abs()) {
+                break;
+              } else {
+                timesToPick[duration] = false;
+              }
+            } else if (duration <=
+                dailyTableList[i]
+                    .end
+                    .difference(dailyTableList[i + 1].start)
                     .inMinutes
                     .abs()) {
               break;
-            } else {
-              timesToPick[duration] = false;
             }
-          } else if (duration <=
-              dailyTableList[i]
-                  .end
-                  .difference(dailyTableList[i + 1].start)
-                  .inMinutes
-                  .abs()) {
-            break;
           }
         }
       }
