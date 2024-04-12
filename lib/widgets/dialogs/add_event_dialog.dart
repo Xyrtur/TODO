@@ -79,6 +79,7 @@ class AddEventDialog extends StatelessWidget {
     });
 
     controller = TextEditingController(text: event?.text ?? "");
+    bool isFirstBuild = true;
 
     // Title and cancel/delete button
     Widget dialogHeader = Row(
@@ -250,7 +251,10 @@ class AddEventDialog extends StatelessWidget {
 
     // Column of three buttons to toggle between the type of event it will be
     Widget calendarTypeToggleBtns = Container(
-      margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
+      margin: EdgeInsets.only(
+          left: Centre.safeBlockHorizontal * 3,
+          right: Centre.safeBlockHorizontal * 3,
+          top: Centre.safeBlockVertical),
       height: Centre.safeBlockVertical * 22,
       width: Centre.safeBlockHorizontal * 15,
       decoration: BoxDecoration(
@@ -262,8 +266,8 @@ class AddEventDialog extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
-          color: Color.fromARGB(255, 77, 77, 77),
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+          color: const Color.fromARGB(255, 77, 77, 77),
+          borderRadius: const BorderRadius.all(Radius.circular(10))),
       child: BlocBuilder<CalendarTypeCubit, CalendarType>(
         builder: (context, state) => Column(
           children: [
@@ -491,89 +495,86 @@ class AddEventDialog extends StatelessWidget {
           context.watch<TimeRangeCubit>().state;
 
       return calendarState != CalendarType.ranged
-          ? Expanded(
-              flex: daily ? 1 : -1,
-              child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                        onTap: () async {
-                          if (!checkBoxState) {
-                            TimeRangeState? value = await chooseTimeRange(
-                                dailyDate: daily
-                                    ? context.read<DateCubit>().state
-                                    : null,
-                                context: context,
-                                daily: daily,
-                                editingEvent: event,
-                                prevChosenStart: timeRangeState.startResult,
-                                prevChosenEnd: timeRangeState.endResult);
-                            if (value.startResult != null &&
-                                value.endResult != null) {
-                              editedTimes = true;
-                              timeRangeChosen.value = value;
-                            }
+          ? Container(
+              margin: EdgeInsets.only(
+                  bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
+              child: Row(
+                children: [
+                  GestureDetector(
+                      onTap: () async {
+                        if (!checkBoxState) {
+                          TimeRangeState? value = await chooseTimeRange(
+                              dailyDate: daily
+                                  ? context.read<DateCubit>().state
+                                  : null,
+                              context: context,
+                              daily: daily,
+                              editingEvent: event,
+                              prevChosenStart: timeRangeState.startResult,
+                              prevChosenEnd: timeRangeState.endResult);
+                          if (value.startResult != null &&
+                              value.endResult != null) {
+                            editedTimes = true;
+                            timeRangeChosen.value = value;
                           }
-                        },
-                        child: svgButton(
-                          name: "range_time",
-                          color: !checkBoxState
-                              ? Centre.yellow
-                              : Centre.lighterDialogColor,
-                          height: 7,
-                          width: 7,
-                          margin: daily
-                              ? EdgeInsets.fromLTRB(
-                                  Centre.safeBlockHorizontal * 5,
-                                  0,
-                                  Centre.safeBlockHorizontal,
-                                  0)
-                              : EdgeInsets.symmetric(
-                                  horizontal: Centre.safeBlockHorizontal * 2),
-                          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                        )),
-                    Column(
-                      mainAxisAlignment: daily
-                          ? MainAxisAlignment.center
-                          : MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          timeRangeState.startResult == null
-                              ? ""
-                              : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
-                          style: daily
-                              ? (fromDailyMonthlyList || fromUnfinishedList) &&
-                                      !editedTimes
-                                  ? Centre.dialogText.copyWith(
-                                      color: Centre.lighterDialogColor)
-                                  : Centre.dialogText
-                              : Centre.dialogText.copyWith(
-                                  decoration: checkBoxState
-                                      ? TextDecoration.lineThrough
-                                      : null),
-                        ),
-                        Text(
-                          timeRangeState.endResult == null
-                              ? ""
-                              : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
-                          style: daily
-                              ? (fromDailyMonthlyList || fromUnfinishedList) &&
-                                      !editedTimes
-                                  ? Centre.dialogText.copyWith(
-                                      color: Centre.lighterDialogColor)
-                                  : Centre.dialogText
-                              : Centre.dialogText.copyWith(
-                                  decoration: checkBoxState
-                                      ? TextDecoration.lineThrough
-                                      : null),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        }
+                      },
+                      child: svgButton(
+                        name: "range_time",
+                        color: !checkBoxState
+                            ? Centre.yellow
+                            : Centre.lighterDialogColor,
+                        height: 7,
+                        width: 7,
+                        margin: daily
+                            ? EdgeInsets.fromLTRB(
+                                Centre.safeBlockHorizontal * 5,
+                                0,
+                                Centre.safeBlockHorizontal,
+                                0)
+                            : EdgeInsets.symmetric(
+                                horizontal: Centre.safeBlockHorizontal * 2),
+                        padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                      )),
+                  Column(
+                    mainAxisAlignment: daily
+                        ? MainAxisAlignment.center
+                        : MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        timeRangeState.startResult == null
+                            ? ""
+                            : "${timeRangeState.startResult!.hour.toString().padLeft(2, '0')}${timeRangeState.startResult!.minute.toString().padLeft(2, '0')}",
+                        style: daily
+                            ? (fromDailyMonthlyList || fromUnfinishedList) &&
+                                    !editedTimes
+                                ? Centre.smallerDialogText
+                                    .copyWith(color: Centre.lighterDialogColor)
+                                : Centre.smallerDialogText
+                            : Centre.smallerDialogText.copyWith(
+                                decoration: checkBoxState
+                                    ? TextDecoration.lineThrough
+                                    : null),
+                      ),
+                      Text(
+                        timeRangeState.endResult == null
+                            ? ""
+                            : "${timeRangeState.endResult!.hour.toString().padLeft(2, '0')}${timeRangeState.endResult!.minute.toString().padLeft(2, '0')}",
+                        style: daily
+                            ? (fromDailyMonthlyList || fromUnfinishedList) &&
+                                    !editedTimes
+                                ? Centre.smallerDialogText
+                                    .copyWith(color: Centre.lighterDialogColor)
+                                : Centre.smallerDialogText
+                            : Centre.smallerDialogText.copyWith(
+                                decoration: checkBoxState
+                                    ? TextDecoration.lineThrough
+                                    : null),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             )
           : const SizedBox(
@@ -750,17 +751,19 @@ class AddEventDialog extends StatelessWidget {
       onTap: () {},
       child: AlertDialog(
         scrollable: true,
-        contentPadding: EdgeInsets.symmetric(
-            horizontal: Centre.safeBlockHorizontal * 5,
-            vertical: Centre.safeBlockVertical * 3),
+        contentPadding: EdgeInsets.only(
+            left: Centre.safeBlockHorizontal * 5,
+            right: Centre.safeBlockHorizontal * 5,
+            bottom: Centre.safeBlockVertical,
+            top: Centre.safeBlockVertical * 3),
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(40))),
         backgroundColor: Centre.dialogBgColor,
         elevation: 5,
         content: SizedBox(
           height: daily
-              ? Centre.safeBlockVertical * (error.isEmpty ? 48 : 50)
-              : Centre.safeBlockVertical * 48,
+              ? Centre.safeBlockVertical * 52
+              : Centre.safeBlockVertical * 50,
           width: Centre.safeBlockHorizontal * 85,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -791,68 +794,77 @@ class AddEventDialog extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    EventNameTextField(
-                        controller: controller, formKey: _formKey),
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: !daily
-                            ? [
-                                calendarTypeToggleBtns,
-                                SizedBox(
-                                  height: Centre.safeBlockVertical * 43,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          calendarPickerRow[0],
-                                          calendarPickerRow[1]
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: Centre.safeBlockVertical * 1,
-                                      ),
-                                      timePickerRow,
-                                      fullDayCheckbox,
-                                    ],
-                                  ),
-                                ),
-                              ]
-                            : [
-                                calendarPickerRow[0],
-                                calendarPickerRow[1],
-                                timePickerRow,
-                              ],
-                      ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          bottom: Centre.safeBlockVertical * 0.5),
+                      child: EventNameTextField(
+                          controller: controller, formKey: _formKey),
                     ),
+                    !daily
+                        ? Expanded(
+                            child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  calendarTypeToggleBtns,
+                                  SizedBox(
+                                    height: Centre.safeBlockVertical * 43,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            calendarPickerRow[0],
+                                            calendarPickerRow[1]
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: Centre.safeBlockVertical * 1,
+                                        ),
+                                        timePickerRow,
+                                        fullDayCheckbox,
+                                      ],
+                                    ),
+                                  ),
+                                ]),
+                          )
+                        : const SizedBox(),
+                    daily ? timePickerRow : const SizedBox(),
                     daily ? timeButtonsRow() : const SizedBox(),
                     daily
-                        ? BlocBuilder<DailyTimeBtnsCubit, TimeRangeState>(
-                            buildWhen: (previousState, state) {
-                            if (previousState.startResult != null &&
-                                state.startResult == null) {
-                              error = "Time not available in schedule";
-                              return true;
-                            }
+                        ? BlocBuilder<TimeRangeCubit, TimeRangeState>(
+                            builder: (unUsedContext, timeState) {
+                            return BlocBuilder<DailyTimeBtnsCubit,
+                                    TimeRangeState>(
+                                builder: (unUsedContext, anotherTimeState) {
+                              if (isFirstBuild) {
+                                error = "";
+                                isFirstBuild = false;
+                              } else {
+                                error = timeState.startResult == null
+                                    ? "Time not available in schedule"
+                                    : "";
+                              }
 
-                            error = "";
-                            return true;
-                          }, builder: (unUsedContext, state) {
-                            return error.isEmpty
-                                ? const SizedBox()
-                                : Text(
-                                    error,
-                                    style: Centre.todoText
-                                        .copyWith(color: Centre.red),
-                                  );
+                              return error.isEmpty
+                                  ? const SizedBox()
+                                  : Text(
+                                      error,
+                                      textHeightBehavior:
+                                          const TextHeightBehavior(
+                                              applyHeightToFirstAscent: false,
+                                              applyHeightToLastDescent: false),
+                                      style: Centre.todoText
+                                          .copyWith(color: Centre.red),
+                                    );
+                            });
                           })
                         : const SizedBox(),
                     daily
                         ? Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               // Only show the addToUnfinished button if adding from the todo table, not the unfinished list or the daily monthly list
                               event != null &&
@@ -861,7 +873,7 @@ class AddEventDialog extends StatelessWidget {
                                   ? addToUnfinishedBtn(context: context)
                                   : const SizedBox(),
                               editButton(
-                                  height: 7, width: 15, context: context),
+                                  height: 6, width: 15, context: context),
                             ],
                           )
                         : const SizedBox()
@@ -921,30 +933,33 @@ class AddEventDialog extends StatelessWidget {
         Navigator.pop(context);
       },
       child: SizedBox(
-        height: Centre.safeBlockVertical * 7,
+        height: Centre.safeBlockVertical * 6,
         width: Centre.safeBlockHorizontal * 15,
-        child: Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                color: Centre.editButtonColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Centre.darkerDialogBgColor,
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.playlist_add_check_sharp,
-                color: Centre.primaryColor,
-                size: Centre.safeBlockHorizontal * 8,
-              ),
-            )),
+        child: Padding(
+          padding: EdgeInsets.only(top: Centre.safeBlockVertical),
+          child: Align(
+              alignment: Alignment.center,
+              child: Container(
+                padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(40),
+                  color: Centre.editButtonColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Centre.darkerDialogBgColor,
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.playlist_add_check_sharp,
+                  color: Centre.primaryColor,
+                  size: Centre.safeBlockHorizontal * 8,
+                ),
+              )),
+        ),
       ),
     );
   }
@@ -1271,28 +1286,32 @@ class AddEventDialog extends StatelessWidget {
       child: SizedBox(
         height: Centre.safeBlockVertical * height,
         width: Centre.safeBlockHorizontal * width,
-        child: Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                color: Centre.editButtonColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Centre.darkerDialogBgColor,
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.check,
-                color: Centre.primaryColor,
-                size: Centre.safeBlockHorizontal * 8,
-              ),
-            )),
+        child: Padding(
+          padding: EdgeInsets.only(
+              top: error.isEmpty && daily ? Centre.safeBlockVertical : 0),
+          child: Align(
+              alignment: daily ? Alignment.bottomCenter : Alignment.bottomRight,
+              child: Container(
+                padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(40),
+                  color: Centre.editButtonColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Centre.darkerDialogBgColor,
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: Centre.primaryColor,
+                  size: Centre.safeBlockHorizontal * 8,
+                ),
+              )),
+        ),
       ),
     );
   }

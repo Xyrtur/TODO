@@ -48,7 +48,7 @@ class MonthYearPicker extends StatelessWidget {
             Navigator.pop(context);
           },
           child: Container(
-            margin: EdgeInsets.all(Centre.safeBlockVertical * 0.8),
+            margin: EdgeInsets.all(Centre.safeBlockVertical * 0.7),
             padding: EdgeInsets.symmetric(
                 vertical: Centre.safeBlockVertical * 0.8,
                 horizontal: Centre.safeBlockHorizontal * 5),
@@ -64,7 +64,7 @@ class MonthYearPicker extends StatelessWidget {
             child: Text(
               DateFormat.MMM().format(
                   DateTime(context.read<YearTrackingCubit>().state, monthNum)),
-              style: Centre.smallerDialogText,
+              style: Centre.todoText,
             ),
           ));
     }

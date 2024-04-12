@@ -19,6 +19,9 @@ extension TimeofDayCompare on TimeOfDay {
 
   int diffInMinutes({required TimeOfDay end}) {
     if (end.hour <= 1) {
+      if (hour == 0) {
+        return (end.hour - 0) * 60 + end.minute - minute;
+      }
       return (24 - hour) * 60 + (end.hour - 0) * 60 + end.minute - minute;
     } else {
       return (end.hour - hour) * 60 + end.minute - minute;

@@ -23,9 +23,7 @@ Widget svgButton({
         : null,
     height: Centre.safeBlockVertical * height,
     width: Centre.safeBlockVertical * width,
-    child: SvgPicture.asset(
-      "assets/icons/$name.svg",
-      color: color,
-    ),
+    child: SvgPicture.asset("assets/icons/$name.svg",
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn)),
   );
 }

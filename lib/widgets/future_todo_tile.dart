@@ -272,8 +272,11 @@ class _FutureTodoTileState extends State<FutureTodoTile>
               },
               child: BlocBuilder<ToggleTodoEditingCubit, bool>(
                   builder: (context, editingState) {
-                return SizedBox(
-                  height: Centre.safeBlockVertical * (editingState ? 5 : 5),
+                return Container(
+                  constraints: BoxConstraints(
+                    minHeight: Centre.safeBlockVertical * 4.5,
+                    maxHeight: Centre.safeBlockVertical * 8,
+                  ),
                   width: Centre.safeBlockHorizontal * 90,
                   child: Row(children: [
                     // Indents
@@ -329,16 +332,27 @@ class _FutureTodoTileState extends State<FutureTodoTile>
                               )
                             : Text(
                                 ' \u2022 ',
+                                textHeightBehavior: const TextHeightBehavior(
+                                    applyHeightToFirstAscent: false,
+                                    applyHeightToLastDescent: false),
                                 style: Centre.todoSemiTitle.copyWith(
                                     fontSize: Centre.safeBlockHorizontal * 8),
                               )),
                     Expanded(
                       child: !editingState
-                          ? Text(widget.todo.text,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Centre.smallerDialogText.copyWith(
-                                  fontSize: Centre.safeBlockHorizontal * 3.8))
+                          ? Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: Centre.safeBlockVertical * 1.2),
+                              child: Text(widget.todo.text,
+                                  maxLines: 2,
+                                  textHeightBehavior: const TextHeightBehavior(
+                                      applyHeightToFirstAscent: false,
+                                      applyHeightToLastDescent: false),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Centre.smallerDialogText.copyWith(
+                                      fontSize:
+                                          Centre.safeBlockHorizontal * 3.7)),
+                            )
                           : BlocBuilder<TodoTextEditingCubit, int?>(
                               builder: (context, indexEditing) {
                               return (indexEditing ?? -1) == widget.todo.index

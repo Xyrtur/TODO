@@ -334,6 +334,9 @@ class MonthCalendar extends StatelessWidget {
             event.text.replaceAll(' ', '\u00A0'),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
+            textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false),
             style: Centre.todoText.copyWith(
                 fontSize: Centre.safeBlockHorizontal * 2,
                 color: Centre.darkerBgColor),

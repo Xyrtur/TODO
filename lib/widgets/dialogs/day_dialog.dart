@@ -140,6 +140,9 @@ class DayDialog extends StatelessWidget {
                     !event.fullDay
                         ? "${DateFormat("HHmm").format(event.start.toLocal())}-${DateFormat("HHmm").format(event.end.toLocal())}"
                         : "All day",
+                    textHeightBehavior: const TextHeightBehavior(
+                        applyHeightToFirstAscent: false,
+                        applyHeightToLastDescent: false),
                     style: Centre.todoText
                         .copyWith(fontSize: Centre.safeBlockHorizontal * 3),
                   ),
