@@ -670,10 +670,5 @@ class HiveRepository {
 
       return selectedDirectory;
     }
-    // }
-    // return null;
-    // }
-    // print("well fuck");
-    // return null;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:todo/models/event_data.dart';
+import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/utils/hive_repository.dart';
 
 /*
@@ -34,7 +35,8 @@ class DateCubit extends Cubit<DateTime> {
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                (DateTime.now().hour == 0 ||
+                        DateTime.now().hour == 1 && DateTime.now().minute == 0
                     ? 1
                     : 0)));
 
@@ -44,7 +46,10 @@ class DateCubit extends Cubit<DateTime> {
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day -
-          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
+          (DateTime.now().hour == 0 ||
+                  DateTime.now().hour == 1 && DateTime.now().minute == 0
+              ? 1
+              : 0)));
 }
 
 /*
@@ -52,7 +57,8 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit() : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
+  MonthDateCubit()
+      : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
   void update(DateTime date) => emit(date);
 }
 
@@ -82,7 +88,8 @@ class CalendarTypeCubit extends Cubit<CalendarType> {
  */
 class DailyMonthlyListCubit extends Cubit<List<EventData>> {
   final HiveRepository hive;
-  DailyMonthlyListCubit(this.hive) : super(hive.dailyMonthlyEventsMap.values.toList());
+  DailyMonthlyListCubit(this.hive)
+      : super(hive.dailyMonthlyEventsMap.values.toList());
   void update() {
     return emit(hive.dailyMonthlyEventsMap.values.toList());
   }
@@ -115,7 +122,8 @@ class TimeRangeState {
 class TimeRangeCubit extends Cubit<TimeRangeState> {
   final TimeRangeState range;
   TimeRangeCubit(this.range) : super(range);
-  void update(TimeOfDay? start, TimeOfDay? end) => emit(TimeRangeState(start, end));
+  void update(TimeOfDay? start, TimeOfDay? end) =>
+      emit(TimeRangeState(start, end));
 }
 
 /*
@@ -181,10 +189,93 @@ class FirstDailyDateBtnCubit extends Cubit<DateTime> {
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
+                (DateTime.now().hour == 0 ||
+                        DateTime.now().hour == 1 && DateTime.now().minute == 0
                     ? 1
                     : 0)));
   // [x,y]
   // x = index, y = dealt with: 1 = yes, 0 = no
   void update(DateTime date) => emit(date);
 }
+
+/*
+ * Controls time buttons in Add/Edit Event dialog for the daily planner
+ * Inputs: 
+ * dailyTableMap - current daily events on the table
+ * timeMinutes - time duration selected by user (in minutes)
+ * Will output either TimeRangeState or an error (String)
+ * 
+ */
+class DailyTimeBtnsCubit extends Cubit<TimeRangeState> {
+  DailyTimeBtnsCubit() : super(TimeRangeState(null, null));
+
+  void timeBtnClicked(
+      {required DateTime dailyDate,
+      required List<EventData> dailyTableList,
+      required int timeDuration,
+      EventData? eventEditing}) {
+    // Check if time clicked is valid
+    Duration localTimeDiff =
+        DateTime(dailyDate.year, dailyDate.month, dailyDate.day, 7, 0)
+            .timeZoneOffset;
+    dailyTableList.sort();
+    if (eventEditing != null) {
+      dailyTableList.remove(eventEditing);
+    }
+    if (timeDuration <=
+        dailyDate
+            .add(const Duration(hours: 7))
+            .subtract(localTimeDiff)
+            .difference(dailyTableList[0].start)
+            .inMinutes
+            .abs()) {
+      emit(TimeRangeState(const TimeOfDay(hour: 7, minute: 0),
+          const TimeOfDay(hour: 7, minute: 0).add(minutes: timeDuration)));
+      return;
+    }
+
+    for (int i = 0; i < dailyTableList.length; i++) {
+      if (i == (dailyTableList.length - 1)) {
+        if (timeDuration <=
+            dailyDate
+                .add(const Duration(hours: 25))
+                .subtract(localTimeDiff)
+                .difference(dailyTableList[i].end)
+                .inMinutes
+                .abs()) {
+          emit(TimeRangeState(
+              TimeOfDay(
+                  hour: dailyTableList[i].end.add(localTimeDiff).hour,
+                  minute: dailyTableList[i].end.add(localTimeDiff).minute),
+              TimeOfDay(
+                      hour: dailyTableList[i].end.add(localTimeDiff).hour,
+                      minute: dailyTableList[i].end.add(localTimeDiff).minute)
+                  .add(minutes: timeDuration)));
+          return;
+        } else {
+          emit(TimeRangeState(null, null));
+        }
+      } else if (timeDuration <=
+          dailyTableList[i]
+              .end
+              .difference(dailyTableList[i + 1].start)
+              .inMinutes
+              .abs()) {
+        emit(TimeRangeState(
+            TimeOfDay(
+                hour: dailyTableList[i].end.add(localTimeDiff).hour,
+                minute: dailyTableList[i].end.add(localTimeDiff).minute),
+            TimeOfDay(
+                    hour: dailyTableList[i].end.add(localTimeDiff).hour,
+                    minute: dailyTableList[i].end.add(localTimeDiff).minute)
+                .add(minutes: timeDuration)));
+        return;
+      }
+    }
+  }
+}
+
+/*
+ * Controls time buttons when choosing the end time for a daily event
+ */
+class DailyEndTimeBtnsCubit {}

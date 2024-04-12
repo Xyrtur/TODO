@@ -44,7 +44,8 @@ class DailyPanel extends StatelessWidget {
                           return BlocProvider.value(
                             value: context.read<UnfinishedListBloc>(),
                             child: DeleteConfirmationDialog(
-                                type: DeletingFrom.unfinishedList, event: list[index]),
+                                type: DeletingFrom.unfinishedList,
+                                event: list[index]),
                           );
                         });
                   },
@@ -68,28 +69,46 @@ class DailyPanel extends StatelessWidget {
                         context: context,
                         builder: (BuildContext dialogContext) {
                           return GestureDetector(
-                            onTap: () => Navigator.pop(dialogContext),
+                            onTap: () {},
                             child: Scaffold(
                               backgroundColor: Colors.transparent,
                               body: MultiBlocProvider(
                                 providers: [
                                   BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(list[index].fullDay
-                                        ? TimeRangeState(null, null)
-                                        : TimeRangeState(
-                                            TimeOfDay(
-                                                hour: list[index].start.toLocal().hour,
-                                                minute: list[index].start.toLocal().minute),
-                                            TimeOfDay(
-                                                hour: list[index].end.toLocal().hour,
-                                                minute: list[index].end.toLocal().minute))),
+                                    create: (_) => TimeRangeCubit(
+                                        list[index].fullDay
+                                            ? TimeRangeState(null, null)
+                                            : TimeRangeState(
+                                                TimeOfDay(
+                                                    hour: list[index]
+                                                        .start
+                                                        .toLocal()
+                                                        .hour,
+                                                    minute: list[index]
+                                                        .start
+                                                        .toLocal()
+                                                        .minute),
+                                                TimeOfDay(
+                                                    hour: list[index]
+                                                        .end
+                                                        .toLocal()
+                                                        .hour,
+                                                    minute: list[index]
+                                                        .end
+                                                        .toLocal()
+                                                        .minute))),
+                                  ),
+                                  BlocProvider<DailyTimeBtnsCubit>(
+                                    create: (_) => DailyTimeBtnsCubit(),
                                   ),
                                   BlocProvider<ColorCubit>(
-                                    create: (_) =>
-                                        ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                                    create: (_) => ColorCubit(Centre.colors
+                                        .indexOf(Color(list[index].color))),
                                   ),
-                                  BlocProvider.value(value: context.read<DateCubit>()),
-                                  BlocProvider.value(value: context.read<TodoBloc>()),
+                                  BlocProvider.value(
+                                      value: context.read<DateCubit>()),
+                                  BlocProvider.value(
+                                      value: context.read<TodoBloc>()),
                                 ],
                                 child: AddEventDialog.daily(
                                   event: list[index],
@@ -105,27 +124,47 @@ class DailyPanel extends StatelessWidget {
                         context: context,
                         builder: (BuildContext dialogContext) {
                           return GestureDetector(
-                            onTap: () => Navigator.pop(dialogContext),
+                            onTap: () {},
                             child: Scaffold(
                               backgroundColor: Colors.transparent,
                               body: MultiBlocProvider(
                                 providers: [
                                   BlocProvider<TimeRangeCubit>(
-                                    create: (_) => TimeRangeCubit(TimeRangeState(
-                                        TimeOfDay(
-                                            hour: list[index].start.toLocal().hour,
-                                            minute: list[index].start.toLocal().minute),
-                                        TimeOfDay(
-                                            hour: list[index].end.toLocal().hour,
-                                            minute: list[index].end.toLocal().minute))),
+                                    create: (_) => TimeRangeCubit(
+                                        TimeRangeState(
+                                            TimeOfDay(
+                                                hour: list[index]
+                                                    .start
+                                                    .toLocal()
+                                                    .hour,
+                                                minute: list[index]
+                                                    .start
+                                                    .toLocal()
+                                                    .minute),
+                                            TimeOfDay(
+                                                hour: list[index]
+                                                    .end
+                                                    .toLocal()
+                                                    .hour,
+                                                minute: list[index]
+                                                    .end
+                                                    .toLocal()
+                                                    .minute))),
+                                  ),
+                                  BlocProvider<DailyTimeBtnsCubit>(
+                                    create: (_) => DailyTimeBtnsCubit(),
                                   ),
                                   BlocProvider<ColorCubit>(
-                                    create: (_) =>
-                                        ColorCubit(Centre.colors.indexOf(Color(list[index].color))),
+                                    create: (_) => ColorCubit(Centre.colors
+                                        .indexOf(Color(list[index].color))),
                                   ),
-                                  BlocProvider.value(value: context.read<DateCubit>()),
-                                  BlocProvider.value(value: context.read<TodoBloc>()),
-                                  BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                                  BlocProvider.value(
+                                      value: context.read<DateCubit>()),
+                                  BlocProvider.value(
+                                      value: context.read<TodoBloc>()),
+                                  BlocProvider.value(
+                                      value:
+                                          context.read<UnfinishedListBloc>()),
                                 ],
                                 child: AddEventDialog.daily(
                                   event: list[index],
@@ -144,8 +183,10 @@ class DailyPanel extends StatelessWidget {
                     //         ?
                     Container(
                         width: Centre.safeBlockHorizontal * 28,
-                        padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 1),
-                        margin: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
+                        padding: EdgeInsets.only(
+                            right: Centre.safeBlockHorizontal * 1),
+                        margin: EdgeInsets.only(
+                            bottom: Centre.safeBlockVertical * 1.5),
                         child: Text(
                           list[index].text,
                           maxLines: 2,
@@ -178,8 +219,10 @@ class DailyPanel extends StatelessWidget {
                           ),
                           Container(
                             width: Centre.safeBlockHorizontal * 28,
-                            padding: EdgeInsets.only(right: Centre.safeBlockHorizontal * 1),
-                            margin: EdgeInsets.only(bottom: Centre.safeBlockVertical * 1.5),
+                            padding: EdgeInsets.only(
+                                right: Centre.safeBlockHorizontal * 1),
+                            margin: EdgeInsets.only(
+                                bottom: Centre.safeBlockVertical * 1.5),
                             child: Text(
                               list[index].text,
                               maxLines: 2,
@@ -200,11 +243,15 @@ class DailyPanel extends StatelessWidget {
       return Column(
         children: [
           Padding(
-            padding: EdgeInsets.only(top: Centre.safeBlockVertical * 3, bottom: Centre.safeBlockVertical * 2),
-            child: Text(unfinishedList ? "Unfinished" : "This Month", style: Centre.todoSemiTitle),
+            padding: EdgeInsets.only(
+                top: Centre.safeBlockVertical * 3,
+                bottom: Centre.safeBlockVertical * 2),
+            child: Text(unfinishedList ? "Unfinished" : "This Month",
+                style: Centre.todoSemiTitle),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
+            padding: EdgeInsets.symmetric(
+                horizontal: Centre.safeBlockHorizontal * 3),
             child: Divider(
               color: Centre.pink,
               thickness: 2,
@@ -214,10 +261,12 @@ class DailyPanel extends StatelessWidget {
               child: ScrollConfiguration(
             behavior: MyBehavior(),
             child: unfinishedList
-                ? BlocBuilder<UnfinishedListBloc, UnfinishedListState>(builder: (context, state) {
+                ? BlocBuilder<UnfinishedListBloc, UnfinishedListState>(
+                    builder: (context, state) {
                     return scrollingList(unfinishedList, state.unfinishedList);
                   })
-                : BlocBuilder<DailyMonthlyListCubit, List<EventData>>(builder: (context, state) {
+                : BlocBuilder<DailyMonthlyListCubit, List<EventData>>(
+                    builder: (context, state) {
                     return scrollingList(unfinishedList, state);
                   }),
           ))
@@ -226,14 +275,18 @@ class DailyPanel extends StatelessWidget {
     }
 
     return Row(
-      children: [Expanded(child: panelList(true)), Expanded(child: panelList(false))],
+      children: [
+        Expanded(child: panelList(true)),
+        Expanded(child: panelList(false))
+      ],
     );
   }
 }
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }

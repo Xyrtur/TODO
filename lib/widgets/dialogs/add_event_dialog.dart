@@ -36,6 +36,7 @@ class AddEventDialog extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
   bool editedTimes = false;
+  String error = "";
 
   AddEventDialog.daily(
       {super.key,
@@ -90,44 +91,73 @@ class AddEventDialog extends StatelessWidget {
             style: Centre.todoSemiTitle,
           ),
         ),
-        // Show a trash can or a cancel button depending on whether or not user is editing an event
+        // Show a trash can and a cancel button if editing an event
         event != null && !fromDailyMonthlyList
-            ? GestureDetector(
-                onTap: () async {
-                  deleting.value = await showDialog<bool>(
-                      context: context,
-                      builder: (BuildContext tcontext) {
-                        return MultiBlocProvider(
-                          providers: daily
-                              ? [
-                                  BlocProvider.value(
-                                      value: context.read<TodoBloc>())
-                                ]
-                              : [
-                                  BlocProvider.value(
-                                      value: context.read<MonthlyTodoBloc>()),
-                                  BlocProvider.value(
-                                      value: context.read<DateCubit>())
-                                ],
-                          child: DeleteConfirmationDialog(
-                            type: daily
-                                ? DeletingFrom.todoTable
-                                : DeletingFrom.monthCalen,
-                            event: event!,
-                            currentMonth: monthOrDayDate,
-                          ),
-                        );
-                      });
-                },
-                child: Container(
-                  height: Centre.safeBlockVertical * 3.5,
-                  width: Centre.safeBlockVertical * 3.5,
-                  margin:
-                      EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-                  child: Icon(Icons.delete_rounded,
-                      color: Color(event!.color),
-                      size: Centre.safeBlockHorizontal * 8),
-                ),
+            ? Row(
+                children: [
+                  GestureDetector(
+                    onTap: () async {
+                      deleting.value = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext tcontext) {
+                            return MultiBlocProvider(
+                              providers: daily
+                                  ? [
+                                      BlocProvider.value(
+                                          value: context.read<TodoBloc>())
+                                    ]
+                                  : [
+                                      BlocProvider.value(
+                                          value:
+                                              context.read<MonthlyTodoBloc>()),
+                                      BlocProvider.value(
+                                          value: context.read<DateCubit>())
+                                    ],
+                              child: DeleteConfirmationDialog(
+                                type: daily
+                                    ? DeletingFrom.todoTable
+                                    : DeletingFrom.monthCalen,
+                                event: event!,
+                                currentMonth: monthOrDayDate,
+                              ),
+                            );
+                          });
+                    },
+                    child: Container(
+                      height: Centre.safeBlockVertical * 3.5,
+                      width: Centre.safeBlockVertical * 3.5,
+                      margin: EdgeInsets.only(
+                          right: Centre.safeBlockHorizontal * 4),
+                      child: Icon(Icons.delete_rounded,
+                          color: Color(event!.color),
+                          size: Centre.safeBlockHorizontal * 8),
+                    ),
+                  ),
+                  GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        margin: EdgeInsets.only(
+                            right: Centre.safeBlockHorizontal * 2),
+                        padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          color: Centre.editButtonColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Centre.darkerDialogBgColor,
+                              spreadRadius: 5,
+                              blurRadius: 7,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          color: Centre.red,
+                          size: Centre.safeBlockHorizontal * 6,
+                        ),
+                      )),
+                ],
               )
             : GestureDetector(
                 onTap: () => Navigator.pop(context),
@@ -207,7 +237,8 @@ class AddEventDialog extends StatelessWidget {
         },
         child: svgButton(
             name: name,
-            color: (state == type ? Centre.colors[8] : Centre.colors[3]),
+            color:
+                (state == type ? Centre.primaryColor : Centre.secondaryColor),
             height: 7,
             width: 7,
             padding: EdgeInsets.all(Centre.safeBlockHorizontal),
@@ -400,6 +431,54 @@ class AddEventDialog extends StatelessWidget {
           : const SizedBox(),
     ];
 
+    Widget timeBtn(
+        int duration, BuildContext context, bool selected, bool isAvailable) {
+      return GestureDetector(
+          onTap: () {
+            context.read<DailyTimeBtnsCubit>().timeBtnClicked(
+                dailyDate: context.read<DateCubit>().state,
+                dailyTableList: context
+                    .read<TodoBloc>()
+                    .state
+                    .dailyTableMap
+                    .values
+                    .toList(),
+                timeDuration: duration,
+                eventEditing: event);
+          },
+          child: Container(
+            margin: EdgeInsets.all(Centre.safeBlockVertical * 0.5),
+            padding: EdgeInsets.symmetric(
+                vertical: Centre.safeBlockVertical * 0.5,
+                horizontal: Centre.safeBlockHorizontal * 3),
+            decoration: BoxDecoration(
+              color: isAvailable
+                  ? selected
+                      ? Centre.primaryColor
+                      : Centre.editButtonColor
+                  : Centre.dialogBgColor,
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              boxShadow: [
+                BoxShadow(
+                  color: Centre.darkerDialogBgColor,
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(-2, 3),
+                ),
+              ],
+            ),
+            child: Text(
+              "${duration}m",
+              style: Centre.todoText.copyWith(
+                  color: isAvailable
+                      ? selected
+                          ? Centre.darkerBgColor
+                          : null
+                      : Centre.red),
+            ),
+          ));
+    }
+
     // Button to select the times and the text widgets to show the chosen times
     Widget timePickerRow = Builder(builder: (context) {
       bool checkBoxState = false;
@@ -412,44 +491,50 @@ class AddEventDialog extends StatelessWidget {
           context.watch<TimeRangeCubit>().state;
 
       return calendarState != CalendarType.ranged
-          ? Row(
-              children: [
-                GestureDetector(
-                    onTap: () async {
-                      if (!checkBoxState) {
-                        TimeRangeState? value = await chooseTimeRange(
-                            dailyDate:
-                                daily ? context.read<DateCubit>().state : null,
-                            context: context,
-                            daily: daily,
-                            editingEvent: event,
-                            prevChosenStart: timeRangeState.startResult,
-                            prevChosenEnd: timeRangeState.endResult);
-                        if (value.startResult != null &&
-                            value.endResult != null) {
-                          editedTimes = true;
-                          timeRangeChosen.value = value;
-                        }
-                      }
-                    },
-                    child: svgButton(
-                      name: "range_time",
-                      color: !checkBoxState
-                          ? Centre.yellow
-                          : Centre.lighterDialogColor,
-                      height: 7,
-                      width: 7,
-                      margin: daily
-                          ? EdgeInsets.fromLTRB(Centre.safeBlockHorizontal * 5,
-                              0, Centre.safeBlockHorizontal, 0)
-                          : EdgeInsets.symmetric(
-                              horizontal: Centre.safeBlockHorizontal * 2),
-                      padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                    )),
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
-                    child: Column(
+          ? Expanded(
+              flex: daily ? 1 : -1,
+              child: Padding(
+                padding: EdgeInsets.only(
+                    bottom: daily ? 0 : Centre.safeBlockVertical * 2.5),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                        onTap: () async {
+                          if (!checkBoxState) {
+                            TimeRangeState? value = await chooseTimeRange(
+                                dailyDate: daily
+                                    ? context.read<DateCubit>().state
+                                    : null,
+                                context: context,
+                                daily: daily,
+                                editingEvent: event,
+                                prevChosenStart: timeRangeState.startResult,
+                                prevChosenEnd: timeRangeState.endResult);
+                            if (value.startResult != null &&
+                                value.endResult != null) {
+                              editedTimes = true;
+                              timeRangeChosen.value = value;
+                            }
+                          }
+                        },
+                        child: svgButton(
+                          name: "range_time",
+                          color: !checkBoxState
+                              ? Centre.yellow
+                              : Centre.lighterDialogColor,
+                          height: 7,
+                          width: 7,
+                          margin: daily
+                              ? EdgeInsets.fromLTRB(
+                                  Centre.safeBlockHorizontal * 5,
+                                  0,
+                                  Centre.safeBlockHorizontal,
+                                  0)
+                              : EdgeInsets.symmetric(
+                                  horizontal: Centre.safeBlockHorizontal * 2),
+                          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
+                        )),
+                    Column(
                       mainAxisAlignment: daily
                           ? MainAxisAlignment.center
                           : MainAxisAlignment.end,
@@ -486,14 +571,121 @@ class AddEventDialog extends StatelessWidget {
                                       : null),
                         ),
                       ],
-                    ))
-              ],
+                    ),
+                  ],
+                ),
+              ),
             )
           : const SizedBox(
               height: 0,
               width: 0,
             );
     });
+
+    Widget timeButtonsRow() {
+      Map<int, bool> timesToPick = {
+        15: true,
+        20: true,
+        30: true,
+        40: true,
+        60: true,
+        90: true,
+        120: true,
+        180: true
+      };
+      DateTime dailyDate = context.read<DateCubit>().state;
+      List<EventData> dailyTableList =
+          context.read<TodoBloc>().state.dailyTableMap.values.toList();
+
+      // Check if time clicked is valid
+      Duration localTimeDiff =
+          DateTime(dailyDate.year, dailyDate.month, dailyDate.day, 7, 0)
+              .timeZoneOffset;
+      dailyTableList.sort();
+      if (event != null) {
+        dailyTableList.remove(event);
+      }
+      for (int duration in timesToPick.keys) {
+        if (duration <=
+            dailyDate
+                .add(const Duration(hours: 7))
+                .subtract(localTimeDiff)
+                .difference(dailyTableList[0].start)
+                .inMinutes
+                .abs()) {
+          continue;
+        }
+
+        for (int i = 0; i < dailyTableList.length; i++) {
+          if (i == (dailyTableList.length - 1)) {
+            if (duration <=
+                dailyDate
+                    .add(const Duration(hours: 25))
+                    .subtract(localTimeDiff)
+                    .difference(dailyTableList[i].end)
+                    .inMinutes
+                    .abs()) {
+              break;
+            } else {
+              timesToPick[duration] = false;
+            }
+          } else if (duration <=
+              dailyTableList[i]
+                  .end
+                  .difference(dailyTableList[i + 1].start)
+                  .inMinutes
+                  .abs()) {
+            break;
+          }
+        }
+      }
+      List<int> timesList = timesToPick.keys.toList();
+      timesList.sort();
+
+      return BlocBuilder<TimeRangeCubit, TimeRangeState>(
+        builder: (unUsedcontext, timeRangeState) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (int i = 0; i < 8; i += 4)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    timeBtn(
+                        timesList[i],
+                        context,
+                        timeRangeState.startResult?.diffInMinutes(
+                                end: timeRangeState.endResult!) ==
+                            timesList[i],
+                        timesToPick[timesList[i]]!),
+                    timeBtn(
+                        timesList[i + 1],
+                        context,
+                        timeRangeState.startResult?.diffInMinutes(
+                                end: timeRangeState.endResult!) ==
+                            timesList[i + 1],
+                        timesToPick[timesList[i + 1]]!),
+                    timeBtn(
+                        timesList[i + 2],
+                        context,
+                        timeRangeState.startResult?.diffInMinutes(
+                                end: timeRangeState.endResult!) ==
+                            timesList[i + 2],
+                        timesToPick[timesList[i + 2]]!),
+                    timeBtn(
+                        timesList[i + 3],
+                        context,
+                        timeRangeState.startResult?.diffInMinutes(
+                                end: timeRangeState.endResult!) ==
+                            timesList[i + 3],
+                        timesToPick[timesList[i + 3]]!),
+                  ],
+                ),
+            ],
+          );
+        },
+      );
+    }
 
     Widget fullDayCheckbox = BlocBuilder<CalendarTypeCubit, CalendarType>(
         builder: (unUsedcontext, state) {
@@ -567,12 +759,21 @@ class AddEventDialog extends StatelessWidget {
         elevation: 5,
         content: SizedBox(
           height: daily
-              ? Centre.safeBlockVertical * 35
+              ? Centre.safeBlockVertical * (error.isEmpty ? 48 : 50)
               : Centre.safeBlockVertical * 48,
           width: Centre.safeBlockHorizontal * 85,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              daily
+                  ? BlocListener<DailyTimeBtnsCubit, TimeRangeState>(
+                      listener: (context, state) {
+                        timeRangeChosen.value = state;
+                        editedTimes = true;
+                      },
+                      child: const SizedBox())
+                  : const SizedBox(),
               dialogHeader,
               Padding(
                 padding: EdgeInsets.only(
@@ -587,6 +788,7 @@ class AddEventDialog extends StatelessWidget {
               secondColourRow,
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EventNameTextField(
@@ -623,23 +825,46 @@ class AddEventDialog extends StatelessWidget {
                                 calendarPickerRow[0],
                                 calendarPickerRow[1],
                                 timePickerRow,
-                                Expanded(
-                                    child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    // Only show the addToUnfinished button if adding from the todo table, not the unfinished list or the daily monthly list
-                                    event != null &&
-                                            !fromUnfinishedList &&
-                                            !fromDailyMonthlyList
-                                        ? addToUnfinishedBtn(context: context)
-                                        : const SizedBox(),
-                                    editButton(
-                                        height: 7, width: 15, context: context),
-                                  ],
-                                ))
                               ],
                       ),
                     ),
+                    daily ? timeButtonsRow() : const SizedBox(),
+                    daily
+                        ? BlocBuilder<DailyTimeBtnsCubit, TimeRangeState>(
+                            buildWhen: (previousState, state) {
+                            if (previousState.startResult != null &&
+                                state.startResult == null) {
+                              error = "Time not available in schedule";
+                              return true;
+                            }
+
+                            error = "";
+                            return true;
+                          }, builder: (unUsedContext, state) {
+                            return error.isEmpty
+                                ? const SizedBox()
+                                : Text(
+                                    error,
+                                    style: Centre.todoText
+                                        .copyWith(color: Centre.red),
+                                  );
+                          })
+                        : const SizedBox(),
+                    daily
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // Only show the addToUnfinished button if adding from the todo table, not the unfinished list or the daily monthly list
+                              event != null &&
+                                      !fromUnfinishedList &&
+                                      !fromDailyMonthlyList
+                                  ? addToUnfinishedBtn(context: context)
+                                  : const SizedBox(),
+                              editButton(
+                                  height: 7, width: 15, context: context),
+                            ],
+                          )
+                        : const SizedBox()
                   ],
                 ),
               ),
@@ -1099,13 +1324,8 @@ class AddEventDialog extends StatelessWidget {
               // Start the initial time with either something previously chosen or the current time rounded to the
               // nearest 5 minutes
               initialTime: prevChosenStart ??
-                  TimeOfDay.now().replacing(
-                      minute: (TimeOfDay.now().minute / 5).ceil() * 5 == 60
-                          ? 0
-                          : (TimeOfDay.now().minute / 5).round() * 5,
-                      hour: (TimeOfDay.now().minute / 5).ceil() * 5 == 60
-                          ? TimeOfDay.now().hour + 1
-                          : TimeOfDay.now().hour),
+                  TimeOfDay.now()
+                      .replacing(minute: 0, hour: TimeOfDay.now().hour),
               helpText: "Choose Start time",
               daily: daily,
               orderedDailyKeyList: daily

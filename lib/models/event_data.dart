@@ -1,8 +1,16 @@
 import 'package:hive/hive.dart';
 part 'event_data.g.dart';
 
+// Allows Comparable to be used like a mixin, and can now sort lists of EventData
+mixin Compare<T> implements Comparable<T> {
+  bool operator <=(T other) => compareTo(other) <= 0;
+  bool operator >=(T other) => compareTo(other) >= 0;
+  bool operator <(T other) => compareTo(other) < 0;
+  bool operator >(T other) => compareTo(other) > 0;
+}
+
 @HiveType(typeId: 1)
-class EventData extends HiveObject {
+class EventData extends HiveObject with Compare<EventData> {
   @HiveField(0)
   bool fullDay;
   @HiveField(1)
@@ -69,7 +77,18 @@ class EventData extends HiveObject {
   }
 
   @override
+  int compareTo(EventData other) {
+    return start.compareTo(other.start);
+  }
+
+  @override
   toString() {
-    return {'fullDay': fullDay, 'start': start, 'end': end, 'color': color, 'text': text}.toString();
+    return {
+      'fullDay': fullDay,
+      'start': start,
+      'end': end,
+      'color': color,
+      'text': text
+    }.toString();
   }
 }

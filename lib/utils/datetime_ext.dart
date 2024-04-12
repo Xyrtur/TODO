@@ -12,15 +12,29 @@ extension TimeofDayCompare on TimeOfDay {
   }
 
   TimeOfDay add({required int minutes}) {
-    return replacing(hour: (hour + ((minute + minutes) / 60).floor()) % 24, minute: (minute + minutes) % 60);
+    return replacing(
+        hour: (hour + ((minute + minutes) / 60).floor()) % 24,
+        minute: (minute + minutes) % 60);
+  }
+
+  int diffInMinutes({required TimeOfDay end}) {
+    if (end.hour <= 1) {
+      return (24 - hour) * 60 + (end.hour - 0) * 60 + end.minute - minute;
+    } else {
+      return (end.hour - hour) * 60 + end.minute - minute;
+    }
   }
 }
 
 extension DatePrecisionCompare on DateTime {
   // Return whether or not the event occurs inside the calendar window
-  bool inCalendarWindow({required DateTime end, required DateTime currentMonth}) {
-    return isBetweenDates(currentMonth.startingMonthCalenNum(),
-            currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
+  bool inCalendarWindow(
+      {required DateTime end, required DateTime currentMonth}) {
+    return isBetweenDates(
+            currentMonth.startingMonthCalenNum(),
+            currentMonth
+                .startingMonthCalenNum()
+                .add(const Duration(days: 41))) ||
         end.isBetweenDates(currentMonth.startingMonthCalenNum(),
             currentMonth.startingMonthCalenNum().add(const Duration(days: 41)));
   }
@@ -34,7 +48,10 @@ extension DatePrecisionCompare on DateTime {
         // a time at 00:00 should be at 7am UTC to preserve 00:00 local
         : isBefore(currentMonth.startingMonthCalenNum())
             ? currentMonth.startingMonthCalenNum().subtract(timeZoneOffset)
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41)).subtract(timeZoneOffset);
+            : currentMonth
+                .startingMonthCalenNum()
+                .add(const Duration(days: 41))
+                .subtract(timeZoneOffset);
   }
 
   /* 
@@ -44,9 +61,14 @@ extension DatePrecisionCompare on DateTime {
   int monthlyMapDayIndex({required DateTime currentMonth}) {
     return isBefore(currentMonth)
         ? day - currentMonth.startingMonthCalenNum().day
-        : isAfter(
-                currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
-            ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + day - 1
+        : isAfter(currentMonth.add(Duration(
+                days: currentMonth.totalDaysInMonth() - 1,
+                hours: 23,
+                minutes: 59)))
+            ? (currentMonth.weekday - 1) +
+                currentMonth.totalDaysInMonth() +
+                day -
+                1
             : day - 1 + (currentMonth.weekday - 1);
   }
 
@@ -56,7 +78,9 @@ extension DatePrecisionCompare on DateTime {
   bool isSameDate({required DateTime other, required bool daily}) {
     if (daily) {
       return year == other.year &&
-          (month == other.month && (day == other.day && (hour >= 7) || day == other.day + 1 && hour <= 1) ||
+          (month == other.month &&
+                  (day == other.day && (hour >= 7) ||
+                      day == other.day + 1 && hour <= 1) ||
               month == other.month + 1 && day == 1 && hour <= 1);
     } else {
       return year == other.year && month == other.month && day == other.day;
@@ -86,7 +110,8 @@ extension DatePrecisionCompare on DateTime {
     return isAfter(start) && isBefore(end);
   }
 
-  bool enclosesOrContains(DateTime end, DateTime otherStart, DateTime otherEnd) {
+  bool enclosesOrContains(
+      DateTime end, DateTime otherStart, DateTime otherEnd) {
     return (isAfter(otherStart) || isAtSameMomentAs(otherStart)) &&
             (end.isBefore(otherEnd) || end.isAtSameMomentAs(otherEnd)) ||
         isAtSameMomentAs(otherStart) && end.isAfter(otherEnd) ||

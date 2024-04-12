@@ -160,7 +160,7 @@ class ScheduleBlock extends StatelessWidget {
           context: context,
           builder: (BuildContext dialogContext) {
             return GestureDetector(
-                onTap: () => Navigator.pop(dialogContext),
+                onTap: () {},
                 child: Scaffold(
                   backgroundColor: Colors.transparent,
                   body: MultiBlocProvider(
@@ -189,6 +189,9 @@ class ScheduleBlock extends StatelessWidget {
                               .indexOf(Color((actualEvent ?? event).color))),
                         ),
                         BlocProvider.value(value: context.read<DateCubit>()),
+                        BlocProvider<DailyTimeBtnsCubit>(
+                          create: (_) => DailyTimeBtnsCubit(),
+                        ),
                         BlocProvider.value(value: context.read<TodoBloc>()),
                         BlocProvider.value(
                             value: context.read<UnfinishedListBloc>()),

@@ -146,12 +146,15 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         context: context,
         builder: (BuildContext dialogContext) {
           return GestureDetector(
-              onTap: () => Navigator.pop(dialogContext),
+              onTap: () {},
               child: Scaffold(
                   backgroundColor: Colors.transparent,
                   body: MultiBlocProvider(providers: [
                     BlocProvider<TimeRangeCubit>(
                       create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
+                    ),
+                    BlocProvider<DailyTimeBtnsCubit>(
+                      create: (_) => DailyTimeBtnsCubit(),
                     ),
                     BlocProvider<ColorCubit>(
                       create: (_) => ColorCubit(null),

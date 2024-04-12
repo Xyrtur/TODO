@@ -2459,7 +2459,7 @@ class _TimePickerDialogState extends State<TimePickerDialog>
               ),
             Expanded(
               child: Container(
-                alignment: AlignmentDirectional.centerEnd,
+                alignment: AlignmentDirectional.bottomEnd,
                 constraints: const BoxConstraints(minHeight: 5.0),
                 padding: EdgeInsets.symmetric(
                     horizontal: 15, vertical: Centre.safeBlockVertical),
@@ -2491,6 +2491,30 @@ class _TimePickerDialogState extends State<TimePickerDialog>
     );
 
     final Widget picker;
+    final List<String> timesList = [
+      "15",
+      "20",
+      "30",
+      "45",
+      "60",
+      "90",
+      "120",
+      "180"
+    ];
+
+    // final Widget timesColumn = Column(
+    //   mainAxisSize: MainAxisSize.min,
+    //   children: <Widget>[
+    //     for (int i = 0; i < 4; i++)
+    //       Row(
+    //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+    //         children: [
+    //           monthBtn(2 * i + 1, state, index),
+    //           monthBtn(2 * i + 2, state, index),
+    //         ],
+    //       ),
+    //   ],
+    // );
     switch (_entryMode.value) {
       case TimePickerEntryMode.dial:
         final Widget dial = Padding(
@@ -2528,22 +2552,21 @@ class _TimePickerDialogState extends State<TimePickerDialog>
         switch (orientation) {
           case Orientation.portrait:
             picker = Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                header,
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      // Dial grows and shrinks with the available space.
-                      Expanded(child: dial),
-                      actions,
-                    ],
-                  ),
-                ),
-              ],
-            );
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  header,
+                  Expanded(
+                      child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                        Centre.safeBlockHorizontal * 7,
+                        Centre.safeBlockVertical,
+                        Centre.safeBlockHorizontal * 4,
+                        0),
+                    child: dial,
+                  )),
+                  actions
+                ]);
             break;
           case Orientation.landscape:
             picker = Column(
@@ -2573,8 +2596,8 @@ class _TimePickerDialogState extends State<TimePickerDialog>
         vertical: Centre.safeBlockVertical,
       ),
       child: AnimatedContainer(
-        width: Centre.safeBlockHorizontal * 83,
-        height: dialogSize.height,
+        width: Centre.safeBlockHorizontal * 75,
+        height: Centre.safeBlockVertical * 63,
         duration: _kDialogSizeAnimationDuration,
         curve: Curves.easeIn,
         child: picker,
