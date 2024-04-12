@@ -25,14 +25,14 @@ class Centre {
   static const List<Color> colors = [
     Color.fromARGB(255, 243, 124, 149),
     Color.fromARGB(255, 255, 140, 198),
-    Color.fromARGB(255, 240, 158, 96),
+    Color.fromARGB(255, 244, 165, 105),
     Color.fromARGB(255, 211, 170, 186),
     Color.fromARGB(255, 206, 128, 232),
     Color.fromARGB(255, 86, 205, 132),
     Color.fromARGB(255, 139, 168, 248),
     Color.fromARGB(255, 126, 213, 224),
     Color.fromARGB(255, 177, 190, 220),
-    Color.fromARGB(255, 255, 231, 76),
+    Color.fromARGB(255, 244, 223, 88),
   ];
 
   static final todoText = TextStyle(
