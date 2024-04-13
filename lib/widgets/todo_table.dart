@@ -140,9 +140,13 @@ class ScheduleBlock extends StatelessWidget {
                             ? 2
                             : 1,
                     textAlign: TextAlign.center,
+                    textHeightBehavior: const TextHeightBehavior(
+                        applyHeightToFirstAscent: false,
+                        applyHeightToLastDescent: false),
                     overflow: TextOverflow.ellipsis,
                     style: Centre.todoText.copyWith(
                         color: event.finished ? Centre.textColor : Colors.black,
+                        height: 1,
                         decoration:
                             event.finished ? TextDecoration.lineThrough : null),
                   ),

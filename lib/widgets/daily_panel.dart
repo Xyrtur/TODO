@@ -212,10 +212,9 @@ class DailyPanel extends StatelessWidget {
                                 right: Centre.safeBlockHorizontal * 3),
                             height: Centre.safeBlockVertical * 3.5,
                             width: Centre.safeBlockVertical * 3.5,
-                            child: SvgPicture.asset(
-                              "assets/icons/squiggle.svg",
-                              color: Color(list[index].color),
-                            ),
+                            child: SvgPicture.asset("assets/icons/squiggle.svg",
+                                colorFilter: ColorFilter.mode(
+                                    Color(list[index].color), BlendMode.srcIn)),
                           ),
                           Container(
                             width: Centre.safeBlockHorizontal * 28,
@@ -227,7 +226,8 @@ class DailyPanel extends StatelessWidget {
                               list[index].text,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: Centre.smallerDialogText,
+                              style:
+                                  Centre.smallerDialogText.copyWith(height: 1),
                             ),
                           ),
                         ],

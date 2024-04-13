@@ -56,6 +56,9 @@ class MonthCalendar extends StatelessWidget {
                         width: Centre.safeBlockHorizontal * 13.1,
                         child: Text(
                           day,
+                          textHeightBehavior: const TextHeightBehavior(
+                              applyHeightToFirstAscent: false,
+                              applyHeightToLastDescent: false),
                           style: Centre.todoText.copyWith(color: Centre.pink),
                         ),
                       ))
@@ -183,6 +186,9 @@ class MonthCalendar extends StatelessWidget {
           ),
           child: Text(
             dayNum.day.toString(),
+            textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false),
             style: Centre.todoText.copyWith(
                 color: faded &&
                         !dayNum.isSameDate(
@@ -311,6 +317,9 @@ class MonthCalendar extends StatelessWidget {
                   event.text.replaceAll(' ', '\u00A0'),
                   maxLines: 1,
                   overflow: TextOverflow.clip,
+                  textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false),
                   style: Centre.todoText.copyWith(
                       fontSize: Centre.safeBlockHorizontal * 2,
                       color: Centre.darkerBgColor),

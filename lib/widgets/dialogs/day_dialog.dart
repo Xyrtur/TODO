@@ -79,10 +79,15 @@ class DayDialog extends StatelessWidget {
             children: [
               Text(
                 date.day.toString(),
+                textHeightBehavior: const TextHeightBehavior(
+                    applyHeightToFirstAscent: false,
+                    applyHeightToLastDescent: false),
                 style: Centre.todoSemiTitle,
               ),
               Text(
                 weekdays[date.weekday - 1],
+                textHeightBehavior:
+                    const TextHeightBehavior(applyHeightToLastDescent: false),
                 style: Centre.todoText,
               ),
             ],
@@ -114,7 +119,8 @@ class DayDialog extends StatelessWidget {
               width: Centre.safeBlockVertical * 3.5,
               child: SvgPicture.asset(
                 "assets/icons/squiggle.svg",
-                color: Color(event.color),
+                colorFilter:
+                    ColorFilter.mode(Color(event.color), BlendMode.srcIn),
               ),
             ),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -125,7 +131,7 @@ class DayDialog extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                   softWrap: true,
-                  style: Centre.dialogText,
+                  style: Centre.dialogText.copyWith(height: 1.2),
                 ),
               ),
               Container(
