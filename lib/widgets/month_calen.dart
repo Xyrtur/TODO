@@ -11,15 +11,7 @@ class MonthCalendar extends StatelessWidget {
   MonthCalendar({super.key, required this.date, required this.monthList});
   List<List<EventData?>> monthListCopy = List<List<EventData?>>.filled(42, []);
 
-  final List<String> weekdays = [
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun"
-  ];
+  final List<String> weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +49,7 @@ class MonthCalendar extends StatelessWidget {
                         child: Text(
                           day,
                           textHeightBehavior: const TextHeightBehavior(
-                              applyHeightToFirstAscent: false,
-                              applyHeightToLastDescent: false),
+                              applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
                           style: Centre.todoText.copyWith(color: Centre.pink),
                         ),
                       ))
@@ -76,13 +67,11 @@ class MonthCalendar extends StatelessWidget {
               bool inMonth = dayNum.day == 1;
               int fakeDayNum = dayNum.day;
               for (int i = 0; i < 42; i++) {
-                if (fakeDayNum > currentMonthStuff.totalDaysInPrevMonth() &&
-                    !inMonth) {
+                if (fakeDayNum > currentMonthStuff.totalDaysInPrevMonth() && !inMonth) {
                   inMonth = true;
                   fakeDayNum = 1;
                   fadedList[i] = false;
-                } else if (inMonth &&
-                    fakeDayNum > currentMonthStuff.totalDaysInMonth()) {
+                } else if (inMonth && fakeDayNum > currentMonthStuff.totalDaysInMonth()) {
                   break;
                 } else if (inMonth) {
                   fadedList[i] = false;
@@ -115,22 +104,14 @@ class MonthCalendar extends StatelessWidget {
 
                           return GestureDetector(
                             onTap: () {
-                              if (!fadedList[
-                                  (week - 1) * 7 + weekdays.indexOf(day)]) {
+                              if (!fadedList[(week - 1) * 7 + weekdays.indexOf(day)]) {
                                 showDialog(
                                     context: context,
-                                    builder: (BuildContext tcontext) =>
-                                        MultiBlocProvider(
+                                    builder: (BuildContext tcontext) => MultiBlocProvider(
                                             providers: [
-                                              BlocProvider.value(
-                                                  value: context
-                                                      .read<MonthlyTodoBloc>()),
-                                              BlocProvider.value(
-                                                  value: context
-                                                      .read<DateCubit>()),
-                                              BlocProvider.value(
-                                                  value: context
-                                                      .read<MonthDateCubit>()),
+                                              BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                              BlocProvider.value(value: context.read<DateCubit>()),
+                                              BlocProvider.value(value: context.read<MonthDateCubit>()),
                                             ],
                                             child: DayDialog(
                                               date: loopDayNum,
@@ -143,12 +124,8 @@ class MonthCalendar extends StatelessWidget {
                               color: Colors.transparent,
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: dayEvents(
-                                      fadedList[(week - 1) * 7 +
-                                          weekdays.indexOf(day)],
-                                      dayNum,
-                                      weekStartingNums,
-                                      weekEndingNums)),
+                                  children: dayEvents(fadedList[(week - 1) * 7 + weekdays.indexOf(day)], dayNum,
+                                      weekStartingNums, weekEndingNums)),
                             ),
                           );
                         }).toList())
@@ -164,41 +141,33 @@ class MonthCalendar extends StatelessWidget {
   }
 
   // Returns the list of event bars to display on each day of the calendar
-  List<Widget> dayEvents(bool faded, DateTime dayNum,
-      List<DateTime> weekStartingNums, List<DateTime> weekEndingNums) {
+  List<Widget> dayEvents(bool faded, DateTime dayNum, List<DateTime> weekStartingNums, List<DateTime> weekEndingNums) {
     List<Widget> list = [
       // Start the list with the day number in the top left always
       Padding(
-        padding: EdgeInsets.only(
-            left: Centre.safeBlockHorizontal * 1,
-            bottom: Centre.safeBlockVertical * 0.5),
+        padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 0.5),
         child: Container(
-          padding: EdgeInsets.fromLTRB(Centre.safeBlockVertical * 0.3, 0,
-              Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
+          padding: EdgeInsets.fromLTRB(
+              Centre.safeBlockVertical * 0.3, 0, Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
             color: dayNum.isSameDate(
-                    other: DateTime.utc(DateTime.now().year,
-                        DateTime.now().month, DateTime.now().day),
-                    daily: false)
+                    other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day), daily: false)
                 ? Centre.secondaryColor
                 : Colors.transparent,
           ),
           child: Text(
             dayNum.day.toString(),
-            textHeightBehavior: const TextHeightBehavior(
-                applyHeightToFirstAscent: false,
-                applyHeightToLastDescent: false),
+            textHeightBehavior:
+                const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
             style: Centre.todoText.copyWith(
                 color: faded &&
                         !dayNum.isSameDate(
-                            other: DateTime.utc(DateTime.now().year,
-                                DateTime.now().month, DateTime.now().day),
+                            other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
                             daily: false)
                     ? Colors.grey
                     : dayNum.isSameDate(
-                            other: DateTime.utc(DateTime.now().year,
-                                DateTime.now().month, DateTime.now().day),
+                            other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
                             daily: false)
                         ? Centre.bgColor
                         : Centre.textColor),
@@ -240,9 +209,7 @@ class MonthCalendar extends StatelessWidget {
       for (EventData? event in monthListCopy[index]) {
         // If event is ranged and currently not at beginning of the event, match the event with the index it was already assigned previouly
         if (event!.fullDay &&
-            !event.start
-                .toLocal()
-                .isSameDate(other: event.end.toLocal(), daily: false) &&
+            !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
             !dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {
           tempList[monthListCopy[index - 1].indexOf(event)] = event;
         }
@@ -252,13 +219,9 @@ class MonthCalendar extends StatelessWidget {
       // If at the beginning of monthCalen OR the event is not ranged OR the event is ranged and are currently at beginning of event
       if (index == 0 ||
           !event!.fullDay ||
-          event.start
-              .toLocal()
-              .isSameDate(other: event.end.toLocal(), daily: false) ||
+          event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) ||
           event.fullDay &&
-              !event.start
-                  .toLocal()
-                  .isSameDate(other: event.end.toLocal(), daily: false) &&
+              !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
               dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {
         // Look for first available spot, if not taken, take it as the future spots at that same index will not be taken
         for (int i = 0; i < 7; i++) {
@@ -279,34 +242,25 @@ class MonthCalendar extends StatelessWidget {
         );
       }
       // If the event is ranged
-      if (event.fullDay &&
-          !event.start
-              .toLocal()
-              .isSameDate(other: event.end.toLocal(), daily: false)) {
+      if (event.fullDay && !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false)) {
         return Container(
           // Margin and border logic to make the event look seamless across days on the calendar
           margin: EdgeInsets.only(
-              left:
-                  dayNum.isSameDate(other: event.start.toLocal(), daily: false)
-                      ? Centre.safeBlockHorizontal * 0.7
-                      : 0,
-              right: dayNum.isSameDate(other: event.end.toLocal(), daily: false)
+              left: dayNum.isSameDate(other: event.start.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
+                  ? Centre.safeBlockHorizontal * 0.7
+                  : 0,
+              right: dayNum.isSameDate(other: event.end.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
                   ? Centre.safeBlockHorizontal * 0.7
                   : 0,
               bottom: Centre.safeBlockVertical * 0.3),
-          padding: EdgeInsets.symmetric(
-              horizontal: Centre.safeBlockHorizontal * 0.2),
+          padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
           decoration: BoxDecoration(
               color: Color(event.color),
               borderRadius: BorderRadius.horizontal(
-                left: dayNum.isSameDate(
-                            other: event.start.toLocal(), daily: false) ||
-                        weekStartingNums.contains(dayNum)
+                left: dayNum.isSameDate(other: event.start.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
-                right: dayNum.isSameDate(
-                            other: event.end.toLocal(), daily: false) ||
-                        weekEndingNums.contains(dayNum)
+                right: dayNum.isSameDate(other: event.end.toLocal(), daily: false) || weekEndingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
               )),
@@ -317,12 +271,10 @@ class MonthCalendar extends StatelessWidget {
                   event.text.replaceAll(' ', '\u00A0'),
                   maxLines: 1,
                   overflow: TextOverflow.clip,
-                  textHeightBehavior: const TextHeightBehavior(
-                      applyHeightToFirstAscent: false,
-                      applyHeightToLastDescent: false),
-                  style: Centre.todoText.copyWith(
-                      fontSize: Centre.safeBlockHorizontal * 2,
-                      color: Centre.darkerBgColor),
+                  textHeightBehavior:
+                      const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
+                  style:
+                      Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
                 ))
               : null,
         );
@@ -332,23 +284,18 @@ class MonthCalendar extends StatelessWidget {
               left: Centre.safeBlockHorizontal * 0.7,
               right: Centre.safeBlockHorizontal * 0.7,
               bottom: Centre.safeBlockVertical * 0.3),
-          padding: EdgeInsets.symmetric(
-              horizontal: Centre.safeBlockHorizontal * 0.2),
-          decoration: BoxDecoration(
-              color: Color(event.color),
-              borderRadius: const BorderRadius.all(Radius.circular(10))),
+          padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
+          decoration:
+              BoxDecoration(color: Color(event.color), borderRadius: const BorderRadius.all(Radius.circular(10))),
           height: Centre.safeBlockVertical * 1.3,
           child: Center(
               child: Text(
             event.text.replaceAll(' ', '\u00A0'),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            textHeightBehavior: const TextHeightBehavior(
-                applyHeightToFirstAscent: false,
-                applyHeightToLastDescent: false),
-            style: Centre.todoText.copyWith(
-                fontSize: Centre.safeBlockHorizontal * 2,
-                color: Centre.darkerBgColor),
+            textHeightBehavior:
+                const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
+            style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
           )),
         );
       }

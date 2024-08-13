@@ -19,7 +19,7 @@ class DeleteConfirmationDialog extends StatelessWidget {
         backgroundColor: Centre.dialogBgColor,
         elevation: 5,
         content: SizedBox(
-            height: Centre.safeBlockVertical * 18,
+            height: Centre.safeBlockVertical * 19.5,
             width: Centre.safeBlockHorizontal * 80,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
