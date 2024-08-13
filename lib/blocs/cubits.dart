@@ -31,25 +31,19 @@ class ToggleChecklistEditingCubit extends Cubit<bool> {
  */
 class DateCubit extends Cubit<DateTime> {
   DateCubit()
-      : super(DateTime.utc(
+      : super(DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 ||
-                        DateTime.now().hour == 1 && DateTime.now().minute == 0
-                    ? 1
-                    : 0)));
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
 
   //Keep track of date chosen
   void changeDay(DateTime date) => emit(date);
-  void setToCurrentDayOnResume() => emit(DateTime.utc(
+  void setToCurrentDayOnResume() => emit(DateTime(
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day -
-          (DateTime.now().hour == 0 ||
-                  DateTime.now().hour == 1 && DateTime.now().minute == 0
-              ? 1
-              : 0)));
+          (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
 }
 
 /*
@@ -57,8 +51,7 @@ class DateCubit extends Cubit<DateTime> {
  * On starting the app, the current month is chosen
  */
 class MonthDateCubit extends Cubit<DateTime> {
-  MonthDateCubit()
-      : super(DateTime.utc(DateTime.now().year, DateTime.now().month));
+  MonthDateCubit() : super(DateTime(DateTime.now().year, DateTime.now().month));
   void update(DateTime date) => emit(date);
 }
 
@@ -88,8 +81,7 @@ class CalendarTypeCubit extends Cubit<CalendarType> {
  */
 class DailyMonthlyListCubit extends Cubit<List<EventData>> {
   final HiveRepository hive;
-  DailyMonthlyListCubit(this.hive)
-      : super(hive.dailyMonthlyEventsMap.values.toList());
+  DailyMonthlyListCubit(this.hive) : super(hive.dailyMonthlyEventsMap.values.toList());
   void update() {
     return emit(hive.dailyMonthlyEventsMap.values.toList());
   }
@@ -122,8 +114,7 @@ class TimeRangeState {
 class TimeRangeCubit extends Cubit<TimeRangeState> {
   final TimeRangeState range;
   TimeRangeCubit(this.range) : super(range);
-  void update(TimeOfDay? start, TimeOfDay? end) =>
-      emit(TimeRangeState(start, end));
+  void update(TimeOfDay? start, TimeOfDay? end) => emit(TimeRangeState(start, end));
 }
 
 /*
@@ -185,14 +176,11 @@ class TodoRecentlyAddedCubit extends Cubit<List<int>> {
 
 class FirstDailyDateBtnCubit extends Cubit<DateTime> {
   FirstDailyDateBtnCubit()
-      : super(DateTime.utc(
+      : super(DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 ||
-                        DateTime.now().hour == 1 && DateTime.now().minute == 0
-                    ? 1
-                    : 0)));
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
   // [x,y]
   // x = index, y = dealt with: 1 = yes, 0 = no
   void update(DateTime date) => emit(date);
@@ -215,68 +203,41 @@ class DailyTimeBtnsCubit extends Cubit<TimeRangeState> {
       required int timeDuration,
       EventData? eventEditing}) {
     // Check if time clicked is valid
-    Duration localTimeDiff =
-        DateTime(dailyDate.year, dailyDate.month, dailyDate.day, 7, 0)
-            .timeZoneOffset;
 
     dailyTableList.sort();
     if (eventEditing != null) {
       dailyTableList.remove(eventEditing);
     }
     if (dailyTableList.isNotEmpty) {
-      if (timeDuration <=
-          dailyDate
-              .add(const Duration(hours: 7))
-              .subtract(localTimeDiff)
-              .difference(dailyTableList[0].start)
-              .inMinutes
-              .abs()) {
-        emit(TimeRangeState(const TimeOfDay(hour: 7, minute: 0),
-            const TimeOfDay(hour: 7, minute: 0).add(minutes: timeDuration)));
+      if (timeDuration <= dailyDate.add(const Duration(hours: 7)).difference(dailyTableList[0].start).inMinutes.abs()) {
+        emit(TimeRangeState(
+            const TimeOfDay(hour: 7, minute: 0), const TimeOfDay(hour: 7, minute: 0).add(minutes: timeDuration)));
         return;
       }
 
       for (int i = 0; i < dailyTableList.length; i++) {
         if (i == (dailyTableList.length - 1)) {
           if (timeDuration <=
-              dailyDate
-                  .add(const Duration(hours: 25))
-                  .subtract(localTimeDiff)
-                  .difference(dailyTableList[i].end)
-                  .inMinutes
-                  .abs()) {
+              dailyDate.add(const Duration(hours: 25)).difference(dailyTableList[i].end).inMinutes.abs()) {
             emit(TimeRangeState(
-                TimeOfDay(
-                    hour: dailyTableList[i].end.add(localTimeDiff).hour,
-                    minute: dailyTableList[i].end.add(localTimeDiff).minute),
-                TimeOfDay(
-                        hour: dailyTableList[i].end.add(localTimeDiff).hour,
-                        minute: dailyTableList[i].end.add(localTimeDiff).minute)
+                TimeOfDay(hour: dailyTableList[i].end.hour, minute: dailyTableList[i].end.minute),
+                TimeOfDay(hour: dailyTableList[i].end.hour, minute: dailyTableList[i].end.minute)
                     .add(minutes: timeDuration)));
             return;
           } else {
             emit(TimeRangeState(null, null));
           }
-        } else if (timeDuration <=
-            dailyTableList[i]
-                .end
-                .difference(dailyTableList[i + 1].start)
-                .inMinutes
-                .abs()) {
+        } else if (timeDuration <= dailyTableList[i].end.difference(dailyTableList[i + 1].start).inMinutes.abs()) {
           emit(TimeRangeState(
-              TimeOfDay(
-                  hour: dailyTableList[i].end.add(localTimeDiff).hour,
-                  minute: dailyTableList[i].end.add(localTimeDiff).minute),
-              TimeOfDay(
-                      hour: dailyTableList[i].end.add(localTimeDiff).hour,
-                      minute: dailyTableList[i].end.add(localTimeDiff).minute)
+              TimeOfDay(hour: dailyTableList[i].end.hour, minute: dailyTableList[i].end.minute),
+              TimeOfDay(hour: dailyTableList[i].end.hour, minute: dailyTableList[i].end.minute)
                   .add(minutes: timeDuration)));
           return;
         }
       }
     } else {
-      emit(TimeRangeState(const TimeOfDay(hour: 7, minute: 0),
-          const TimeOfDay(hour: 7, minute: 0).add(minutes: timeDuration)));
+      emit(TimeRangeState(
+          const TimeOfDay(hour: 7, minute: 0), const TimeOfDay(hour: 7, minute: 0).add(minutes: timeDuration)));
       return;
     }
   }

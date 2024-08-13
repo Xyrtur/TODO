@@ -33,39 +33,23 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       DateTime onDate = context.read<DateCubit>().state;
-      if (DateTime.utc(DateTime.now().year, DateTime.now().month,
-              DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
-          .isAfter(context
-              .read<FirstDailyDateBtnCubit>()
-              .state
-              .add(const Duration(hours: 25)))) {
-        context.read<FirstDailyDateBtnCubit>().update(DateTime.utc(
+      if (DateTime.now().isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
+        context.read<FirstDailyDateBtnCubit>().update(DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 ||
-                        DateTime.now().hour == 1 && DateTime.now().minute == 0
-                    ? 1
-                    : 0)));
-        if (DateTime.utc(DateTime.now().year, DateTime.now().month,
-                DateTime.now().day, DateTime.now().hour, DateTime.now().minute)
-            .isAfter(onDate)) {
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
+        if (DateTime.now().isAfter(onDate)) {
           context.read<DateCubit>().setToCurrentDayOnResume();
           context.read<TodoBloc>().add(TodoDateChange(
-              date: DateTime.utc(
+              date: DateTime(
                   DateTime.now().year,
                   DateTime.now().month,
                   DateTime.now().day -
-                      (DateTime.now().hour == 0 ||
-                              DateTime.now().hour == 1 &&
-                                  DateTime.now().minute == 0
-                          ? 1
-                          : 0))));
+                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
         } else {
           // Make sure daily date buttons update
-          context
-              .read<DateCubit>()
-              .changeDay(DateTime.utc(onDate.year, onDate.month, onDate.day));
+          context.read<DateCubit>().changeDay(DateTime(onDate.year, onDate.month, onDate.day));
         }
 
         context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
@@ -76,40 +60,29 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
 
   Widget changeDailyDateBtns() {
     return BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
-      DateTime todayDate = DateTime.utc(
+      DateTime todayDate = DateTime(
           DateTime.now().year,
           DateTime.now().month,
           DateTime.now().day -
-              (DateTime.now().hour == 0 ||
-                      DateTime.now().hour == 1 && DateTime.now().minute == 0
-                  ? 1
-                  : 0));
+              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0));
       return Padding(
-        padding: EdgeInsets.only(
-            top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
+        padding: EdgeInsets.only(top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
         child: Row(
           children: [
             for (int day = 0; day < 5; day++)
               GestureDetector(
                 onTap: () {
-                  context
-                      .read<DateCubit>()
-                      .changeDay(todayDate.add(Duration(days: day)));
-                  context.read<TodoBloc>().add(
-                      TodoDateChange(date: todayDate.add(Duration(days: day))));
+                  context.read<DateCubit>().changeDay(todayDate.add(Duration(days: day)));
+                  context.read<TodoBloc>().add(TodoDateChange(date: todayDate.add(Duration(days: day))));
                 },
                 child: Container(
                     height: Centre.safeBlockHorizontal * 10,
                     width: Centre.safeBlockHorizontal * 10,
-                    margin: EdgeInsets.only(
-                        left: Centre.safeBlockHorizontal,
-                        right: Centre.safeBlockHorizontal * 2),
+                    margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
-                      border: todayDate
-                              .add(Duration(days: day))
-                              .isAtSameMomentAs(state)
+                      border: todayDate.add(Duration(days: day)).isAtSameMomentAs(state)
                           ? Border.all(color: Centre.primaryColor)
                           : null,
                       color: Centre.lighterBgColor,
@@ -124,10 +97,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                     ),
                     child: Center(
                       child: Text(
-                        DateFormat('E')
-                            .format(todayDate.add(Duration(days: day)))[0],
-                        style: Centre.titleDialogText
-                            .copyWith(color: Centre.primaryColor),
+                        DateFormat('E').format(todayDate.add(Duration(days: day)))[0],
+                        style: Centre.titleDialogText.copyWith(color: Centre.primaryColor),
                       ),
                     )),
               )
@@ -161,8 +132,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                     ),
                     BlocProvider.value(value: context.read<DateCubit>()),
                     BlocProvider.value(value: context.read<TodoBloc>()),
-                    BlocProvider.value(
-                        value: context.read<UnfinishedListBloc>()),
+                    BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                   ], child: AddEventDialog.daily())));
         },
       );
@@ -215,9 +185,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       GestureDetector(
         onTap: () => showDailyDialog(),
         child: Container(
-          margin: EdgeInsets.only(
-              left: Centre.safeBlockHorizontal,
-              right: Centre.safeBlockHorizontal * 4),
+          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 4),
           padding: EdgeInsets.all(Centre.safeBlockHorizontal),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(40),
@@ -240,8 +208,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       ),
     ]);
 
-    Widget dailyDateColumn =
-        BlocBuilder<DateCubit, DateTime>(builder: (unUsedContext, state) {
+    Widget dailyDateColumn = BlocBuilder<DateCubit, DateTime>(builder: (unUsedContext, state) {
       return Column(
         children: [
           SizedBox(
@@ -254,20 +221,16 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                       barrierColor: Centre.colors[3].withOpacity(0.2),
                       followerAnchor: Alignment.topLeft,
                       targetAnchor: Alignment.topLeft,
-                      offset: Offset(Centre.safeBlockHorizontal * 7,
-                          Centre.safeBlockVertical * 9),
+                      offset: Offset(Centre.safeBlockHorizontal * 7, Centre.safeBlockVertical * 9),
                       avoidOverflow: true,
                       context: context,
                       builder: (BuildContext unUsedContext) {
                         return MultiBlocProvider(
                           providers: [
-                            BlocProvider.value(
-                                value: context.read<ImportExportBloc>()),
-                            BlocProvider.value(
-                                value: context.read<DateCubit>()),
+                            BlocProvider.value(value: context.read<ImportExportBloc>()),
+                            BlocProvider.value(value: context.read<DateCubit>()),
                             BlocProvider.value(value: context.read<TodoBloc>()),
-                            BlocProvider.value(
-                                value: context.read<UnfinishedListBloc>())
+                            BlocProvider.value(value: context.read<UnfinishedListBloc>())
                           ],
                           child: const SettingsDialog(),
                         );
@@ -288,13 +251,11 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           ),
           Padding(
             padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
-            child: Text(DateFormat('E').format(state),
-                style: Centre.todoSemiTitle),
+            child: Text(DateFormat('E').format(state), style: Centre.todoSemiTitle),
           ),
           Padding(
             padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
-            child: Text(DateFormat('d, MMM.').format(state),
-                style: Centre.smallerDialogText),
+            child: Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
           ),
         ],
       );
@@ -328,8 +289,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.167),
             decoration: BoxDecoration(
                 color: Colors.transparent,
-                border: Border.symmetric(
-                    horizontal: BorderSide(color: Centre.primaryColor))),
+                border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
             height: Centre.scheduleBlock * 0.167,
             width: Centre.safeBlockHorizontal * 2.5,
           ),
@@ -338,8 +298,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
               margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.333),
               decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border.symmetric(
-                      horizontal: BorderSide(color: Centre.primaryColor))),
+                  border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
               height: Centre.scheduleBlock * 0.167,
               width: Centre.safeBlockHorizontal * 2.5,
             ),
@@ -437,8 +396,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       child: Scaffold(
         backgroundColor: Centre.bgColor,
         body: SlidingUpPanel(
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+          borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
           color: Centre.bgColor,
           backdropColor: Centre.colors[1],
           backdropOpacity: 0.3,
@@ -448,8 +406,8 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           controller: widget.pc,
           panel: DailyPanel(),
           body: Padding(
-            padding: EdgeInsets.fromLTRB(Centre.safeBlockHorizontal, 0,
-                Centre.safeBlockHorizontal, Centre.safeBlockVertical),
+            padding: EdgeInsets.fromLTRB(
+                Centre.safeBlockHorizontal, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical),
             child: Column(
               children: [
                 dailyPageHeader,

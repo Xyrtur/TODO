@@ -151,24 +151,16 @@ class MonthCalendar extends StatelessWidget {
               Centre.safeBlockVertical * 0.3, 0, Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            color: dayNum.isSameDate(
-                    other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day), daily: false)
-                ? Centre.secondaryColor
-                : Colors.transparent,
+            color: dayNum.isSameDate(other: DateTime.now(), daily: false) ? Centre.secondaryColor : Colors.transparent,
           ),
           child: Text(
             dayNum.day.toString(),
             textHeightBehavior:
                 const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
             style: Centre.todoText.copyWith(
-                color: faded &&
-                        !dayNum.isSameDate(
-                            other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
-                            daily: false)
+                color: faded && !dayNum.isSameDate(other: DateTime.now(), daily: false)
                     ? Colors.grey
-                    : dayNum.isSameDate(
-                            other: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
-                            daily: false)
+                    : dayNum.isSameDate(other: DateTime.now(), daily: false)
                         ? Centre.bgColor
                         : Centre.textColor),
           ),
@@ -209,8 +201,8 @@ class MonthCalendar extends StatelessWidget {
       for (EventData? event in monthListCopy[index]) {
         // If event is ranged and currently not at beginning of the event, match the event with the index it was already assigned previouly
         if (event!.fullDay &&
-            !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
-            !dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {
+            !event.start.isSameDate(other: event.end, daily: false) &&
+            !dayNum.isSameDate(other: event.start, daily: false)) {
           tempList[monthListCopy[index - 1].indexOf(event)] = event;
         }
       }
@@ -219,10 +211,10 @@ class MonthCalendar extends StatelessWidget {
       // If at the beginning of monthCalen OR the event is not ranged OR the event is ranged and are currently at beginning of event
       if (index == 0 ||
           !event!.fullDay ||
-          event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) ||
+          event.start.isSameDate(other: event.end, daily: false) ||
           event.fullDay &&
-              !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false) &&
-              dayNum.isSameDate(other: event.start.toLocal(), daily: false)) {
+              !event.start.isSameDate(other: event.end, daily: false) &&
+              dayNum.isSameDate(other: event.start, daily: false)) {
         // Look for first available spot, if not taken, take it as the future spots at that same index will not be taken
         for (int i = 0; i < 7; i++) {
           if (tempList[i] == null) {
@@ -242,14 +234,14 @@ class MonthCalendar extends StatelessWidget {
         );
       }
       // If the event is ranged
-      if (event.fullDay && !event.start.toLocal().isSameDate(other: event.end.toLocal(), daily: false)) {
+      if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
         return Container(
           // Margin and border logic to make the event look seamless across days on the calendar
           margin: EdgeInsets.only(
-              left: dayNum.isSameDate(other: event.start.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
+              left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
                   ? Centre.safeBlockHorizontal * 0.7
                   : 0,
-              right: dayNum.isSameDate(other: event.end.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
+              right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
                   ? Centre.safeBlockHorizontal * 0.7
                   : 0,
               bottom: Centre.safeBlockVertical * 0.3),
@@ -257,10 +249,10 @@ class MonthCalendar extends StatelessWidget {
           decoration: BoxDecoration(
               color: Color(event.color),
               borderRadius: BorderRadius.horizontal(
-                left: dayNum.isSameDate(other: event.start.toLocal(), daily: false) || weekStartingNums.contains(dayNum)
+                left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
-                right: dayNum.isSameDate(other: event.end.toLocal(), daily: false) || weekEndingNums.contains(dayNum)
+                right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
                     ? const Radius.circular(10)
                     : Radius.zero,
               )),

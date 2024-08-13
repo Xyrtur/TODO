@@ -16,10 +16,6 @@ class TodoTable extends StatelessWidget {
       DateTime currentDate = context.read<DateCubit>().state;
       List<Widget> schedBlockList = [];
 
-      Duration localTimeDiff =
-          DateTime(currentDate.year, currentDate.month, currentDate.day, 7, 0)
-              .timeZoneOffset;
-
       // Marks whether or not going through the events has passed 1600 yet or not
       // We only want to make the checks once
       bool barrierHit = false;
@@ -29,18 +25,14 @@ class TodoTable extends StatelessWidget {
         EventData event = state.dailyTableMap[key]!;
 
         // Marks the middle of the table schedule where it breaks to the next side
-        DateTime mark16 =
-            currentDate.add(const Duration(hours: 16)).subtract(localTimeDiff);
+        DateTime mark16 = currentDate.add(const Duration(hours: 16));
 
-        if (!barrierHit &&
-            event.start.isBefore(mark16) &&
-            event.end.isAfter(mark16)) {
+        if (!barrierHit && event.start.isBefore(mark16) && event.end.isAfter(mark16)) {
           barrierHit = true;
           // Creates two schedule blocks for one event, one block for each side of the table
 
           // Want to know which block is larger, the block before 1600 or after to see which block displays the event text
-          bool firstBlockLarger = mark16.difference(event.start).inMinutes >=
-              event.end.difference(mark16).inMinutes;
+          bool firstBlockLarger = mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
 
           // Only wrap the split schedule blocks with the cubit so that dragging one also affects the other
           schedBlockList.add(BlocBuilder<DraggingSplitBlockCubit, bool>(
@@ -50,9 +42,7 @@ class TodoTable extends StatelessWidget {
                 dragging: state,
                 actualEvent: event,
                 firstBlockLarger: firstBlockLarger,
-                currentDate: currentDate
-                    .add(const Duration(hours: 7))
-                    .subtract(localTimeDiff),
+                currentDate: currentDate.add(const Duration(hours: 7)),
                 context: context),
           ));
 
@@ -63,17 +53,13 @@ class TodoTable extends StatelessWidget {
                   dragging: state,
                   event: event.copyWith(otherStart: mark16),
                   actualEvent: event,
-                  currentDate: currentDate
-                      .add(const Duration(hours: 7))
-                      .subtract(localTimeDiff),
+                  currentDate: currentDate.add(const Duration(hours: 7)),
                   context: context)));
         } else {
           schedBlockList.add(ScheduleBlock(
               dottedOutlineKey: dottedOutlineKey,
               event: event,
-              currentDate: currentDate
-                  .add(const Duration(hours: 7))
-                  .subtract(localTimeDiff),
+              currentDate: currentDate.add(const Duration(hours: 7)),
               context: context));
         }
       }
@@ -104,8 +90,7 @@ class ScheduleBlock extends StatelessWidget {
   double left = 0;
   bool firstBlockLarger;
 
-  double middleOfTableWithBlockOffset =
-      Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2;
+  double middleOfTableWithBlockOffset = Centre.safeBlockHorizontal * 50 - (Centre.safeBlockHorizontal * 35) / 2;
 
   @override
   Widget build(BuildContext context) {
@@ -127,8 +112,7 @@ class ScheduleBlock extends StatelessWidget {
                     )
                   : Border.all(width: 0)),
           width: Centre.safeBlockHorizontal * 35,
-          padding:
-              EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+          padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
           height: Centre.scheduleBlock * (heightInMinutes / 60),
           child: firstBlockLarger || feedBack
               ? Center(
@@ -140,15 +124,13 @@ class ScheduleBlock extends StatelessWidget {
                             ? 2
                             : 1,
                     textAlign: TextAlign.center,
-                    textHeightBehavior: const TextHeightBehavior(
-                        applyHeightToFirstAscent: false,
-                        applyHeightToLastDescent: false),
+                    textHeightBehavior:
+                        const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
                     overflow: TextOverflow.ellipsis,
                     style: Centre.todoText.copyWith(
                         color: event.finished ? Centre.textColor : Colors.black,
                         height: 1,
-                        decoration:
-                            event.finished ? TextDecoration.lineThrough : null),
+                        decoration: event.finished ? TextDecoration.lineThrough : null),
                   ),
                 )
               : const SizedBox(
@@ -172,33 +154,19 @@ class ScheduleBlock extends StatelessWidget {
                         BlocProvider<TimeRangeCubit>(
                           create: (_) => TimeRangeCubit(TimeRangeState(
                               TimeOfDay(
-                                  hour: (actualEvent ?? event)
-                                      .start
-                                      .toLocal()
-                                      .hour,
-                                  minute: (actualEvent ?? event)
-                                      .start
-                                      .toLocal()
-                                      .minute),
+                                  hour: (actualEvent ?? event).start.hour, minute: (actualEvent ?? event).start.minute),
                               TimeOfDay(
-                                  hour:
-                                      (actualEvent ?? event).end.toLocal().hour,
-                                  minute: (actualEvent ?? event)
-                                      .end
-                                      .toLocal()
-                                      .minute))),
+                                  hour: (actualEvent ?? event).end.hour, minute: (actualEvent ?? event).end.minute))),
                         ),
                         BlocProvider<ColorCubit>(
-                          create: (_) => ColorCubit(Centre.colors
-                              .indexOf(Color((actualEvent ?? event).color))),
+                          create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
                         ),
                         BlocProvider.value(value: context.read<DateCubit>()),
                         BlocProvider<DailyTimeBtnsCubit>(
                           create: (_) => DailyTimeBtnsCubit(),
                         ),
                         BlocProvider.value(value: context.read<TodoBloc>()),
-                        BlocProvider.value(
-                            value: context.read<UnfinishedListBloc>()),
+                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                       ],
                       child: AddEventDialog.daily(
                         event: actualEvent ?? event,
@@ -208,14 +176,10 @@ class ScheduleBlock extends StatelessWidget {
     }
 
     // Get the initial position of the block on the table
-    top = Centre.scheduleBlock *
-        (event.start.difference(currentDate).inMinutes % 540 / 60);
-    bottom = top +
-        Centre.scheduleBlock *
-            (event.end.difference(event.start).inMinutes / 60);
+    top = Centre.scheduleBlock * (event.start.difference(currentDate).inMinutes % 540 / 60);
+    bottom = top + Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60);
     left = event.start.isBefore(currentDate.add(const Duration(hours: 9))) &&
-            (event.start.isAfter(currentDate) ||
-                event.start.isAtSameMomentAs(currentDate))
+            (event.start.isAfter(currentDate) || event.start.isAtSameMomentAs(currentDate))
         ? Centre.safeBlockHorizontal * 5
         : Centre.safeBlockHorizontal * 54;
 
@@ -241,32 +205,21 @@ class ScheduleBlock extends StatelessWidget {
           }
         },
         onDragEnd: (drag) {
-          Duration localTimeDiff = DateTime(
-                  currentDate.year, currentDate.month, currentDate.day, 7, 0)
-              .timeZoneOffset;
           double height = Centre.scheduleBlock *
-              ((actualEvent ?? event)
-                      .end
-                      .difference((actualEvent ?? event).start)
-                      .inMinutes /
-                  60);
+              ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
 
-          RenderBox box =
-              dottedOutlineKey.currentContext!.findRenderObject() as RenderBox;
+          RenderBox box = dottedOutlineKey.currentContext!.findRenderObject() as RenderBox;
           Offset position = box.localToGlobal(Offset.zero);
           double topOfTable = position.dy;
 
           // Ensure the block was dragged to an appropriate spot, if not return it to its original spot
-          if (drag.offset.dy < topOfTable &&
-                  (drag.offset.dx <= middleOfTableWithBlockOffset) ||
+          if (drag.offset.dy < topOfTable && (drag.offset.dx <= middleOfTableWithBlockOffset) ||
               drag.offset.dy > topOfTable + Centre.scheduleBlock * 8.75 &&
                   (drag.offset.dx > middleOfTableWithBlockOffset)) {
             return;
           } else {
             // Round to the nearest 5 minutes
-            top = ((drag.offset.dy - topOfTable) /
-                        (Centre.scheduleBlock * 5 / 60))
-                    .round() *
+            top = ((drag.offset.dy - topOfTable) / (Centre.scheduleBlock * 5 / 60)).round() *
                 (Centre.scheduleBlock * 5 / 60);
           }
 
@@ -279,33 +232,20 @@ class ScheduleBlock extends StatelessWidget {
 
           // Get the start and end times from the position the block was dragged to
           DateTime start = currentDate.add(Duration(
-              minutes: (top / Centre.scheduleBlock * 60 +
-                      (left == Centre.safeBlockHorizontal * 54 ? 540 : 0))
-                  .round()));
-          // Hive repository expects that when todo's are being created/updated, for the DateTime to be UTC
-          // and for the hours that were added to be in local hours
-          // Usually this means currentDate would give isUTC = true and then if we wanted 7am local time, we would add 7 hours and give that to the repo
-          // This is 7am with isUTC=true which is not 7am localtime (making this like a fake UTC time since we add 7 hours like its local)
-          // but the repo deals with this for us
+              minutes:
+                  (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
 
-          // But for example here, currentDate is 7am UTC time already and adding our Duration makes it a true UTC time so we turn it back to fake
-          start = start.add(localTimeDiff);
-          DateTime end = start.add(
-              Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
+          DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
 
           // If it adds such that the end goes past 1 am, ignore the drag
-          if (end.isAfter(
-              currentDate.add(const Duration(hours: 18)).add(localTimeDiff)))
-            return;
+          if (end.isAfter(currentDate.add(const Duration(hours: 18)))) return;
 
           // Check if the event clashes/overlaps with any other events on the table
-          for (EventData v
-              in context.read<TodoBloc>().state.dailyTableMap.values) {
+          for (EventData v in context.read<TodoBloc>().state.dailyTableMap.values) {
             if (v.key == (actualEvent?.key ?? event.key)) continue;
-            if (start.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
-                end.subtract(localTimeDiff).isInTimeRange(v.start, v.end) ||
-                start.subtract(localTimeDiff).enclosesOrContains(
-                    end.subtract(localTimeDiff), v.start, v.end)) {
+            if (start.isInTimeRange(v.start, v.end) ||
+                end.isInTimeRange(v.start, v.end) ||
+                start.enclosesOrContains(end, v.start, v.end)) {
               return;
             }
           }
@@ -326,28 +266,16 @@ class ScheduleBlock extends StatelessWidget {
           color: Colors.transparent,
           width: Centre.safeBlockHorizontal * 35,
           height: Centre.scheduleBlock *
-              ((actualEvent ?? event)
-                      .end
-                      .difference((actualEvent ?? event).start)
-                      .inMinutes /
-                  60),
+              ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60),
         ),
         child: GestureDetector(
           onTap: () {
             if (context.read<ToggleChecklistEditingCubit>().state) {
               showDailyDialog();
             } else {
-              (actualEvent ?? event).start = (actualEvent ?? event).start.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day,
-                          7, 0)
-                      .timeZoneOffset);
-              (actualEvent ?? event).end = (actualEvent ?? event).end.add(
-                  DateTime(currentDate.year, currentDate.month, currentDate.day,
-                          7, 0)
-                      .timeZoneOffset);
-              context.read<TodoBloc>().add(TodoUpdate(
-                  fromDailyMonthlyList: false,
-                  event: (actualEvent ?? event).toggleFinished()));
+              context
+                  .read<TodoBloc>()
+                  .add(TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));
             }
           },
           child: !(dragging ?? false)
@@ -356,8 +284,7 @@ class ScheduleBlock extends StatelessWidget {
                   color: Colors.transparent,
                   width: Centre.safeBlockHorizontal * 35,
                   //
-                  height: Centre.scheduleBlock *
-                      (event.end.difference(event.start).inMinutes / 60),
+                  height: Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60),
                 ),
         ),
       ),

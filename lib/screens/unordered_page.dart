@@ -66,26 +66,20 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      if (DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour,
-              DateTime.now().minute)
-          .isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
-        context.read<FirstDailyDateBtnCubit>().update(DateTime.utc(
+      if (DateTime.now().isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
+        context.read<FirstDailyDateBtnCubit>().update(DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
-                    ? 1
-                    : 0)));
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
       }
       context.read<DateCubit>().setToCurrentDayOnResume();
       context.read<TodoBloc>().add(TodoDateChange(
-          date: DateTime.utc(
+          date: DateTime(
               DateTime.now().year,
               DateTime.now().month,
               DateTime.now().day -
-                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0
-                      ? 1
-                      : 0))));
+                  (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
       context.read<UnfinishedListBloc>().add(const UnfinishedListResume());
       context.read<DailyMonthlyListCubit>().update();
     }
@@ -188,9 +182,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                               expandable: false,
                               collapsed: false)));
                       context.read<TodoRecentlyAddedCubit>().update([index, 0]);
-                      context
-                          .read<TodoTileAddCubit>()
-                          .update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
+                      context.read<TodoTileAddCubit>().update([context.read<TodoTileAddCubit>().state[0], 0, 1]);
                       addingTodoTextController.clear();
                     }
                   },
@@ -273,8 +265,8 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                         }
                       },
                       child: Container(
-                        margin: EdgeInsets.only(
-                            left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
+                        margin:
+                            EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
                         padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(40),
@@ -299,9 +291,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                       onTap: () {
                         context.read<ToggleTodoEditingCubit>().toggle();
                         context.read<TodoTextEditingCubit>().update(null);
-                        if (reorderablesList
-                                .indexWhere((Widget widget) => widget.key == const ValueKey(12345)) !=
-                            -1) {
+                        if (reorderablesList.indexWhere((Widget widget) => widget.key == const ValueKey(12345)) != -1) {
                           animController.reverse();
                         }
                       },
@@ -400,8 +390,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                       onReorderStart: (index) {
                                         for (int i = index + 1;
                                             i < state.futureList.length &&
-                                                state.futureList[index].indented <
-                                                    state.futureList[i].indented;
+                                                state.futureList[index].indented < state.futureList[i].indented;
                                             i++) {
                                           state.futureList[i].setCollapsed(true);
                                         }
@@ -418,8 +407,7 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
 
                                         // Add the rest of the todos that are part of the root's tree
                                         int i = old + 1;
-                                        while (i < oldList.length &&
-                                            oldList[old].indented < oldList[i].indented) {
+                                        while (i < oldList.length && oldList[old].indented < oldList[i].indented) {
                                           todosMoved.add(oldList[i]);
 
                                           i++;
@@ -460,26 +448,22 @@ class _UnorderedPageState extends State<UnorderedPage> with WidgetsBindingObserv
                                           // If at the top or bottom, default to no indentation
                                           if (rootIndentation != 0) {
                                             for (int i = 0; i < todosMoved.length; i++) {
-                                              oldList[news + i]
-                                                  .changeIndent(todosMoved[i].indented - rootIndentation);
+                                              oldList[news + i].changeIndent(todosMoved[i].indented - rootIndentation);
                                             }
                                           }
                                         } else {
                                           // In every other case, matches the indentation of the next item (outside of the group if moving a group of todos)
-                                          int nextItemIndentation =
-                                              oldList[news + todosMoved.length].indented;
+                                          int nextItemIndentation = oldList[news + todosMoved.length].indented;
 
                                           if (rootIndentation != nextItemIndentation) {
                                             for (int i = 0; i < todosMoved.length; i++) {
-                                              oldList[news + i].changeIndent(todosMoved[i].indented +
-                                                  (nextItemIndentation - rootIndentation));
+                                              oldList[news + i].changeIndent(
+                                                  todosMoved[i].indented + (nextItemIndentation - rootIndentation));
                                             }
                                           }
                                         }
 
-                                        context
-                                            .read<FutureTodoBloc>()
-                                            .add(FutureTodoListUpdate(eventList: oldList));
+                                        context.read<FutureTodoBloc>().add(FutureTodoListUpdate(eventList: oldList));
                                       }));
                             })))),
           ),

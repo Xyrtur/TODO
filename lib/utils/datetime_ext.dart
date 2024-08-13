@@ -38,14 +38,12 @@ extension DatePrecisionCompare on DateTime {
 
   // Return either the events date or a date just inside the calendar window
   DateTime dateInCalendarWindow({required DateTime currentMonth}) {
-    // Return a date in UTC time which is what *this* should be
     return isBetweenDates(
             currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
-        ? toUtc()
-        // a time at 00:00 should be at 7am UTC to preserve 00:00 local
+        ? this
         : isBefore(currentMonth.startingMonthCalenNum())
-            ? currentMonth.startingMonthCalenNum().subtract(timeZoneOffset)
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41)).subtract(timeZoneOffset);
+            ? currentMonth.startingMonthCalenNum()
+            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
   }
 
   /* 
@@ -80,13 +78,9 @@ extension DatePrecisionCompare on DateTime {
   bool isBetweenDates(DateTime start, DateTime end) {
     DateTime dayStart;
     DateTime dayEnd;
-    if (isUtc) {
-      dayStart = DateTime.utc(start.year, start.month, start.day);
-      dayEnd = DateTime.utc(end.year, end.month, end.day, 23, 59);
-    } else {
-      dayStart = DateTime(start.year, start.month, start.day);
-      dayEnd = DateTime(end.year, end.month, end.day, 23, 59);
-    }
+
+    dayStart = DateTime(start.year, start.month, start.day);
+    dayEnd = DateTime(end.year, end.month, end.day, 23, 59);
 
     return (isAfter(dayStart) || isAtSameMomentAs(dayStart)) && (isBefore(dayEnd) || isAtSameMomentAs(dayEnd));
   }
@@ -108,10 +102,10 @@ extension DatePrecisionCompare on DateTime {
   }
 
   int totalDaysInMonth() {
-    return DateTime.utc(year, month + 1, 0).day;
+    return DateTime(year, month + 1, 0).day;
   }
 
   int totalDaysInPrevMonth() {
-    return DateTime.utc(year, month, 0).day;
+    return DateTime(year, month, 0).day;
   }
 }

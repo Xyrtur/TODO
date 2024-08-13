@@ -282,8 +282,8 @@ class AddEventDialog extends StatelessWidget {
                         : context.read<CalendarTypeCubit>().state == CalendarType.ranged
                             ? CalendarDatePicker2Type.range
                             : CalendarDatePicker2Type.multi,
-                    firstDate: DateTime.utc(monthOrDayDate.year - 1),
-                    lastDate: DateTime.utc(monthOrDayDate.year + 2, 12, 31),
+                    firstDate: DateTime(monthOrDayDate.year - 1),
+                    lastDate: DateTime(monthOrDayDate.year + 2, 12, 31),
                     currentDate: DateTime.now(),
                     selectedDayHighlightColor: Centre.secondaryColor,
                   ),
@@ -296,14 +296,6 @@ class AddEventDialog extends StatelessWidget {
                 if (context.read<CalendarTypeCubit>().state == CalendarType.ranged
                     ? (results != null && results.length == 2)
                     : results != null) {
-                  for (int i = 0; i < results.length; i++) {
-                    // Convert the local date to UTC but we will still want times at 00 00 00
-                    if (!results[i]!.isUtc) {
-                      results[i] = results[i]!
-                          .toUtc()
-                          .add(DateTime(results[i]!.year, results[i]!.month, results[i]!.day, 7, 0).timeZoneOffset);
-                    }
-                  }
                   dateResults.value = results;
                 }
               },
@@ -504,7 +496,6 @@ class AddEventDialog extends StatelessWidget {
       List<EventData> dailyTableList = context.read<TodoBloc>().state.dailyTableMap.values.toList();
 
       // Check if time clicked is valid
-      Duration localTimeDiff = DateTime(dailyDate.year, dailyDate.month, dailyDate.day, 7, 0).timeZoneOffset;
 
       dailyTableList.sort();
       if (event != null) {
@@ -512,25 +503,14 @@ class AddEventDialog extends StatelessWidget {
       }
       if (dailyTableList.isNotEmpty) {
         for (int duration in timesToPick.keys) {
-          if (duration <=
-              dailyDate
-                  .add(const Duration(hours: 7))
-                  .subtract(localTimeDiff)
-                  .difference(dailyTableList[0].start)
-                  .inMinutes
-                  .abs()) {
+          if (duration <= dailyDate.add(const Duration(hours: 7)).difference(dailyTableList[0].start).inMinutes.abs()) {
             continue;
           }
 
           for (int i = 0; i < dailyTableList.length; i++) {
             if (i == (dailyTableList.length - 1)) {
               if (duration <=
-                  dailyDate
-                      .add(const Duration(hours: 25))
-                      .subtract(localTimeDiff)
-                      .difference(dailyTableList[i].end)
-                      .inMinutes
-                      .abs()) {
+                  dailyDate.add(const Duration(hours: 25)).difference(dailyTableList[i].end).inMinutes.abs()) {
                 break;
               } else {
                 timesToPick[duration] = false;
@@ -768,7 +748,7 @@ class AddEventDialog extends StatelessWidget {
         }
         TimeOfDay start = context.read<TimeRangeCubit>().state.startResult!;
         TimeOfDay end = context.read<TimeRangeCubit>().state.endResult!;
-        DateTime prevDay = DateTime.utc(
+        DateTime prevDay = DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
@@ -1008,7 +988,7 @@ class AddEventDialog extends StatelessWidget {
               DateTime? dateWithoutTime;
               if (context.read<CalendarTypeCubit>().state == CalendarType.single) {
                 DateTime prevDate = context.read<DialogDatesCubit>().state![0]!;
-                dateWithoutTime = DateTime.utc(prevDate.year, prevDate.month, prevDate.day);
+                dateWithoutTime = DateTime(prevDate.year, prevDate.month, prevDate.day);
               }
 
               context.read<MonthlyTodoBloc>().add(MonthlyTodoUpdate(
