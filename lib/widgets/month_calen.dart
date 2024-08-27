@@ -99,7 +99,8 @@ class MonthCalendar extends StatelessWidget {
                       for (int week = 1; week < 7; week++)
                         TableRow(
                             children: weekdays.map((day) {
-                          dayNum = dayNum.add(const Duration(hours: 24));
+                          // Account for daylight savings: sometimes 24 hours is seen as 23 hours or 25 if the country is jumping ahead or falling backward that day
+                          dayNum = DateTime.parse(dayNum.toUtc().add(const Duration(hours: 24)).toString());
                           DateTime loopDayNum = dayNum;
 
                           return GestureDetector(
