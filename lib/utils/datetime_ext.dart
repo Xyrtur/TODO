@@ -28,22 +28,30 @@ extension TimeofDayCompare on TimeOfDay {
 }
 
 extension DatePrecisionCompare on DateTime {
+  DateTime addDurationWithoutDST(Duration duration) {
+    // Account for daylight savings: sometimes 24 hours is seen as 23 hours or 25 if the country is jumping ahead or falling backward that day
+    // This solution converts the local time to UTC so that daylight savings will have no effect on the added 24 hours, and then convert back
+    // to local time using the manual timezone offset addition and the local timezone constructor.
+    DateTime tempUTCdate = toUtc().add(duration).add(timeZoneOffset);
+    return DateTime(tempUTCdate.year, tempUTCdate.month, tempUTCdate.day, tempUTCdate.hour, tempUTCdate.minute);
+  }
+
   // Return whether or not the event occurs inside the calendar window
   bool inCalendarWindow({required DateTime end, required DateTime currentMonth}) {
-    return isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41))) ||
-        end.isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)));
+    return isBetweenDates(currentMonth.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41))) ||
+        end.isBetweenDates(currentMonth.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41)));
   }
 
   // Return either the events date or a date just inside the calendar window
   DateTime dateInCalendarWindow({required DateTime currentMonth}) {
-    return isBetweenDates(
-            currentMonth.startingMonthCalenNum(), currentMonth.startingMonthCalenNum().add(const Duration(days: 41)))
+    return isBetweenDates(currentMonth.startingMonthCalenNum(),
+            currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41)))
         ? this
         : isBefore(currentMonth.startingMonthCalenNum())
             ? currentMonth.startingMonthCalenNum()
-            : currentMonth.startingMonthCalenNum().add(const Duration(days: 41));
+            : currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41));
   }
 
   /* 
@@ -53,7 +61,8 @@ extension DatePrecisionCompare on DateTime {
   int monthlyMapDayIndex({required DateTime currentMonth}) {
     return isBefore(currentMonth)
         ? day - currentMonth.startingMonthCalenNum().day
-        : isAfter(currentMonth.add(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
+        : isAfter(currentMonth
+                .addDurationWithoutDST(Duration(days: currentMonth.totalDaysInMonth() - 1, hours: 23, minutes: 59)))
             ? (currentMonth.weekday - 1) + currentMonth.totalDaysInMonth() + day - 1
             : day - 1 + (currentMonth.weekday - 1);
   }
@@ -98,7 +107,7 @@ extension DatePrecisionCompare on DateTime {
   }
 
   DateTime startingMonthCalenNum() {
-    return subtract(Duration(days: weekday - 1));
+    return addDurationWithoutDST(Duration(days: -(weekday - 1)));
   }
 
   int totalDaysInMonth() {

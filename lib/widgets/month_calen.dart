@@ -90,7 +90,7 @@ class MonthCalendar extends StatelessWidget {
                   weekEndingNums.add(dayNum.add(Duration(days: 6 + i * 7)));
                 }
 
-                dayNum = dayNum.subtract(const Duration(days: 1));
+                dayNum = dayNum.addDurationWithoutDST(const Duration(days: -1));
 
                 // Month calendar table
                 return Expanded(
@@ -102,7 +102,7 @@ class MonthCalendar extends StatelessWidget {
                           // Account for daylight savings: sometimes 24 hours is seen as 23 hours or 25 if the country is jumping ahead or falling backward that day
                           // This solution converts the local time to UTC so that daylight savings will have no effect on the added 24 hours, then parsing the string
                           // version keeps that same UTC time but seen as a local time by the DateTime class
-                          dayNum = DateTime.parse(dayNum.toUtc().add(const Duration(hours: 24)).toString());
+                          dayNum = dayNum.addDurationWithoutDST(const Duration(hours: 24));
 
                           DateTime loopDayNum = dayNum;
 

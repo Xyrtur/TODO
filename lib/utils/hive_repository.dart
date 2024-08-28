@@ -133,7 +133,7 @@ class HiveRepository {
 
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
         thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
-        start = start.add(const Duration(days: 1));
+        start = start.addDurationWithoutDST(const Duration(days: 1));
       }
     }
     unfinishedEventsMap = {for (EventData v in unfinishedEvents) v.key: v};
@@ -237,7 +237,7 @@ class HiveRepository {
 
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
         thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
-        start = start.add(const Duration(days: 1));
+        start = start.addDurationWithoutDST(const Duration(days: 1));
       }
     }
     bool inDay = containsSelectedDay ?? false;
@@ -282,7 +282,7 @@ class HiveRepository {
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Remove the event from each day list that it existed in
           thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
-          start = start.add(const Duration(days: 1));
+          start = start.addDurationWithoutDST(const Duration(days: 1));
         }
       }
       if (event.start.inCalendarWindow(end: event.end, currentMonth: currentMonth)) {
@@ -292,7 +292,7 @@ class HiveRepository {
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           // Add the new event back into the day lists
           thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)][event.key] = event;
-          start = start.add(const Duration(days: 1));
+          start = start.addDurationWithoutDST(const Duration(days: 1));
         }
       }
 
@@ -325,7 +325,7 @@ class HiveRepository {
 
         while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
           thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: currentMonth)].remove(event.key);
-          start = start.add(const Duration(days: 1));
+          start = start.addDurationWithoutDST(const Duration(days: 1));
         }
       }
     }
@@ -434,7 +434,7 @@ class HiveRepository {
       // Add the event to each day that the event exists on
       while (start.isBefore(end) || start.isAtSameMomentAs(end)) {
         thisMonthEventsMaps[start.monthlyMapDayIndex(currentMonth: date)][event.key] = event;
-        start = start.add(const Duration(days: 1));
+        start = start.addDurationWithoutDST(const Duration(days: 1));
       }
     }
   }
