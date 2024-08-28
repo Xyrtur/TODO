@@ -86,8 +86,8 @@ class MonthCalendar extends StatelessWidget {
                 List<DateTime> weekStartingNums = [];
                 List<DateTime> weekEndingNums = [];
                 for (int i = 0; i < 6; i++) {
-                  weekStartingNums.add(dayNum.add(Duration(days: i * 7)));
-                  weekEndingNums.add(dayNum.add(Duration(days: 6 + i * 7)));
+                  weekStartingNums.add(dayNum.addDurationWithoutDST(Duration(days: i * 7)));
+                  weekEndingNums.add(dayNum.addDurationWithoutDST(Duration(days: 6 + i * 7)));
                 }
 
                 dayNum = dayNum.addDurationWithoutDST(const Duration(days: -1));
