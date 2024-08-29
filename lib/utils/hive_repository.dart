@@ -422,6 +422,16 @@ class HiveRepository {
     // The calendar window consists of the 6 weeks surrounding the current month
     for (EventData event in monthlyHive.values) {
       if (event.start.inCalendarWindow(end: event.end, currentMonth: date)) {
+        if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
+          event.start = DateTime(event.start.year, event.start.month, event.start.day);
+          event.end = DateTime(event.end.year, event.end.month, event.end.day);
+          event.save();
+        } else {
+          event.start =
+              DateTime(event.start.year, event.start.month, event.start.day, event.start.hour, event.start.minute);
+          event.end = DateTime(event.end.year, event.end.month, event.end.day, event.end.hour, event.end.minute);
+          event.save();
+        }
         thisMonthEvents.add(event);
       }
     }

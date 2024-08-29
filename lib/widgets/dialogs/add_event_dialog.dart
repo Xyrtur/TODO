@@ -13,6 +13,7 @@ import 'package:todo/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'custom_time_picker.dart' as custom_time_picker;
 
 class AddEventDialog extends StatelessWidget {
+  final ScrollController scrollController = ScrollController();
   // Whether adding an event to the daily page or the monthly page
   final bool daily;
 
@@ -33,6 +34,7 @@ class AddEventDialog extends StatelessWidget {
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
+
   bool editedTimes = false;
   String error = "";
 
@@ -173,6 +175,10 @@ class AddEventDialog extends StatelessWidget {
           context.read<ColorCubit>().update(i);
         },
         child: Container(
+          margin: EdgeInsets.only(
+              left: Centre.safeBlockHorizontal * 4,
+              right: Centre.safeBlockHorizontal * 4,
+              top: Centre.safeBlockVertical * 1.3),
           width: Centre.safeBlockHorizontal * 6,
           height: Centre.safeBlockHorizontal * 6,
           decoration: BoxDecoration(
@@ -190,24 +196,45 @@ class AddEventDialog extends StatelessWidget {
       );
     }
 
-    Widget firstColorRow = Padding(
-      padding: EdgeInsets.symmetric(vertical: Centre.safeBlockVertical * 1),
-      child: BlocBuilder<ColorCubit, int>(
-        builder: (context, state) => Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [for (int i = 0; i < 5; i++) colourBtn(i)],
+    Widget scrollableColours = RawScrollbar(
+      padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
+      trackVisibility: true,
+      thumbVisibility: true,
+      controller: scrollController,
+      thumbColor: Centre.primaryColor.withAlpha(200),
+      radius: const Radius.circular(8),
+      thickness: Centre.safeBlockVertical * 0.5,
+      child: SingleChildScrollView(
+        controller: scrollController,
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.only(bottom: Centre.safeBlockVertical * 2),
+        child: Column(
+          children: [
+            // First row of colours
+            BlocBuilder<ColorCubit, int>(
+              builder: (context, state) => Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [for (int i = 0; i < Centre.colors.length / 2; i++) colourBtn(i)],
+              ),
+            ),
+
+            // Second row of colours
+            BlocBuilder<ColorCubit, int>(
+              builder: (context, state) => Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  for (int i = (Centre.colors.length / 2).toInt(); i < Centre.colors.length; i++) colourBtn(i)
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
 
-    Widget secondColourRow = BlocBuilder<ColorCubit, int>(
-      builder: (context, state) => Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [for (int i = 5; i < 10; i++) colourBtn(i)],
-      ),
-    );
+    // Widget firstColorRow = ;
+
+    // Widget secondColourRow = ;
 
     Widget calendarTypeBtn(CalendarType state, CalendarType type, String name) {
       return GestureDetector(
@@ -649,8 +676,7 @@ class AddEventDialog extends StatelessWidget {
                   color: Colors.grey,
                 ),
               ),
-              firstColorRow,
-              secondColourRow,
+              scrollableColours,
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
