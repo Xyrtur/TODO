@@ -232,10 +232,6 @@ class AddEventDialog extends StatelessWidget {
       ),
     );
 
-    // Widget firstColorRow = ;
-
-    // Widget secondColourRow = ;
-
     Widget calendarTypeBtn(CalendarType state, CalendarType type, String name) {
       return GestureDetector(
         onTap: () {
@@ -986,6 +982,9 @@ class AddEventDialog extends StatelessWidget {
             if (calendarState == CalendarType.multi) {
               context.read<MonthlyTodoBloc>().add(MonthlyTodoDelete(
                   event: event!, selectedDailyDay: context.read<DateCubit>().state, currentMonth: monthOrDayDate));
+
+              start = context.read<TimeRangeCubit>().state.startResult ?? const TimeOfDay(hour: 0, minute: 0);
+              end = context.read<TimeRangeCubit>().state.endResult ?? const TimeOfDay(hour: 0, minute: 0);
 
               for (DateTime? date in context.read<DialogDatesCubit>().state!) {
                 // Add the event to the repository
