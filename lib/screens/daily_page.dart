@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:todo/utils/centre.dart';
 import 'package:todo/blocs/blocs_barrel.dart';
+import 'package:todo/utils/datetime_ext.dart';
 import 'package:todo/widgets/barrels/daily_widgets_barrel.dart';
 
 class DailyPage extends StatefulWidget {
@@ -72,8 +73,10 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             for (int day = 0; day < 5; day++)
               GestureDetector(
                 onTap: () {
-                  context.read<DateCubit>().changeDay(todayDate.add(Duration(days: day)));
-                  context.read<TodoBloc>().add(TodoDateChange(date: todayDate.add(Duration(days: day))));
+                  context.read<DateCubit>().changeDay(todayDate.addDurationWithoutDST(Duration(days: day)));
+                  context
+                      .read<TodoBloc>()
+                      .add(TodoDateChange(date: todayDate.addDurationWithoutDST(Duration(days: day))));
                 },
                 child: Container(
                     height: Centre.safeBlockHorizontal * 10,
@@ -82,7 +85,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
-                      border: todayDate.add(Duration(days: day)).isAtSameMomentAs(state)
+                      border: todayDate.addDurationWithoutDST(Duration(days: day)).isAtSameMomentAs(state)
                           ? Border.all(color: Centre.primaryColor)
                           : null,
                       color: Centre.lighterBgColor,
@@ -97,7 +100,7 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                     ),
                     child: Center(
                       child: Text(
-                        DateFormat('E').format(todayDate.add(Duration(days: day)))[0],
+                        DateFormat('E').format(todayDate.addDurationWithoutDST(Duration(days: day)))[0],
                         style: Centre.titleDialogText.copyWith(color: Centre.primaryColor),
                       ),
                     )),

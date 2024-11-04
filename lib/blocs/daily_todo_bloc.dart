@@ -59,6 +59,7 @@ class TodoRefreshed extends TodoState {
   const TodoRefreshed(super.orderedDailyKeyList, super.dailyTableMap, super.dateChanged);
 }
 
+
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final HiveRepository hive;
 
