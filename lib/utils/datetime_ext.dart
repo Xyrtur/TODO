@@ -41,7 +41,9 @@ extension DatePrecisionCompare on DateTime {
     return isBetweenDates(currentMonth.startingMonthCalenNum(),
             currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41))) ||
         end.isBetweenDates(currentMonth.startingMonthCalenNum(),
-            currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41)));
+            currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41))) ||
+        isBefore(currentMonth.startingMonthCalenNum()) &&
+            end.isAfter(currentMonth.startingMonthCalenNum().addDurationWithoutDST(const Duration(days: 41)));
   }
 
   // Return either the events date or a date just inside the calendar window
