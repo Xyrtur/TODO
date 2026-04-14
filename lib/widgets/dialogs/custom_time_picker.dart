@@ -1681,7 +1681,7 @@ class _HourMinuteTextFieldState extends State<_HourMinuteTextField> with Restora
     final TimePickerThemeData timePickerTheme = TimePickerTheme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
 
-    final InputDecorationTheme? inputDecorationTheme = timePickerTheme.inputDecorationTheme;
+    final InputDecorationThemeData? inputDecorationTheme = timePickerTheme.inputDecorationTheme;
     InputDecoration inputDecoration;
     if (inputDecorationTheme != null) {
       inputDecoration = const InputDecoration().applyDefaults(inputDecorationTheme);

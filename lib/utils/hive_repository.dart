@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive_io.dart';
@@ -541,6 +540,7 @@ class HiveRepository {
     //   {
     String? selectedDirectory =
         isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
+
     if (selectedDirectory != null) {
       var encoder = ZipFileEncoder();
       encoder.create("$selectedDirectory/todo_data.zip");
@@ -566,5 +566,6 @@ class HiveRepository {
 
       return selectedDirectory;
     }
+    return null;
   }
 }
