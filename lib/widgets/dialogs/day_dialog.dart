@@ -9,8 +9,8 @@ import 'package:todo/utils/datetime_ext.dart';
 
 class DayDialog extends StatelessWidget {
   final DateTime date;
-  final DateTime currentMonth;
-  DayDialog({super.key, required this.date, required this.currentMonth});
+  final List<EventData> dayEventList;
+  DayDialog({super.key, required this.date, required this.dayEventList});
   final List<String> weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   @override
@@ -163,8 +163,7 @@ class DayDialog extends StatelessWidget {
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: state.monthlyMaps[date.monthlyMapDayIndex(currentMonth: currentMonth)].values
-                            .toList()
+                        children: dayEventList
                             .map((event) => GestureDetector(
                                 onTap: () => showDialog(
                                       context: context,

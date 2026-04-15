@@ -19,9 +19,9 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     calendarController = PageController(
-        initialPage: (context.read<MonthDateCubit>().state.year - 2020) * 12 +
-            context.read<MonthDateCubit>().state.month -
-            1); //Only let events fro
+        initialPage:
+            (context.read<MonthDateCubit>().state.year - 2020) * 12 + context.read<MonthDateCubit>().state.month - 1);
+
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -149,9 +149,6 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
         listeners: [
           BlocListener<MonthDateCubit, DateTime>(listener: ((context, state) {
             calendarController.jumpToPage((state.year - 2020) * 12 + state.month - 1);
-            // context
-            //     .read<MonthlyTodoBloc>()
-            //     .add(MonthlyTodoDateChange(date: state));
           })),
           BlocListener<MonthlyTodoBloc, MonthlyTodoState>(listener: (context, state) {
             if (state.changedDailyList) {
@@ -192,9 +189,14 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
                         .read<HiveRepository>()
                         .getMonthlyEvents(date: DateTime(2020 + (index / 12).floor(), index % 12 + 1));
 
+                    // Deep copy the maps inside to a new list
+                    final monthList = [
+                      for (final map in context.read<HiveRepository>().thisMonthEventsMaps) {...map}
+                    ];
+
                     return MonthCalendar(
-                      date: DateTime(2020 + (index / 12).floor(), index % 12 + 1),
-                      monthList: context.read<HiveRepository>().thisMonthEventsMaps,
+                      yearMonthDate: DateTime(2020 + (index / 12).floor(), index % 12 + 1),
+                      monthList: monthList,
                     );
                   },
                 ))

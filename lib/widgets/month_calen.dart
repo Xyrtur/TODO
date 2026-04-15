@@ -6,9 +6,9 @@ import 'package:todo/utils/centre.dart';
 import 'package:todo/widgets/dialogs/day_dialog.dart';
 
 class MonthCalendar extends StatelessWidget {
-  final DateTime date;
+  final DateTime yearMonthDate;
   final List<Map<dynamic, EventData>> monthList;
-  MonthCalendar({super.key, required this.date, required this.monthList});
+  MonthCalendar({super.key, required this.yearMonthDate, required this.monthList});
   List<List<EventData?>> monthListCopy = List<List<EventData?>>.filled(42, []);
 
   final List<String> weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -17,7 +17,7 @@ class MonthCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     List<bool> fadedList = List.filled(42, true);
 
-    var currentMonthStuff = date;
+    var currentMonthStuff = yearMonthDate;
     DateTime dayNum = currentMonthStuff.startingMonthCalenNum();
     bool inMonth = dayNum.day == 1;
     int fakeDayNum = dayNum.day;
@@ -59,7 +59,7 @@ class MonthCalendar extends StatelessWidget {
           BlocListener<MonthDateCubit, DateTime>(
             listener: ((context, state) {
               // Listen for when the month date is changed and update the calendar
-              currentMonthStuff = date;
+              currentMonthStuff = yearMonthDate;
               dayNum = currentMonthStuff.startingMonthCalenNum();
 
               // Make a list that tracks if the day is considered faded or not
@@ -119,7 +119,10 @@ class MonthCalendar extends StatelessWidget {
                                             ],
                                             child: DayDialog(
                                               date: loopDayNum,
-                                              currentMonth: date,
+                                              dayEventList:
+                                                  monthList[loopDayNum.monthlyMapDayIndex(currentMonth: yearMonthDate)]
+                                                      .values
+                                                      .toList(),
                                             )));
                               }
                             },
@@ -177,7 +180,7 @@ class MonthCalendar extends StatelessWidget {
 
     // This index logic ensure the correct for the day is grabbed since the list
     // contains events starting from the previous month into the next month afterwards as well
-    int index = dayNum.monthlyMapDayIndex(currentMonth: date);
+    int index = dayNum.monthlyMapDayIndex(currentMonth: yearMonthDate);
 
     monthListCopy[index] = monthList[index].values.toList();
     monthListCopy[index].sort((a, b) {
