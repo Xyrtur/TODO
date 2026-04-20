@@ -119,10 +119,7 @@ class MonthCalendar extends StatelessWidget {
                                             ],
                                             child: DayDialog(
                                               date: loopDayNum,
-                                              dayEventList:
-                                                  monthList[loopDayNum.monthlyMapDayIndex(currentMonth: yearMonthDate)]
-                                                      .values
-                                                      .toList(),
+                                              currentMonth: yearMonthDate,
                                             )));
                               }
                             },

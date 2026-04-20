@@ -22,6 +22,14 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
         initialPage:
             (context.read<MonthDateCubit>().state.year - 2020) * 12 + context.read<MonthDateCubit>().state.month - 1);
 
+    calendarController.addListener(() {
+      // Only update a month's events if the page controller value is a whole number, meaning the page was fully swiped to
+      if (calendarController.page! % 1 == 0) {
+        int value = calendarController.page!.round();
+        context.read<HiveRepository>().getMonthlyEvents(date: DateTime(2020 + (value / 12).floor(), value % 12 + 1));
+      }
+    });
+
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -189,14 +197,9 @@ class MonthlyPageState extends State<MonthlyPage> with WidgetsBindingObserver {
                         .read<HiveRepository>()
                         .getMonthlyEvents(date: DateTime(2020 + (index / 12).floor(), index % 12 + 1));
 
-                    // Deep copy the maps inside to a new list
-                    final monthList = [
-                      for (final map in context.read<HiveRepository>().thisMonthEventsMaps) {...map}
-                    ];
-
                     return MonthCalendar(
                       yearMonthDate: DateTime(2020 + (index / 12).floor(), index % 12 + 1),
-                      monthList: monthList,
+                      monthList: context.read<HiveRepository>().thisMonthEventsMaps,
                     );
                   },
                 ))
