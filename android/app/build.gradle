@@ -30,7 +30,7 @@ if (keystorePropertiesFile.exists()) {
 }
 android {
     namespace "com.list.todo"
-    compileSdkVersion 36
+    compileSdkVersion 37
     ndkVersion flutter.ndkVersion
 
     compileOptions {

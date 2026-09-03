@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../models/future_todo.dart';
+import '../../models/future_todo.dart';
 
 abstract class ExpandableEvent extends Equatable {
   final List<FutureTodo> todoList;

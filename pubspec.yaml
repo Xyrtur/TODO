@@ -42,7 +42,7 @@ dependencies:
   intl: ^0.20.2
   flutter_svg: ^2.0.5
   time_range_picker: ^2.2.0
-  calendar_date_picker2: ^2.0.1
+  calendar_date_picker2: ^3.0.0
   aligned_dialog: ^0.0.6
   dotted_line: ^3.1.0
   hive: ^2.2.3
@@ -52,10 +52,10 @@ dependencies:
   animated_splash_screen: ^1.3.0
   animated_text_kit: ^4.2.2
   page_transition: ^2.0.9
-  permission_handler: ^12.0.1
+  permission_handler: ^13.0.1
   path_provider: ^2.0.11
-  file_picker: ^11.0.2
-  share_plus: ^7.2.1
+  file_picker: ^12.2.0
+  share_plus: ^13.3.0
 
   # Sentry code to get emailed exceptions  
   sentry_flutter: ^9.18.0

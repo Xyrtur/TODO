@@ -488,15 +488,15 @@ class HiveRepository {
 
     // Get the user to pick a zip file
     FilePicker.clearTemporaryFiles();
-    FilePickerResult? result =
+    List<PlatformFile> result =
         await FilePicker.pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
 
-    if (result != null) {
+    if (result.isNotEmpty) {
       await monthlyHive.close();
       await dailyHive.close();
       await futureTodosHive.close();
 
-      final inputStream = InputFileStream(result.files.single.path!);
+      final inputStream = InputFileStream(result.single.path!);
       final archive = ZipDecoder().decodeStream(inputStream);
 
       // For all of the entries in the archive
