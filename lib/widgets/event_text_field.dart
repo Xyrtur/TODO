@@ -10,8 +10,10 @@ class EventNameTextField extends StatefulWidget {
 }
 
 class _EventNameTextFieldState extends State<EventNameTextField> {
-  OutlineInputBorder border =
-      OutlineInputBorder(borderSide: const BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(5));
+  OutlineInputBorder border = OutlineInputBorder(
+    borderSide: BorderSide(color: Centre.offWhite),
+    borderRadius: BorderRadius.circular(5),
+  );
   @override
   Widget build(BuildContext context) {
     return Padding(

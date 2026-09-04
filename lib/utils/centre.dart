@@ -14,13 +14,13 @@ class Centre {
   static Color bgColor = const Color.fromARGB(255, 27, 27, 27);
   static Color lighterBgColor = const Color.fromARGB(255, 37, 37, 37);
   static Color darkerBgColor = const Color.fromARGB(255, 20, 20, 20);
-  static Color textColor = const Color.fromARGB(255, 250, 250, 253);
+  static Color offWhite = const Color.fromARGB(255, 250, 250, 253);
   static Color darkerDialogBgColor = const Color.fromARGB(255, 54, 54, 54);
   static Color editButtonColor = const Color.fromARGB(255, 78, 78, 78);
   static Color dialogBgColor = const Color.fromARGB(255, 66, 66, 66);
   static Color lighterDialogColor = const Color.fromARGB(255, 110, 110, 110);
-  static Color secondaryColor = const Color.fromARGB(255, 129, 155, 228);
-  static Color primaryColor = const Color.fromARGB(255, 255, 205, 148);
+  static Color primaryColor = const Color(0xFFB18F98);
+  static Color secondaryColor = const Color(0xFF86AAA5);
 
   static const List<Color> colors = [
     // First row
@@ -49,22 +49,46 @@ class Centre {
   ];
 
   static final todoText = TextStyle(
-      color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 3.5, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w400,
+    fontSize: Centre.safeBlockHorizontal * 4.2,
+    fontFamily: 'Raleway',
+  );
 
   static final todoSemiTitle = TextStyle(
-      color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 6.2, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w400,
+    fontSize: Centre.safeBlockHorizontal * 6.2,
+    fontFamily: 'Raleway',
+  );
 
   static final todoTitle = TextStyle(
-      color: textColor, fontWeight: FontWeight.w600, fontSize: Centre.safeBlockHorizontal * 6, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w600,
+    fontSize: Centre.safeBlockHorizontal * 6,
+    fontFamily: 'Raleway',
+  );
 
   static final dialogText = TextStyle(
-      color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 4.2, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w400,
+    fontSize: Centre.safeBlockHorizontal * 4.4,
+    fontFamily: 'Raleway',
+  );
 
   static final smallerDialogText = TextStyle(
-      color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 4, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w400,
+    fontSize: Centre.safeBlockHorizontal * 5,
+    fontFamily: 'Raleway',
+  );
 
   static final titleDialogText = TextStyle(
-      color: textColor, fontWeight: FontWeight.w400, fontSize: Centre.safeBlockHorizontal * 5.2, fontFamily: 'Raleway');
+    color: offWhite,
+    fontWeight: FontWeight.w400,
+    fontSize: Centre.safeBlockHorizontal * 5.5,
+    fontFamily: 'Raleway',
+  );
 
   void init(BuildContext buildContext) {
     MediaQueryData mediaQueryData;

@@ -10,75 +10,89 @@ class TodoTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TodoBloc, TodoState>(buildWhen: (previousState, state) {
-      return true;
-    }, builder: (context, state) {
-      DateTime currentDate = context.read<DateCubit>().state;
-      List<Widget> schedBlockList = [];
+    return BlocBuilder<TodoBloc, TodoState>(
+      buildWhen: (previousState, state) {
+        return true;
+      },
+      builder: (context, state) {
+        DateTime currentDate = context.read<DateCubit>().state;
+        List<Widget> schedBlockList = [];
 
-      // Marks whether or not going through the events has passed 1600 yet or not
-      // We only want to make the checks once
-      bool barrierHit = false;
+        // Marks whether or not going through the events has passed 1600 yet or not
+        // We only want to make the checks once
+        bool barrierHit = false;
 
-      // Go through each of the events in their order
-      for (dynamic key in state.orderedDailyKeyList) {
-        EventData event = state.dailyTableMap[key]!;
+        // Go through each of the events in their order
+        for (dynamic key in state.orderedDailyKeyList) {
+          EventData event = state.dailyTableMap[key]!;
 
-        // Marks the middle of the table schedule where it breaks to the next side
-        DateTime mark16 = currentDate.add(const Duration(hours: 16));
+          // Marks the middle of the table schedule where it breaks to the next side
+          DateTime mark16 = currentDate.add(const Duration(hours: 16));
 
-        if (!barrierHit && event.start.isBefore(mark16) && event.end.isAfter(mark16)) {
-          barrierHit = true;
-          // Creates two schedule blocks for one event, one block for each side of the table
+          if (!barrierHit && event.start.isBefore(mark16) && event.end.isAfter(mark16)) {
+            barrierHit = true;
+            // Creates two schedule blocks for one event, one block for each side of the table
 
-          // Want to know which block is larger, the block before 1600 or after to see which block displays the event text
-          bool firstBlockLarger = mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
+            // Want to know which block is larger, the block before 1600 or after to see which block displays the event text
+            bool firstBlockLarger = mark16.difference(event.start).inMinutes >= event.end.difference(mark16).inMinutes;
 
-          // Only wrap the split schedule blocks with the cubit so that dragging one also affects the other
-          schedBlockList.add(BlocBuilder<DraggingSplitBlockCubit, bool>(
-            builder: (context, state) => ScheduleBlock(
-                dottedOutlineKey: dottedOutlineKey,
-                event: event.copyWith(otherEnd: mark16),
-                dragging: state,
-                actualEvent: event,
-                firstBlockLarger: firstBlockLarger,
-                currentDate: currentDate.add(const Duration(hours: 7)),
-                context: context),
-          ));
+            // Only wrap the split schedule blocks with the cubit so that dragging one also affects the other
+            schedBlockList.add(
+              BlocBuilder<DraggingSplitBlockCubit, bool>(
+                builder: (context, state) => ScheduleBlock(
+                  dottedOutlineKey: dottedOutlineKey,
+                  event: event.copyWith(otherEnd: mark16),
+                  dragging: state,
+                  actualEvent: event,
+                  firstBlockLarger: firstBlockLarger,
+                  currentDate: currentDate.add(const Duration(hours: 7)),
+                  context: context,
+                ),
+              ),
+            );
 
-          schedBlockList.add(BlocBuilder<DraggingSplitBlockCubit, bool>(
-              builder: (context, state) => ScheduleBlock(
+            schedBlockList.add(
+              BlocBuilder<DraggingSplitBlockCubit, bool>(
+                builder: (context, state) => ScheduleBlock(
                   dottedOutlineKey: dottedOutlineKey,
                   firstBlockLarger: !firstBlockLarger,
                   dragging: state,
                   event: event.copyWith(otherStart: mark16),
                   actualEvent: event,
                   currentDate: currentDate.add(const Duration(hours: 7)),
-                  context: context)));
-        } else {
-          schedBlockList.add(ScheduleBlock(
-              dottedOutlineKey: dottedOutlineKey,
-              event: event,
-              currentDate: currentDate.add(const Duration(hours: 7)),
-              context: context));
+                  context: context,
+                ),
+              ),
+            );
+          } else {
+            schedBlockList.add(
+              ScheduleBlock(
+                dottedOutlineKey: dottedOutlineKey,
+                event: event,
+                currentDate: currentDate.add(const Duration(hours: 7)),
+                context: context,
+              ),
+            );
+          }
         }
-      }
-      return Stack(children: schedBlockList);
-    });
+        return Stack(children: schedBlockList);
+      },
+    );
   }
 }
 
 // ignore: must_be_immutable
 class ScheduleBlock extends StatelessWidget {
-  ScheduleBlock(
-      {super.key,
-      required this.dottedOutlineKey,
-      this.actualEvent,
-      required this.event,
-      required this.currentDate,
-      required this.context,
-      this.dragging,
-      this.firstBlockLarger = true});
+  ScheduleBlock({
+    super.key,
+    required this.dottedOutlineKey,
+    this.actualEvent,
+    required this.event,
+    required this.currentDate,
+    required this.context,
+    this.dragging,
+    this.firstBlockLarger = true,
+  });
   final BuildContext context;
   final DateTime currentDate;
   final bool? dragging;
@@ -95,22 +109,19 @@ class ScheduleBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget containerBlock(bool feedBack) {
-      int heightInMinutes = (feedBack ? actualEvent ?? event : event)
-          .end
+      int heightInMinutes = (feedBack ? actualEvent ?? event : event).end
           .difference((feedBack ? actualEvent ?? event : event).start)
           .inMinutes;
       return Material(
         color: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(5)),
-              color: event.finished ? Colors.transparent : Color(event.color),
-              border: event.finished
-                  ? Border.all(
-                      color: Color(event.color),
-                      width: Centre.safeBlockHorizontal * 0.5,
-                    )
-                  : Border.all(width: 0)),
+            borderRadius: const BorderRadius.all(Radius.circular(3)),
+            color: event.finished ? Colors.transparent : Color(event.color),
+            border: event.finished
+                ? Border.all(color: Color(event.color), width: Centre.safeBlockHorizontal * 0.5)
+                : Border.all(width: 0),
+          ),
           width: Centre.safeBlockHorizontal * 35,
           padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 2),
           height: Centre.scheduleBlock * (heightInMinutes / 60),
@@ -121,64 +132,65 @@ class ScheduleBlock extends StatelessWidget {
                     maxLines: heightInMinutes > 45
                         ? 3
                         : heightInMinutes >= 30
-                            ? 2
-                            : 1,
+                        ? 2
+                        : 1,
                     textAlign: TextAlign.center,
-                    textHeightBehavior:
-                        const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
                     overflow: TextOverflow.ellipsis,
                     style: Centre.todoText.copyWith(
-                        color: event.finished ? Centre.textColor : Colors.black,
-                        height: 1,
-                        decoration: event.finished ? TextDecoration.lineThrough : null),
+                      color: event.finished ? Centre.offWhite : Colors.black,
+                      height: 1,
+                      decoration: event.finished ? TextDecoration.lineThrough : null,
+                    ),
                   ),
                 )
-              : const SizedBox(
-                  width: 0,
-                  height: 0,
-                ),
+              : const SizedBox(width: 0, height: 0),
         ),
       );
     }
 
     showDailyDialog() {
       showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return GestureDetector(
-                onTap: () {},
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: MultiBlocProvider(
-                      providers: [
-                        BlocProvider<TimeRangeCubit>(
-                          create: (_) => TimeRangeCubit(TimeRangeState(
-                              TimeOfDay(
-                                  hour: (actualEvent ?? event).start.hour, minute: (actualEvent ?? event).start.minute),
-                              TimeOfDay(
-                                  hour: (actualEvent ?? event).end.hour, minute: (actualEvent ?? event).end.minute))),
-                        ),
-                        BlocProvider<ColorCubit>(
-                          create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
-                        ),
-                        BlocProvider.value(value: context.read<DateCubit>()),
-                        BlocProvider<DailyTimeBtnsCubit>(
-                          create: (_) => DailyTimeBtnsCubit(),
-                        ),
-                        BlocProvider.value(value: context.read<TodoBloc>()),
-                        BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-                      ],
-                      child: AddEventDialog.daily(
-                        event: actualEvent ?? event,
-                      )),
-                ));
-          });
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return GestureDetector(
+            onTap: () {},
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<TimeRangeCubit>(
+                    create: (_) => TimeRangeCubit(
+                      TimeRangeState(
+                        TimeOfDay(hour: (actualEvent ?? event).start.hour, minute: (actualEvent ?? event).start.minute),
+                        TimeOfDay(hour: (actualEvent ?? event).end.hour, minute: (actualEvent ?? event).end.minute),
+                      ),
+                    ),
+                  ),
+                  BlocProvider<ColorCubit>(
+                    create: (_) => ColorCubit(Centre.colors.indexOf(Color((actualEvent ?? event).color))),
+                  ),
+                  BlocProvider.value(value: context.read<DateCubit>()),
+                  BlocProvider<DailyTimeBtnsCubit>(create: (_) => DailyTimeBtnsCubit()),
+                  BlocProvider.value(value: context.read<TodoBloc>()),
+                  BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                ],
+                child: AddEventDialog.daily(event: actualEvent ?? event),
+              ),
+            ),
+          );
+        },
+      );
     }
 
     // Get the initial position of the block on the table
     top = Centre.scheduleBlock * (event.start.difference(currentDate).inMinutes % 540 / 60);
     bottom = top + Centre.scheduleBlock * (event.end.difference(event.start).inMinutes / 60);
-    left = event.start.isBefore(currentDate.add(const Duration(hours: 9))) &&
+    left =
+        event.start.isBefore(currentDate.add(const Duration(hours: 9))) &&
             (event.start.isAfter(currentDate) || event.start.isAtSameMomentAs(currentDate))
         ? Centre.safeBlockHorizontal * 5
         : Centre.safeBlockHorizontal * 54;
@@ -205,7 +217,8 @@ class ScheduleBlock extends StatelessWidget {
           }
         },
         onDragEnd: (drag) {
-          double height = Centre.scheduleBlock *
+          double height =
+              Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60);
 
           RenderBox box = dottedOutlineKey.currentContext!.findRenderObject() as RenderBox;
@@ -219,7 +232,8 @@ class ScheduleBlock extends StatelessWidget {
             return;
           } else {
             // Round to the nearest 5 minutes
-            top = ((drag.offset.dy - topOfTable) / (Centre.scheduleBlock * 5 / 60)).round() *
+            top =
+                ((drag.offset.dy - topOfTable) / (Centre.scheduleBlock * 5 / 60)).round() *
                 (Centre.scheduleBlock * 5 / 60);
           }
 
@@ -231,9 +245,11 @@ class ScheduleBlock extends StatelessWidget {
           }
 
           // Get the start and end times from the position the block was dragged to
-          DateTime start = currentDate.add(Duration(
-              minutes:
-                  (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round()));
+          DateTime start = currentDate.add(
+            Duration(
+              minutes: (top / Centre.scheduleBlock * 60 + (left == Centre.safeBlockHorizontal * 54 ? 540 : 0)).round(),
+            ),
+          );
 
           DateTime end = start.add(Duration(minutes: (height / Centre.scheduleBlock * 60).round()));
 
@@ -251,21 +267,26 @@ class ScheduleBlock extends StatelessWidget {
           }
 
           // Update the event with the new times, which rebuilds the table
-          context.read<TodoBloc>().add(TodoUpdate(
+          context.read<TodoBloc>().add(
+            TodoUpdate(
               fromDailyMonthlyList: false,
               event: (actualEvent ?? event).edit(
-                  fullDay: (actualEvent ?? event).fullDay,
-                  start: start,
-                  end: end,
-                  color: (actualEvent ?? event).color,
-                  text: (actualEvent ?? event).text,
-                  finished: (actualEvent ?? event).finished)));
+                fullDay: (actualEvent ?? event).fullDay,
+                start: start,
+                end: end,
+                color: (actualEvent ?? event).color,
+                text: (actualEvent ?? event).text,
+                finished: (actualEvent ?? event).finished,
+              ),
+            ),
+          );
         },
         feedback: containerBlock(true),
         childWhenDragging: Container(
           color: Colors.transparent,
           width: Centre.safeBlockHorizontal * 35,
-          height: Centre.scheduleBlock *
+          height:
+              Centre.scheduleBlock *
               ((actualEvent ?? event).end.difference((actualEvent ?? event).start).inMinutes / 60),
         ),
         child: GestureDetector(
@@ -273,9 +294,9 @@ class ScheduleBlock extends StatelessWidget {
             if (context.read<ToggleChecklistEditingCubit>().state) {
               showDailyDialog();
             } else {
-              context
-                  .read<TodoBloc>()
-                  .add(TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()));
+              context.read<TodoBloc>().add(
+                TodoUpdate(fromDailyMonthlyList: false, event: (actualEvent ?? event).toggleFinished()),
+              );
             }
           },
           child: !(dragging ?? false)

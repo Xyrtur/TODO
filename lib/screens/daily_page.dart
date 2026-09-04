@@ -35,19 +35,26 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       DateTime onDate = context.read<DateCubit>().state;
       if (DateTime.now().isAfter(context.read<FirstDailyDateBtnCubit>().state.add(const Duration(hours: 25)))) {
-        context.read<FirstDailyDateBtnCubit>().update(DateTime(
+        context.read<FirstDailyDateBtnCubit>().update(
+          DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day -
-                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0)));
+                (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
+          ),
+        );
         if (DateTime.now().isAfter(onDate)) {
           context.read<DateCubit>().setToCurrentDayOnResume();
-          context.read<TodoBloc>().add(TodoDateChange(
+          context.read<TodoBloc>().add(
+            TodoDateChange(
               date: DateTime(
-                  DateTime.now().year,
-                  DateTime.now().month,
-                  DateTime.now().day -
-                      (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0))));
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day -
+                    (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
+              ),
+            ),
+          );
         } else {
           // Make sure daily date buttons update
           context.read<DateCubit>().changeDay(DateTime(onDate.year, onDate.month, onDate.day));
@@ -60,25 +67,27 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
   }
 
   Widget changeDailyDateBtns() {
-    return BlocBuilder<DateCubit, DateTime>(builder: (context, state) {
-      DateTime todayDate = DateTime(
+    return BlocBuilder<DateCubit, DateTime>(
+      builder: (context, state) {
+        DateTime todayDate = DateTime(
           DateTime.now().year,
           DateTime.now().month,
           DateTime.now().day -
-              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0));
-      return Padding(
-        padding: EdgeInsets.only(top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
-        child: Row(
-          children: [
-            for (int day = 0; day < 5; day++)
-              GestureDetector(
-                onTap: () {
-                  context.read<DateCubit>().changeDay(todayDate.addDurationWithoutDST(Duration(days: day)));
-                  context
-                      .read<TodoBloc>()
-                      .add(TodoDateChange(date: todayDate.addDurationWithoutDST(Duration(days: day))));
-                },
-                child: Container(
+              (DateTime.now().hour == 0 || DateTime.now().hour == 1 && DateTime.now().minute == 0 ? 1 : 0),
+        );
+        return Padding(
+          padding: EdgeInsets.only(top: Centre.safeBlockVertical, bottom: Centre.safeBlockVertical),
+          child: Row(
+            children: [
+              for (int day = 0; day < 5; day++)
+                GestureDetector(
+                  onTap: () {
+                    context.read<DateCubit>().changeDay(todayDate.addDurationWithoutDST(Duration(days: day)));
+                    context.read<TodoBloc>().add(
+                      TodoDateChange(date: todayDate.addDurationWithoutDST(Duration(days: day))),
+                    );
+                  },
+                  child: Container(
                     height: Centre.safeBlockHorizontal * 10,
                     width: Centre.safeBlockHorizontal * 10,
                     margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 2),
@@ -103,12 +112,14 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                         DateFormat('E').format(todayDate.addDurationWithoutDST(Duration(days: day)))[0],
                         style: Centre.titleDialogText.copyWith(color: Centre.primaryColor),
                       ),
-                    )),
-              )
-          ],
-        ),
-      );
-    });
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -120,108 +131,92 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
         context: context,
         builder: (BuildContext dialogContext) {
           return GestureDetector(
-              onTap: () {},
-              child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: MultiBlocProvider(providers: [
-                    BlocProvider<TimeRangeCubit>(
-                      create: (_) => TimeRangeCubit(TimeRangeState(null, null)),
-                    ),
-                    BlocProvider<DailyTimeBtnsCubit>(
-                      create: (_) => DailyTimeBtnsCubit(),
-                    ),
-                    BlocProvider<ColorCubit>(
-                      create: (_) => ColorCubit(null),
-                    ),
-                    BlocProvider.value(value: context.read<DateCubit>()),
-                    BlocProvider.value(value: context.read<TodoBloc>()),
-                    BlocProvider.value(value: context.read<UnfinishedListBloc>()),
-                  ], child: AddEventDialog.daily())));
+            onTap: () {},
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<TimeRangeCubit>(create: (_) => TimeRangeCubit(TimeRangeState(null, null))),
+                  BlocProvider<DailyTimeBtnsCubit>(create: (_) => DailyTimeBtnsCubit()),
+                  BlocProvider<ColorCubit>(create: (_) => ColorCubit(null)),
+                  BlocProvider.value(value: context.read<DateCubit>()),
+                  BlocProvider.value(value: context.read<TodoBloc>()),
+                  BlocProvider.value(value: context.read<UnfinishedListBloc>()),
+                ],
+                child: AddEventDialog.daily(),
+              ),
+            ),
+          );
         },
       );
     }
 
-    Widget addingEditingRow = Row(children: [
-      BlocBuilder<ToggleChecklistEditingCubit, bool>(builder: (context, state) {
-        return Container(
-          margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
-          height: Centre.safeBlockVertical * 4.3,
+    Widget addingEditingRow = Row(
+      children: [
+        BlocBuilder<ToggleChecklistEditingCubit, bool>(
+          builder: (context, state) {
+            return Container(
+              margin: EdgeInsets.only(right: Centre.safeBlockHorizontal * 4),
+              height: Centre.safeBlockVertical * 4.5,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Centre.lighterBgColor,
+                  boxShadow: [
+                    BoxShadow(color: Centre.darkerBgColor, spreadRadius: 5, blurRadius: 7, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: ToggleButtons(
+                  onPressed: (int index) {
+                    context.read<ToggleChecklistEditingCubit>().toggle();
+                  },
+                  isSelected: [!state, state], // editing, !editing
+                  selectedColor: Centre.lighterBgColor,
+                  color: Centre.primaryColor,
+                  fillColor: Centre.primaryColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(40)),
+                  borderWidth: Centre.safeBlockHorizontal,
+                  borderColor: Centre.lighterBgColor,
+                  selectedBorderColor: Centre.lighterBgColor,
+                  children: <Widget>[
+                    Icon(Icons.checklist_rounded, size: Centre.safeBlockVertical * 3),
+                    Icon(Icons.edit, size: Centre.safeBlockVertical * 3),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        GestureDetector(
+          onTap: () => showDailyDialog(),
           child: Container(
+            margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 4),
+            padding: EdgeInsets.all(Centre.safeBlockHorizontal),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(40),
               color: Centre.lighterBgColor,
               boxShadow: [
-                BoxShadow(
-                  color: Centre.darkerBgColor,
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 2),
-                ),
+                BoxShadow(color: Centre.darkerBgColor, spreadRadius: 5, blurRadius: 7, offset: const Offset(0, 2)),
               ],
             ),
-            child: ToggleButtons(
-              onPressed: (int index) {
-                context.read<ToggleChecklistEditingCubit>().toggle();
-              },
-              isSelected: [!state, state], // editing, !editing
-              selectedColor: Centre.lighterBgColor,
-              color: Centre.primaryColor,
-              fillColor: Centre.primaryColor,
-              borderRadius: const BorderRadius.all(Radius.circular(40)),
-              borderWidth: Centre.safeBlockHorizontal,
-              borderColor: Centre.lighterBgColor,
-              selectedBorderColor: Centre.lighterBgColor,
-              children: <Widget>[
-                Icon(
-                  Icons.checklist_rounded,
-                  size: Centre.safeBlockVertical * 3,
-                ),
-                Icon(
-                  Icons.edit,
-                  size: Centre.safeBlockVertical * 3,
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-      GestureDetector(
-        onTap: () => showDailyDialog(),
-        child: Container(
-          margin: EdgeInsets.only(left: Centre.safeBlockHorizontal, right: Centre.safeBlockHorizontal * 4),
-          padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(40),
-            color: Centre.lighterBgColor,
-            boxShadow: [
-              BoxShadow(
-                color: Centre.darkerBgColor,
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.add,
-            color: Centre.primaryColor,
-            size: Centre.safeBlockHorizontal * 8,
+            child: Icon(Icons.add, color: Centre.primaryColor, size: Centre.safeBlockHorizontal * 8),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
 
-    Widget dailyDateColumn = BlocBuilder<DateCubit, DateTime>(builder: (unUsedContext, state) {
-      return Column(
-        children: [
-          SizedBox(
-            child: Align(
-              alignment: Alignment.topLeft,
+    Widget dailyDateColumn = BlocBuilder<DateCubit, DateTime>(
+      builder: (unUsedContext, state) {
+        return Column(
+          children: [
+            SizedBox(
+              child: Align(
+                alignment: Alignment.topLeft,
 
-              child: GestureDetector(
-                onTap: () {
-                  showAlignedDialog(
-                      barrierColor: Centre.colors[3].withOpacity(0.2),
+                child: GestureDetector(
+                  onTap: () {
+                    showAlignedDialog(
+                      barrierColor: Centre.colors[3].withValues(alpha: 0.2),
                       followerAnchor: Alignment.topLeft,
                       targetAnchor: Alignment.topLeft,
                       offset: Offset(Centre.safeBlockHorizontal * 7, Centre.safeBlockVertical * 9),
@@ -233,57 +228,63 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                             BlocProvider.value(value: context.read<ImportExportBloc>()),
                             BlocProvider.value(value: context.read<DateCubit>()),
                             BlocProvider.value(value: context.read<TodoBloc>()),
-                            BlocProvider.value(value: context.read<UnfinishedListBloc>())
+                            BlocProvider.value(value: context.read<UnfinishedListBloc>()),
                           ],
                           child: const SettingsDialog(),
                         );
-                      });
-                },
-                child: SizedBox(
-                  height: Centre.safeBlockHorizontal * 9,
-                  width: Centre.safeBlockHorizontal * 9,
-                  child: Icon(
-                    Icons.settings_rounded,
-                    color: Centre.secondaryColor,
-                    size: Centre.safeBlockHorizontal * 7,
+                      },
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Centre.safeBlockVertical,
+                      horizontal: Centre.safeBlockHorizontal * 2,
+                    ),
+                    child: Icon(
+                      Icons.settings_rounded,
+                      color: Centre.secondaryColor,
+                      size: Centre.safeBlockHorizontal * 7,
+                    ),
                   ),
                 ),
+                // )
               ),
-              // )
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
-            child: Text(DateFormat('E').format(state), style: Centre.todoSemiTitle),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
-            child: Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
-          ),
-        ],
-      );
-    });
+            Padding(
+              padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+              child: Text(DateFormat('E').format(state), style: Centre.todoSemiTitle),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+              child: Text(DateFormat('d, MMM.').format(state), style: Centre.smallerDialogText),
+            ),
+          ],
+        );
+      },
+    );
 
-    Widget dailyPageHeader = Row(children: [
-      Expanded(
-        child: BlocListener<TodoBloc, TodoState>(
-          listener: (context, state) {
-            if (state.dateChanged) {
-              context.read<DailyMonthlyListCubit>().update();
-            }
-          },
-          child: dailyDateColumn,
+    Widget dailyPageHeader = Row(
+      children: [
+        Expanded(
+          child: BlocListener<TodoBloc, TodoState>(
+            listener: (context, state) {
+              if (state.dateChanged) {
+                context.read<DailyMonthlyListCubit>().update();
+              }
+            },
+            child: dailyDateColumn,
+          ),
         ),
-      ),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          changeDailyDateBtns(),
-          // importExportRow,
-          addingEditingRow,
-        ],
-      ),
-    ]);
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            changeDailyDateBtns(),
+            // importExportRow,
+            addingEditingRow,
+          ],
+        ),
+      ],
+    );
 
     Widget centerTicks = Center(
       child: Column(
@@ -291,8 +292,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           Container(
             margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.167),
             decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
+              color: Colors.transparent,
+              border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor)),
+            ),
             height: Centre.scheduleBlock * 0.167,
             width: Centre.safeBlockHorizontal * 2.5,
           ),
@@ -300,8 +302,9 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
             Container(
               margin: EdgeInsets.only(top: Centre.scheduleBlock * 0.333),
               decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor))),
+                color: Colors.transparent,
+                border: Border.symmetric(horizontal: BorderSide(color: Centre.primaryColor)),
+              ),
               height: Centre.scheduleBlock * 0.167,
               width: Centre.safeBlockHorizontal * 2.5,
             ),
@@ -313,85 +316,69 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
       key: key,
       children: [
         Expanded(
-            child: Container(
-                padding: const EdgeInsets.only(right: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 7; i <= 15; i++)
-                      Container(
-                        height: Centre.scheduleBlock,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          border: RDottedLineBorder(
-                            top: const BorderSide(
-                              width: 1,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        child: Stack(
+          child: Container(
+            padding: const EdgeInsets.only(right: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (int i = 7; i <= 15; i++)
+                  Container(
+                    height: Centre.scheduleBlock,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: RDottedLineBorder(top: const BorderSide(width: 1, color: Colors.white)),
+                    ),
+                    child: Stack(
+                      children: [
+                        Text(i.toString(), style: Centre.todoText),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              i.toString(),
-                              style: Centre.todoText,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                    height: Centre.scheduleBlock / 2 -
-                                        0.5), // Offset here helps alignment with schedule blocks
-                                DottedLine(
-                                  dashColor: Centre.lighterDialogColor,
-                                )
-                              ],
-                            )
+                            SizedBox(
+                              height: Centre.scheduleBlock / 2 - 0.5,
+                            ), // Offset here helps alignment with schedule blocks
+                            DottedLine(dashColor: Centre.lighterDialogColor),
                           ],
                         ),
-                      )
-                  ],
-                ))),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
         Expanded(
-            child: Container(
-                padding: const EdgeInsets.only(left: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 16; i <= 24; i++)
-                      Container(
-                        height: Centre.scheduleBlock,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          border: RDottedLineBorder(
-                            top: BorderSide(
-                              width: 1,
-                              color: Centre.textColor,
-                            ),
-                          ),
-                        ),
-                        child: Stack(
+          child: Container(
+            padding: const EdgeInsets.only(left: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (int i = 16; i <= 24; i++)
+                  Container(
+                    height: Centre.scheduleBlock,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: RDottedLineBorder(top: BorderSide(width: 1, color: Centre.offWhite)),
+                    ),
+                    child: Stack(
+                      children: [
+                        Text((i % 24).toString(), style: Centre.todoText),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              (i % 24).toString(),
-                              style: Centre.todoText,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                    height: Centre.scheduleBlock / 2 -
-                                        0.5), // Offset here helps alignment with schedule blocks
-                                DottedLine(
-                                  dashColor: Centre.lighterDialogColor,
-                                )
-                              ],
-                            )
+                            SizedBox(
+                              height: Centre.scheduleBlock / 2 - 0.5,
+                            ), // Offset here helps alignment with schedule blocks
+                            DottedLine(dashColor: Centre.lighterDialogColor),
                           ],
                         ),
-                      )
-                  ],
-                )))
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
 
@@ -410,7 +397,11 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
           panel: DailyPanel(),
           body: Padding(
             padding: EdgeInsets.fromLTRB(
-                Centre.safeBlockHorizontal, 0, Centre.safeBlockHorizontal, Centre.safeBlockVertical),
+              Centre.safeBlockHorizontal,
+              0,
+              Centre.safeBlockHorizontal,
+              Centre.safeBlockVertical,
+            ),
             child: Column(
               children: [
                 dailyPageHeader,
@@ -422,11 +413,10 @@ class DailyPageState extends State<DailyPage> with WidgetsBindingObserver {
                       children: [
                         dottedBorders,
                         BlocProvider(
-                            create: (_) => DraggingSplitBlockCubit(),
-                            child: TodoTable(
-                              dottedOutlineKey: key,
-                            )),
-                        centerTicks
+                          create: (_) => DraggingSplitBlockCubit(),
+                          child: TodoTable(dottedOutlineKey: key),
+                        ),
+                        centerTicks,
                       ],
                     ),
                   ),

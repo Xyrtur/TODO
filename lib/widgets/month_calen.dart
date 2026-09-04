@@ -44,15 +44,19 @@ class MonthCalendar extends StatelessWidget {
             // Weekday strings to display across the top of calendar
             child: Row(
               children: weekdays
-                  .map((day) => SizedBox(
-                        width: Centre.safeBlockHorizontal * 13.1,
-                        child: Text(
-                          day,
-                          textHeightBehavior: const TextHeightBehavior(
-                              applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
-                          style: Centre.todoText.copyWith(color: Centre.pink),
+                  .map(
+                    (day) => SizedBox(
+                      width: Centre.safeBlockHorizontal * 13.1,
+                      child: Text(
+                        day,
+                        textHeightBehavior: const TextHeightBehavior(
+                          applyHeightToFirstAscent: false,
+                          applyHeightToLastDescent: false,
                         ),
-                      ))
+                        style: Centre.todoText.copyWith(color: Centre.pink),
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -98,41 +102,46 @@ class MonthCalendar extends StatelessWidget {
                     children: [
                       for (int week = 1; week < 7; week++)
                         TableRow(
-                            children: weekdays.map((day) {
-                          // Account for daylight savings: sometimes 24 hours is seen as 23 hours or 25 if the country is jumping ahead or falling backward that day
-                          // This solution converts the local time to UTC so that daylight savings will have no effect on the added 24 hours, then parsing the string
-                          // version keeps that same UTC time but seen as a local time by the DateTime class
-                          dayNum = dayNum.addDurationWithoutDST(const Duration(hours: 24));
+                          children: weekdays.map((day) {
+                            // Account for daylight savings: sometimes 24 hours is seen as 23 hours or 25 if the country is jumping ahead or falling backward that day
+                            // This solution converts the local time to UTC so that daylight savings will have no effect on the added 24 hours, then parsing the string
+                            // version keeps that same UTC time but seen as a local time by the DateTime class
+                            dayNum = dayNum.addDurationWithoutDST(const Duration(hours: 24));
 
-                          DateTime loopDayNum = dayNum;
+                            DateTime loopDayNum = dayNum;
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (!fadedList[(week - 1) * 7 + weekdays.indexOf(day)]) {
-                                showDialog(
+                            return GestureDetector(
+                              onTap: () {
+                                if (!fadedList[(week - 1) * 7 + weekdays.indexOf(day)]) {
+                                  showDialog(
                                     context: context,
                                     builder: (BuildContext tcontext) => MultiBlocProvider(
-                                            providers: [
-                                              BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
-                                              BlocProvider.value(value: context.read<DateCubit>()),
-                                              BlocProvider.value(value: context.read<MonthDateCubit>()),
-                                            ],
-                                            child: DayDialog(
-                                              date: loopDayNum,
-                                              currentMonth: yearMonthDate,
-                                            )));
-                              }
-                            },
-                            child: Container(
-                              height: Centre.safeBlockVertical * 15,
-                              color: Colors.transparent,
-                              child: Column(
+                                      providers: [
+                                        BlocProvider.value(value: context.read<MonthlyTodoBloc>()),
+                                        BlocProvider.value(value: context.read<DateCubit>()),
+                                        BlocProvider.value(value: context.read<MonthDateCubit>()),
+                                      ],
+                                      child: DayDialog(date: loopDayNum, currentMonth: yearMonthDate),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Container(
+                                height: Centre.safeBlockVertical * 15,
+                                color: Colors.transparent,
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: dayEvents(fadedList[(week - 1) * 7 + weekdays.indexOf(day)], dayNum,
-                                      weekStartingNums, weekEndingNums)),
-                            ),
-                          );
-                        }).toList())
+                                  children: dayEvents(
+                                    fadedList[(week - 1) * 7 + weekdays.indexOf(day)],
+                                    dayNum,
+                                    weekStartingNums,
+                                    weekEndingNums,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                     ],
                   ),
                 );
@@ -152,21 +161,28 @@ class MonthCalendar extends StatelessWidget {
         padding: EdgeInsets.only(left: Centre.safeBlockHorizontal * 1, bottom: Centre.safeBlockVertical * 0.5),
         child: Container(
           padding: EdgeInsets.fromLTRB(
-              Centre.safeBlockVertical * 0.3, 0, Centre.safeBlockVertical * 0.3, Centre.safeBlockVertical * 0.3),
+            Centre.safeBlockVertical * 0.5,
+            0,
+            Centre.safeBlockVertical * 0.5,
+            Centre.safeBlockVertical * 0.3,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            color: dayNum.isSameDate(other: DateTime.now(), daily: false) ? Centre.secondaryColor : Colors.transparent,
+            color: dayNum.isSameDate(other: DateTime.now(), daily: false) ? Centre.primaryColor : Colors.transparent,
           ),
           child: Text(
             dayNum.day.toString(),
-            textHeightBehavior:
-                const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
+            ),
             style: Centre.todoText.copyWith(
-                color: faded && !dayNum.isSameDate(other: DateTime.now(), daily: false)
-                    ? Colors.grey
-                    : dayNum.isSameDate(other: DateTime.now(), daily: false)
-                        ? Centre.bgColor
-                        : Centre.textColor),
+              color: faded && !dayNum.isSameDate(other: DateTime.now(), daily: false)
+                  ? Colors.grey
+                  : dayNum.isSameDate(other: DateTime.now(), daily: false)
+                  ? Centre.bgColor
+                  : Centre.offWhite,
+            ),
           ),
         ),
       ),
@@ -233,66 +249,81 @@ class MonthCalendar extends StatelessWidget {
     // Creates the event widgets in the list
     List<Widget> eventList = monthListCopy[index].map((event) {
       if (event == null) {
-        return SizedBox(
-          height: Centre.safeBlockVertical * 1.6,
-        );
+        return SizedBox(height: Centre.safeBlockVertical * 1.6);
       }
       // If the event is ranged
       if (event.fullDay && !event.start.isSameDate(other: event.end, daily: false)) {
         return Container(
           // Margin and border logic to make the event look seamless across days on the calendar
           margin: EdgeInsets.only(
-              left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
-                  ? Centre.safeBlockHorizontal * 0.7
-                  : 0,
-              right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
-                  ? Centre.safeBlockHorizontal * 0.7
-                  : 0,
-              bottom: Centre.safeBlockVertical * 0.3),
+            left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
+                ? Centre.safeBlockHorizontal * 0.7
+                : 0,
+            right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
+                ? Centre.safeBlockHorizontal * 0.7
+                : 0,
+            bottom: Centre.safeBlockVertical * 0.3,
+          ),
           padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
           decoration: BoxDecoration(
-              color: Color(event.color),
-              borderRadius: BorderRadius.horizontal(
-                left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
-                    ? const Radius.circular(10)
-                    : Radius.zero,
-                right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
-                    ? const Radius.circular(10)
-                    : Radius.zero,
-              )),
+            color: Color(event.color),
+            borderRadius: BorderRadius.horizontal(
+              left: dayNum.isSameDate(other: event.start, daily: false) || weekStartingNums.contains(dayNum)
+                  ? const Radius.circular(10)
+                  : Radius.zero,
+              right: dayNum.isSameDate(other: event.end, daily: false) || weekEndingNums.contains(dayNum)
+                  ? const Radius.circular(10)
+                  : Radius.zero,
+            ),
+          ),
           height: Centre.safeBlockVertical * 1.3,
           child: dayNum.isSameDate(other: event.start, daily: false)
               ? Center(
                   child: Text(
-                  event.text.replaceAll(' ', '\u00A0'),
-                  maxLines: 1,
-                  overflow: TextOverflow.clip,
-                  textHeightBehavior:
-                      const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
-                  style:
-                      Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
-                ))
+                    event.text.replaceAll(' ', '\u00A0'),
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
+                    style: Centre.todoText.copyWith(
+                      fontSize: Centre.safeBlockHorizontal * 8,
+                      color: Centre.darkerBgColor,
+                    ),
+                  ),
+                )
               : null,
         );
       } else {
         return Container(
           margin: EdgeInsets.only(
-              left: Centre.safeBlockHorizontal * 0.7,
-              right: Centre.safeBlockHorizontal * 0.7,
-              bottom: Centre.safeBlockVertical * 0.3),
+            left: Centre.safeBlockHorizontal * 0.7,
+            right: Centre.safeBlockHorizontal * 0.7,
+            bottom: Centre.safeBlockVertical * 0.3,
+          ),
           padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 0.2),
-          decoration:
-              BoxDecoration(color: Color(event.color), borderRadius: const BorderRadius.all(Radius.circular(10))),
+          decoration: BoxDecoration(
+            color: Color(event.color),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
+          ),
           height: Centre.safeBlockVertical * 1.3,
           child: Center(
-              child: Text(
-            event.text.replaceAll(' ', '\u00A0'),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            textHeightBehavior:
-                const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
-            style: Centre.todoText.copyWith(fontSize: Centre.safeBlockHorizontal * 2, color: Centre.darkerBgColor),
-          )),
+            child: Text(
+              event.text.replaceAll(' ', '\u00A0'),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: true,
+                applyHeightToLastDescent: false,
+              ),
+              style: Centre.todoText.copyWith(
+                fontSize: Centre.safeBlockHorizontal * 2.5,
+                height: 1,
+                color: Centre.darkerBgColor,
+              ),
+            ),
+          ),
         );
       }
     }).toList();
