@@ -199,6 +199,7 @@ class AddEventDialog extends StatelessWidget {
 
     Widget scrollableColours = RawScrollbar(
       padding: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 4),
+      interactive: false,
       trackVisibility: true,
       thumbVisibility: true,
       controller: scrollController,
